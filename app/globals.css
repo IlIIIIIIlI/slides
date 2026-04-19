@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fafafa;
+  --foreground: #09090b;
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --text-faint: #d4d4d8;
+  --teal: #14b8a6;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --amber: #f59e0b;
+  --green: #10b981;
+  --font-geist-sans: var(--font-geist-sans);
+  --font-geist-mono: var(--font-geist-mono);
+  --surface-1: #fff;
+  --surface-2: #f0f0f2;
+  --surface-3: #d4d4d8;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--background);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-mono {
+    font-family: var(--font-geist-mono), "Geist Mono", "Geist Mono Fallback", monospace;
+  }
+
+  /* Animation utilities */
+  .animate-in {
+    animation-fill-mode: both;
+  }
+
+  .fade-in {
+    animation: fadeIn var(--duration, 300ms) ease-out;
+  }
+
+  .zoom-in-95 {
+    animation: zoomIn95 var(--duration, 300ms) cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-slide-in-down {
+    animation: slideInDown 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-slide-in-up {
+    animation: slideInUp 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .duration-300 {
+    --duration: 300ms;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn95 {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Code styling */
+code {
+  font-family: var(--font-geist-mono), "Geist Mono", "Geist Mono Fallback", monospace;
+  font-size: 0.95em;
+  line-height: 1.7;
+}
+
+pre code {
+  display: block;
+  padding: 0;
+  background: transparent;
+  color: #d4d4d4;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+}
+
+/* Custom scrollbar for code blocks */
+pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+pre::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* Typography - Headlines */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+/* Display type - Large headlines */
+.type-display {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+/* Tabular numbers for slide counter */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Label styling - 10.21px */
+.slide-label {
+  font-size: 10.21px;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+
+
+
+
