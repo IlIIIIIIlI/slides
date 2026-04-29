@@ -1,0 +1,167 @@
+{
+  "id": "9f452181-5ac2-4b70-8763-00e9931bad20",
+  "title": "Andy Yang",
+  "sourceName": "AndyYang_SDE_CV_2026.pdf",
+  "sourceType": "pdf",
+  "audienceType": "technical",
+  "stylePreset": "preset_dark_minimal_01",
+  "slideCount": 14,
+  "generatedAt": "2026-04-20T13:03:20.475Z",
+  "slides": [
+    {
+      "type": "title",
+      "headline": "Andy Yang",
+      "subtitle": "Full Stack Engineer · AI Systems · Melbourne",
+      "label": "INTRO",
+      "color": "#14b8a6",
+      "notes": "Key point: Set the stage for a technical audience\n- Andy is a full-stack engineer with deep AI integration chops\n- Dual background: finance + engineering = rare signal\n- Transition: Walk through what makes this profile distinct",
+      "variant": "centered"
+    },
+    {
+      "type": "goals",
+      "headline": "What This Deck Covers",
+      "label": "OVERVIEW",
+      "color": "#14b8a6",
+      "points": [
+        "**Core Skills** — AI, cloud, full-stack, and certifications",
+        "**Recent Impact** — Production AI systems with measurable outcomes",
+        "**Technical Depth** — Architectures, tooling, and delivery cadence",
+        "**Credentials** — Competitions, academia, and finance background"
+      ],
+      "notes": "Key point: Orient the technical reviewer quickly\n- Slides are grouped by signal strength\n- Emphasise metrics and architecture decisions\n- Transition: Start with the skill stack"
+    },
+    {
+      "type": "section-divider",
+      "headline": "The Skill Stack",
+      "subtitle": "Breadth with depth — AI to infrastructure",
+      "label": "SKILLS",
+      "color": "#60a5fa",
+      "notes": "Key point: Signal range without diluting depth\n- Full-stack plus AI is the rare combo\n- Transition: Break down each domain"
+    },
+    {
+      "type": "framework",
+      "headline": "Six Domains, One Engineer",
+      "label": "SKILLS",
+      "color": "#60a5fa",
+      "points": [
+        "**AI & Agents** — LLMs, LangGraph, MCP, A2A, AWS Strands, Dify, n8n",
+        "**Cloud & DevOps** — AWS, Azure, Docker, K8S, CI/CD · Kubestronaut certified",
+        "**Languages** — TypeScript, Python, JavaScript, Go",
+        "**Frontend/Backend** — Next.js 15, React, FastAPI, tRPC, GraphQL, gRPC",
+        "**Data** — Snowflake, PostgreSQL, MongoDB, Redis, Prisma ORM"
+      ],
+      "supporting": "Seven cloud/AI certifications spanning Azure (4x) and AWS — including Solutions Architect Expert and AI Engineer Associate.",
+      "notes": "Key point: This is a production-grade, not toy-project, skill set\n- Kubestronaut is a rare K8S mastery credential\n- Four Azure certs shows breadth of cloud maturity\n- Transition: See how these skills land in real systems"
+    },
+    {
+      "type": "section-divider",
+      "headline": "Production AI Systems",
+      "subtitle": "Synogize · Nov 2024 – Present",
+      "label": "CURRENT ROLE",
+      "color": "#a78bfa",
+      "notes": "Key point: Most recent and most relevant role\n- Snowflake Marketplace deployment = enterprise scale\n- Transition: Unpack the architecture"
+    },
+    {
+      "type": "statement",
+      "headline": "Text-to-SQL Agent in Enterprise Snowflake — Live on Marketplace",
+      "label": "CURRENT ROLE",
+      "color": "#a78bfa",
+      "supporting": "Business users query enterprise data in natural language. Data never leaves the customer's Snowflake account — native app deployment meets strict data residency requirements.",
+      "points": [
+        "**Agentic Core** — LangGraph + FastAPI autonomous agent for SQL generation and execution",
+        "**Observability** — Prompt evaluation and tracing via LangFuse",
+        "**Scale** — 50 concurrent users on Snowflake XS warehouses through query orchestration and caching",
+        "**Delivery** — CI/CD with automated security scanning enabling reliable weekly releases"
+      ],
+      "notes": "Key point: End-to-end ownership from agent design to marketplace deployment\n- Native app = data residency compliance solved architecturally\n- LangFuse for observability shows production-grade thinking\n- Transition: Quantify the accuracy"
+    },
+    {
+      "type": "big-number",
+      "headline": "~95% Query Execution Accuracy on Internal Eval Dataset",
+      "bigNumber": "95%",
+      "numberLabel": "SQL agent query execution accuracy",
+      "label": "CURRENT ROLE",
+      "color": "#fbbf24",
+      "supporting": "Achieved on an internal evaluation benchmark. Accuracy maintained via prompt engineering, structured output validation, and LangFuse observability loops.",
+      "notes": "Key point: This is a hard metric in a notoriously difficult NL-to-SQL problem\n- Internal dataset = domain-specific, not a toy benchmark\n- Observability loop enables continuous improvement\n- Transition: Show the concurrency and cost angle"
+    },
+    {
+      "type": "section-divider",
+      "headline": "AI-Powered Analytics Platform",
+      "subtitle": "NUVC.ai · Jun 2024 – Nov 2024",
+      "label": "PREV ROLE 1",
+      "color": "#a78bfa",
+      "notes": "Key point: Different domain, same AI-to-product pattern\n- VC deal-flow is high-stakes, high-volume\n- Transition: Show scale of automation"
+    },
+    {
+      "type": "split-visual",
+      "headline": "Automating VC Deal-Flow at Scale",
+      "label": "PREV ROLE 1",
+      "color": "#a78bfa",
+      "leftContent": "**Before**\nManual pitch deck review\nSlow triage, inconsistent scoring\nno self-serve onboarding",
+      "rightContent": "**After**\n1,000+ decks parsed/month via ML pipelines\nDynamic scoring + investor-startup matching\nStripe billing + auth = zero-touch onboarding",
+      "notes": "Key point: Full product thinking — not just ML, but billing and onboarding too\n- 1,000+ decks/month is production throughput, not a demo\n- Self-serve onboarding removes sales friction\n- Transition: Move to the health-tech role"
+    },
+    {
+      "type": "section-divider",
+      "headline": "Serverless Pipelines & AI Chatbots",
+      "subtitle": "Scripted Health & Empathetic AI · Dec 2023 – Jun 2024",
+      "label": "PREV ROLE 2",
+      "color": "#34d399",
+      "notes": "Key point: Third consecutive AI-heavy role in under 18 months\n- Top 3 ranking in Australia's AI Sprint is a national signal\n- Transition: Show the latency and throughput wins"
+    },
+    {
+      "type": "comparison",
+      "headline": "70% Latency Cut · 100k+ Records/Hour Pipeline",
+      "label": "PREV ROLE 2",
+      "color": "#34d399",
+      "beforePoints": [
+        "Batch ingestion with high lag",
+        "Slow query response times",
+        "Manual, monolithic data flows"
+      ],
+      "afterPoints": [
+        "~70% reduction in average response latency",
+        "Event-driven AWS Lambda + EventBridge pipelines",
+        "100k+ product records processed per hour"
+      ],
+      "supporting": "AI tax law chatbot ranked Top 3 in Australia's AI Sprint. 95% user satisfaction score recorded post-launch.",
+      "notes": "Key point: Both latency and throughput improved simultaneously\n- Serverless replaced batch — architectural, not a patch\n- Top 3 AI Sprint win is a credible external validator\n- Transition: Surface the quantitative finance background"
+    },
+    {
+      "type": "section-divider",
+      "headline": "Quantitative & Finance Roots",
+      "subtitle": "Where the data instincts come from",
+      "label": "BACKGROUND",
+      "color": "#fbbf24",
+      "notes": "Key point: Finance background sharpens product and data judgment\n- Not just a coder — understands the business value of data\n- Transition: Show competition results as proof"
+    },
+    {
+      "type": "statement",
+      "headline": "Medal-Winning ML Competitions + CFA + Quant Research",
+      "label": "BACKGROUND",
+      "color": "#fbbf24",
+      "points": [
+        "**Silver Medal** — CSIRO Image2Biomass Prediction, Jan 2026",
+        "**Bronze Medal** — American Express Default Prediction, Aug 2022",
+        "**CFA Level I** — Chartered Financial Analyst + Certificate in Quantitative Finance",
+        "**Quant Research** — XGBoost stock prediction + multi-factor alpha backtesting at Sinolink Securities"
+      ],
+      "supporting": "Rare combination: production ML engineering plus rigorous quantitative finance training. UQ Bachelor of Commerce GPA 6.9/7.0 — Top 1%, Dean's Honour Roll.",
+      "notes": "Key point: Competition medals are objective external benchmarks\n- CSIRO and Amex are prestigious, domain-diverse challenges\n- CFA L1 signals financial modelling rigour beyond typical SDE\n- Transition: Close with the overall signal"
+    },
+    {
+      "type": "recap",
+      "headline": "Andy Yang: The Signal in Three Lines",
+      "label": "CLOSE",
+      "color": "#14b8a6",
+      "points": [
+        "**Ships AI to production** — Marketplace-deployed agents, 95% accuracy, 50-user concurrency",
+        "**Full-stack ownership** — From LangGraph architecture to Next.js UI to CI/CD pipelines",
+        "**Rare hybrid profile** — AI engineer with quant finance depth and medal-winning ML track record"
+      ],
+      "supporting": "7 cloud/AI certifications · Kubestronaut · Top 3 Australia AI Sprint · Melbourne-based, available now.",
+      "notes": "Key point: Leave the audience with one clear hire signal\n- Production proof, not side projects\n- Finance + AI is the differentiator worth repeating\n- Transition: Open for questions or next steps"
+    }
+  ]
+}

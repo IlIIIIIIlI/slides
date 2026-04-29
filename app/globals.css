@@ -2,31 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #fafafa;
-  --foreground: #09090b;
-  --text-primary: #09090b;
-  --text-secondary: #52525b;
-  --text-muted: #71717a;
-  --text-faint: #d4d4d8;
-  --teal: #14b8a6;
-  --red: #ef4444;
-  --purple: #a855f7;
-  --amber: #f59e0b;
-  --green: #10b981;
-  --font-geist-sans: var(--font-geist-sans);
-  --font-geist-mono: var(--font-geist-mono);
-  --surface-1: #fff;
-  --surface-2: #f0f0f2;
-  --surface-3: #d4d4d8;
-}
+@layer base {
+  :root {
+    /* shadcn dark-by-default (zinc-950) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 172 66% 50%;
+    --radius: 0.5rem;
 
-body {
-  color: var(--text-primary);
-  background: var(--background);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    /* Slide design system — isolated from website chrome */
+    --slide-teal: #14b8a6;
+    --slide-red: #ef4444;
+    --slide-purple: #a855f7;
+    --slide-amber: #f59e0b;
+    --slide-green: #10b981;
+    --slide-text-primary: #09090b;
+    --slide-text-secondary: #52525b;
+    --slide-text-muted: #71717a;
+    --slide-text-faint: #d4d4d8;
+    --slide-surface-1: #fff;
+    --slide-surface-2: #f0f0f2;
+    --slide-surface-3: #d4d4d8;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 @layer utilities {
@@ -38,7 +62,6 @@ body {
     font-family: var(--font-geist-mono), "Geist Mono", "Geist Mono Fallback", monospace;
   }
 
-  /* Animation utilities */
   .animate-in {
     animation-fill-mode: both;
   }
@@ -65,48 +88,25 @@ body {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes zoomIn95 {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Code styling */
 code {
   font-family: var(--font-geist-mono), "Geist Mono", "Geist Mono Fallback", monospace;
   font-size: 0.95em;
@@ -122,53 +122,15 @@ pre code {
   white-space: pre;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: color, background-color, border-color;
-  transition-duration: 150ms;
-  transition-timing-function: ease-in-out;
-}
+pre::-webkit-scrollbar { height: 8px; }
+pre::-webkit-scrollbar-track { background: #2d2d2d; }
+pre::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+pre::-webkit-scrollbar-thumb:hover { background: #666; }
 
-/* Custom scrollbar for code blocks */
-pre::-webkit-scrollbar {
-  height: 8px;
-}
-
-pre::-webkit-scrollbar-track {
-  background: #2d2d2d;
-}
-
-pre::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
-}
-
-pre::-webkit-scrollbar-thumb:hover {
-  background: #666;
-}
-
-/* Typography - Headlines */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-primary);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-}
-
-/* Display type - Large headlines */
-.type-display {
-  color: var(--text-primary);
-  font-weight: 700;
-  letter-spacing: -0.035em;
-  line-height: 1;
-}
-
-/* Tabular numbers for slide counter */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Label styling - 10.21px */
 .slide-label {
   font-size: 10.21px;
   font-family: ui-sans-serif, system-ui, sans-serif;
@@ -176,8 +138,3 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.2em;
   text-transform: uppercase;
 }
-
-
-
-
-
