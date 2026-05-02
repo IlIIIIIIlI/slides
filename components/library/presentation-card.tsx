@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Play, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,18 @@ const SOURCE_TYPE_STYLES: Record<string, string> = {
   url: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   md: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   txt: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  code: "bg-violet-500/10 text-violet-400 border-violet-500/20",
 };
 
-export function PresentationCard({ item }: { item: PresentationMeta }) {
+export function PresentationCard({ item, onDeleted }: { item: PresentationMeta; onDeleted?: () => void }) {
   const sourceStyle = SOURCE_TYPE_STYLES[item.sourceType] ?? SOURCE_TYPE_STYLES.txt;
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${item.title}"? This cannot be undone.`)) return;
+    const res = await fetch(`/api/presentations/${item.id}`, { method: "DELETE" });
+    if (!res.ok) { alert("Failed to delete the deck."); return; }
+    onDeleted?.();
+  }
 
   return (
     <Card className="group hover:border-border/80 transition-all">
@@ -38,12 +46,24 @@ export function PresentationCard({ item }: { item: PresentationMeta }) {
       </CardContent>
       <CardFooter className="pt-0 flex items-center justify-between">
         <span className="text-xs text-muted-foreground">{item.slideCount} slides</span>
-        <Button size="sm" variant="ghost" asChild className="h-7 px-2 gap-1.5 text-xs">
-          <Link href={`/player?id=${item.id}`}>
-            <Play className="w-3 h-3" />
-            Play
-          </Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleDelete}
+            title="Delete deck"
+            aria-label={`Delete ${item.title}`}
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-red-500 hover:bg-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+          <Button size="sm" variant="ghost" asChild className="h-7 px-2 gap-1.5 text-xs">
+            <Link href={`/player?id=${item.id}`}>
+              <Play className="w-3 h-3" />
+              Play
+            </Link>
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

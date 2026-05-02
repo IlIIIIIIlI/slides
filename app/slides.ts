@@ -6,6 +6,27 @@ export interface Brand {
   gradientTo: string;
 }
 
+export interface ChartSeries {
+  label: string;
+  color?: string;
+  points: number[];
+}
+
+export interface ChartData {
+  xLabels: string[];
+  series: ChartSeries[];
+}
+
+export interface ResourceGroup {
+  group?: string;
+  items: { title: string; url?: string; description?: string }[];
+}
+
+export interface ToolItem {
+  name: string;
+  description?: string;
+}
+
 export interface Slide {
   type:
     | "title"
@@ -21,7 +42,9 @@ export interface Slide {
     | "split-visual"
     | "big-number"
     | "comparison"
-    | "agent-tree"; // New: agent execution tree
+    | "quiz"
+    | "agent-tree"
+    | "chart";
   headline?: string;
   subtitle?: string;
   label?: string;
@@ -29,12 +52,14 @@ export interface Slide {
   supporting?: string;
   points?: string[];
   code?: string;
+  codeLanguage?: string;
+  terminalTitle?: string;
   iframeUrl?: string;
   quote?: string;
   author?: string;
   imageUrl?: string;
-  imageLayout?: "full" | "side"; // New: layout option for images
-  agentTree?: string; // New: agent tree structure
+  imageLayout?: "full" | "side";
+  agentTree?: string;
   linkPreview?: {
     url: string;
     title: string;
@@ -44,12 +69,37 @@ export interface Slide {
   // For split-visual layout
   leftContent?: string;
   rightContent?: string;
+  // For split-visual ui-mockup variant
+  mockupKind?: "browser" | "terminal" | "file-tree" | "card";
+  mockupContent?: string;
+  mockupUrl?: string;
   // For big-number layout
   bigNumber?: string;
   numberLabel?: string;
+  // For big-number metrics-row variant
+  metrics?: { value: string; label: string }[];
   // For comparison layout
   beforePoints?: string[];
   afterPoints?: string[];
+  // For comparison stats variant
+  beforeNumber?: string;
+  beforeLabel?: string;
+  afterNumber?: string;
+  afterLabel?: string;
+  winner?: "before" | "after";
+  // For chart slides
+  chartKind?: "line" | "bar";
+  chartData?: ChartData;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  // For recap resources variant
+  resources?: ResourceGroup[];
+  tools?: ToolItem[];
+  // For quiz/checkpoint slides
+  question?: string;
+  options?: string[];
+  answer?: string;
+  explanation?: string;
   // Speaker notes from Claude
   notes?: string;
   // Optional layout variant per slide (see lib/slide-variants.ts)

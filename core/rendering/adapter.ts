@@ -28,6 +28,7 @@ function intentToType(spec: SlideSpec): SlideType {
     demo: 'iframe',
     recap: 'recap',
     appendix: 'recap',
+    quiz: 'quiz',
   };
 
   return map[spec.intent] ?? 'statement';
@@ -77,6 +78,10 @@ export function specToSlide(spec: SlideSpec): Slide {
     numberLabel: rp.numberLabel,
     beforePoints: rp.beforePoints,
     afterPoints: rp.afterPoints,
+    question: rp.question,
+    options: rp.options,
+    answer: rp.answer,
+    explanation: rp.explanation,
   };
 }
 

@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "inline-skills": "node scripts/inline-skills.mjs",
+    "predev": "node scripts/inline-skills.mjs",
+    "prebuild": "node scripts/inline-skills.mjs",
+    "pretest": "node scripts/inline-skills.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node scripts/run-unit-tests.cjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

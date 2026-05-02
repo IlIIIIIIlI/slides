@@ -1,301 +1,254 @@
 {
-  "id": "01ce5ef1-c5fa-48fa-bf0f-7968beccf427",
+  "id": "c3222dab-4f05-44a0-9708-12c7251a93bb",
   "title": "Trade-Offs in Data Systems",
   "sourceName": "chap1.pdf",
   "sourceType": "pdf",
-  "audienceType": "Academic",
-  "stylePreset": "light-minimal",
+  "audienceType": "Technical",
+  "audienceProfile": "technical",
+  "audienceProfileLabel": "Technical",
+  "stylePreset": "dark-minimal",
   "slideCount": 14,
-  "generatedAt": "2026-04-28T06:22:37.194Z",
+  "generatedAt": "2026-05-02T15:02:15.063Z",
   "slides": [
+    {
+      "type": "title",
+      "headline": "Trade-Offs in Data Systems",
+      "subtitle": "Generated from source material",
+      "color": "#009B8F"
+    },
     {
       "type": "quote",
       "variant": "centered",
       "label": "OPENING",
-      "color": "#14b8a6",
+      "color": "#009B8F",
       "quote": "There are no solutions; there are only trade-offs. But you try to get the best trade-off you can get, and that's all you can hope for.",
       "author": "Thomas Sowell, interview with Fred Barnes (2005)",
       "evidenceRefs": [
         "CHK-p1-01"
       ],
-      "notes": "Key point: Data system design is about navigating trade-offs, not finding perfect answers.\n- Open with: Read the quote aloud, then pause. Let it settle.\n- Sowell is an economist, not an engineer — but this observation applies just as well to systems architecture as to policy.\n- The temptation in engineering is to search for the \"right\" solution. This book reframes that: the goal is to understand the costs and benefits of each choice, then pick the best fit for your context.\n- Transition: So what are the specific trade-offs we'll be navigating? Let's look at the four tensions this chapter sets up."
+      "notes": "## Slide: There are no solutions; there are only trade-offs.\n\n**Key point:** The entire discipline of data systems architecture is about choosing the least-bad option for your context — not finding a universally correct answer.\n\n**Open with:** \"I want to start with a quote that isn't from a database paper or a systems engineer — it's from an economist. Because the insight applies perfectly to what we're going to cover today.\"\n\n**Talk track:**\n- Let the quote land. Pause after reading it.\n- Every architecture decision you make in data systems is a trade-off: performance vs. consistency, cost vs. control, simplicity vs. scale.\n- There's no universal right answer — just answers that are right for your situation, your team, your workload.\n- This chapter — and this deck — is a map of those choices.\n\n**Transition:** \"So let's look at what those choices actually are, and what's at stake in each one.\""
     },
     {
       "type": "goals",
-      "variant": "numbered",
+      "variant": "list",
       "label": "OPENING",
-      "color": "#14b8a6",
-      "headline": "Four tensions, no easy answers",
+      "color": "#009B8F",
+      "headline": "Four trade-offs that define data systems",
+      "supporting": "No approach is fundamentally better than others. The goal is to ask the right questions for your context.",
       "points": [
-        "Operational vs. analytical — different access patterns, different audiences",
-        "Cloud vs. self-hosting — economics, control, and specialization",
-        "Distributed vs. single-node — when scale justifies the complexity",
-        "Law and society — privacy regulations as architectural constraints"
+        "**Operational vs. Analytical** — different access patterns, different systems, different audiences",
+        "**Cloud vs. Self-Hosting** — cost, control, and the spectrum between them",
+        "**Distributed vs. Single-Node** — when distribution helps, and when it hurts",
+        "**Business needs vs. User rights** — privacy law as an architectural constraint"
       ],
       "evidenceRefs": [
         "CHK-p3-01"
       ],
-      "notes": "Key point: These four tensions recur throughout the book — understanding them is the foundation for every design decision that follows.\n- Open with: Each of these is a genuine dilemma, not a trick question with one right answer.\n- Walk through each briefly: OLTP vs OLAP shapes how you store and query data; cloud vs self-host shapes your economics; distributed vs single-node shapes your operational complexity; law and society shapes what you're even allowed to do.\n- Emphasize that these aren't independent — a choice in one dimension often constrains your options in another.\n- Transition: Let's start with the oldest and most fundamental split — operational versus analytical systems."
+      "notes": "## Slide: Four trade-offs that define data systems\n\n**Key point:** These four dimensions are the structural framework for reasoning about any data system design decision.\n\n**Open with:** \"This chapter — and this whole book — is organized around a set of recurring tensions. Here are the four we'll work through today.\"\n\n**Talk track:**\n- Walk through each point briefly — one sentence each. Don't over-explain yet; each one gets its own section.\n- Operational vs. Analytical: the same data, used completely differently depending on who's asking.\n- Cloud vs. Self-Hosting: not just economics — also affects architecture at a deep level.\n- Distributed vs. Single-Node: more machines ≠ better. Sometimes a single machine wins.\n- Law and Society: GDPR, data minimization — these aren't soft concerns, they shape system design.\n- Emphasize: the same dataset, the same company, the same week — different teams will have completely different needs from it.\n\n**Transition:** \"Let's start with the most fundamental split: operational versus analytical systems.\""
     },
     {
-      "type": "quote",
-      "variant": "card",
-      "label": "THE CHALLENGE",
-      "color": "#f87171",
-      "quote": "There are no solutions; there are only trade-offs. But you try to get the best trade-off you can get, and that's all you can hope for.",
-      "author": "Thomas Sowell, interview with Fred Barnes (2005)",
+      "type": "statement",
+      "variant": "large",
+      "label": "OLTP VS OLAP",
+      "color": "#FF2A2A",
+      "headline": "Two systems. Two jobs. Never the same.",
+      "supporting": "Operational systems serve users in real time. Analytical systems serve analysts after the fact. Conflating them creates bottlenecks, security gaps, and slow queries for everyone.",
       "evidenceRefs": [
-        "CHK-p1-01"
-      ],
-      "notes": "Key point: Every architectural decision is a trade-off — there is no universally correct answer.\n- Open with: This quote sets the intellectual tone for the entire book and for this course.\n- Sowell is an economist, not an engineer — the fact that this resonates so deeply in data systems tells us something important about the nature of the field.\n- Engineering is not about finding perfect solutions; it is about making informed choices under constraints.\n- Transition: So what exactly makes modern data systems so challenging that we need a whole framework for reasoning about trade-offs?"
-    },
-    {
-      "type": "framework",
-      "variant": "lead-in",
-      "label": "THE CHALLENGE",
-      "color": "#f87171",
-      "headline": "Data-intensive systems are built from the same building blocks",
-      "supporting": "The challenge is not which blocks exist — it is choosing the right combination and understanding the trade-offs of each.",
-      "points": [
-        "Databases — store and retrieve data reliably across requests",
-        "Caches — remember expensive results to accelerate reads",
-        "Search indexes — enable keyword and filtered lookup at scale",
-        "Stream processors — react to events and changes as they occur",
-        "Batch processors — crunch large accumulated datasets periodically"
-      ],
-      "evidenceRefs": [
-        "CHK-p2-01"
-      ],
-      "notes": "Key point: These five building blocks compose virtually every data-intensive application — the hard part is how you combine them.\n- Open with: Before we debate trade-offs, we need a shared vocabulary. These are the primitives.\n- Most applications use several of these simultaneously — a web app might rely on a database, a cache, and a search index all at once.\n- The difficulty scales with ambition: simple use cases are easy, but as requirements grow, the combinations multiply and the trade-offs bite.\n- Academic angle: this is a taxonomy — a useful analytical lens before we dive into any one system in depth.\n- Transition: With these building blocks in mind, the rest of Chapter 1 asks: operational or analytical? Cloud or self-hosted? Single node or distributed? Each question is a trade-off."
-    },
-    {
-      "type": "comparison",
-      "label": "OLTP vs. OLAP",
-      "color": "#a78bfa",
-      "headline": "Two systems, two jobs",
-      "beforePoints": [
-        "Audience — End users and backend services",
-        "Reads — Point queries on individual records",
-        "Writes — Insert, update, delete in real time",
-        "Scale — Gigabytes to terabytes",
-        "Goal — Serve the current state of data"
-      ],
-      "afterPoints": [
-        "Audience — Business analysts and data scientists",
-        "Reads — Aggregates over millions of records",
-        "Writes — Bulk ETL or event streams",
-        "Scale — Terabytes to petabytes",
-        "Goal — Reconstruct history, surface insight"
-      ],
-      "evidenceRefs": [
-        "CHK-p6-01",
         "CHK-p4-01",
         "CHK-p5-01"
       ],
-      "notes": "Key point: OLTP and OLAP are optimized for fundamentally different workloads — not just different queries, but different audiences, data shapes, and performance contracts.\n- Open with: 'Same data, completely different problems. Let's put them side by side.'\n- OLTP left: a customer placing an order — the system needs one row, fast, with strong consistency.\n- OLAP right: a VP of sales asking 'what was our revenue trend in Q3 across all regions?' — that needs to scan millions of rows.\n- Point out that dataset size difference alone (GB vs. PB) demands different internal storage layouts — a preview of Chapter 4.\n- Transition: So organizations separated these concerns — which led to the data warehouse."
+      "notes": "## Slide: Two systems. Two jobs. Never the same.\n\n**Key point:** OLTP and OLAP have fundamentally different purposes — treating them as one system is where trouble starts.\n\n**Open with:** \"Every data architecture decision traces back to this single distinction...\"\n\n**Talk track:**\n- OLTP powers every user action: login checks, order placements, balance reads\n- OLAP powers every business question: revenue trends, fraud patterns, recommendations\n- These have opposite optimization targets — combining them means doing both badly\n- This distinction isn't new; it's been recognized since the early 1990s\n\n**Transition:** \"Let's look at exactly how different these systems are under the hood...\""
     },
     {
-      "type": "statement",
-      "variant": "large",
-      "label": "OLTP vs. OLAP",
-      "color": "#a78bfa",
-      "headline": "The warehouse decouples analysis from operations",
-      "supporting": "Analytical queries are expensive. Running them on OLTP databases slows production, creates security risks, and hits data silos. The data warehouse absorbs that load — a read-only analytical copy fed by ETL.",
-      "points": [
-        "Data silos — operational systems are isolated; the warehouse combines them",
-        "Schema mismatch — OLTP layouts are poorly suited for analytical queries",
-        "Performance isolation — heavy scans can't tax production databases",
-        "ETL pipeline — Extract, Transform, Load moves data on a schedule or stream"
-      ],
+      "type": "image",
+      "variant": "full",
+      "label": "OLTP VS OLAP",
+      "color": "#FF2A2A",
+      "headline": "OLTP vs. OLAP: Property-by-property",
       "evidenceRefs": [
-        "CHK-p7-01",
-        "CHK-p8-01",
-        "CHK-p9-01"
+        "CHK-p6-01"
       ],
-      "notes": "Key point: The data warehouse exists because you cannot safely run analytical workloads on operational databases at scale.\n- Open with: 'Why not just query production? Three reasons: it's slow, it's risky, and the data is fragmented across dozens of systems.'\n- A large enterprise may have hundreds of OLTP systems — the warehouse is the single place where analysts can join all of it.\n- ETL is the pipeline: extract from source, transform into an analytics-friendly schema, load into the warehouse. Sometimes flipped to ELT when transformation happens inside the warehouse.\n- Mention HTAP as a footnote: hybrid systems exist but don't eliminate the need for separation — they usually have two engines internally anyway.\n- Transition: But the warehouse still has limits — it assumes a relational model, which frustrates data scientists doing ML."
+      "notes": "## Slide: OLTP vs. OLAP — Property by property\n\n**Key point:** Every axis of comparison — reads, writes, users, scale — diverges between the two system types.\n\n**Open with:** \"Walk through this table column by column — nothing here is ambiguous.\"\n\n**Talk track:**\n- Read pattern: OLTP fetches individual records by key; OLAP aggregates across millions of rows\n- Write pattern: OLTP is row-level inserts and updates; OLAP ingests bulk batches or event streams\n- Users: OLTP serves end users of your product; OLAP serves internal analysts and data scientists\n- Scale: OLTP typically gigabytes to terabytes; OLAP reaches terabytes to petabytes\n- Query type: OLTP queries are fixed, baked into application code; OLAP queries are arbitrary, ad-hoc SQL\n\n**Delivery:** Point to specific cells as you talk. Pause on the 'query volume' and 'dataset size' rows — the magnitude differences are the punchline.\n\n**Transition:** \"So how do organizations actually keep these separate in practice? Enter the data warehouse...\"",
+      "imageUrl": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-6-focus.png",
+      "imageLayout": "side"
     },
     {
-      "type": "framework",
-      "variant": "lead-in",
-      "label": "OLTP vs. OLAP",
-      "color": "#a78bfa",
-      "headline": "From warehouse to lake — raw data is better",
-      "supporting": "Data lakes drop the schema requirement entirely: files, vectors, images, text, sensor readings — anything goes. Flexibility over structure, object storage over relations.",
-      "points": [
-        "Data warehouse — relational, SQL, optimized for BI queries",
-        "Data lake — schema-free files (Avro, Parquet, images, matrices), cheaper object storage",
-        "Data pipeline — generalizes ETL; lake often serves as intermediate raw store",
-        "Sushi principle — raw data preserves optionality; each consumer transforms for their own needs",
-        "Reverse ETL — ML models trained analytically flow back to operational systems"
-      ],
+      "type": "image",
+      "variant": "full",
+      "label": "OLTP VS OLAP",
+      "color": "#FF2A2A",
+      "headline": "ETL bridges operational and analytical worlds",
       "evidenceRefs": [
-        "CHK-p10-01",
         "CHK-p7-01",
-        "CHK-p11-01"
+        "CHK-p8-01"
       ],
-      "notes": "Key point: The data lake emerged because data scientists need more than relational tables — they need raw, flexible data they can reshape for ML, NLP, and computer vision.\n- Open with: 'SQL is powerful, but it's a poor fit for feature engineering or training a neural network on product images.'\n- Data scientists prefer Pandas, scikit-learn, Spark — none of which require a relational model.\n- The lake is cheaper: object storage (S3, Blob Storage) costs far less than a managed relational warehouse.\n- The sushi principle is a memorable framing: raw data retains all the optionality — you can always cook it, but you can't un-cook it.\n- Tie back to systems of record vs. derived data: the lake is derived, but it's the canonical raw form for the analytical side.\n- Transition: Now that we understand the OLTP/OLAP split, we can ask the next infrastructure question — who runs these systems, and where?"
+      "notes": "## Slide: ETL bridges operational and analytical worlds\n\n**Key point:** A data warehouse receives data from multiple OLTP systems via ETL — keeping analytics separate without polluting production databases.\n\n**Open with:** \"This diagram shows how the two worlds connect without colliding.\"\n\n**Talk track:**\n- Multiple operational systems — ecommerce, inventory, logistics — each have their own database\n- Data is extracted, transformed into an analysis-friendly schema, then loaded into a single warehouse\n- Business analysts query the warehouse, never touching the live OLTP systems\n- This separation protects OLTP performance, handles schema differences, and unifies data silos\n- The separation isn't just architectural preference — it's been standard practice since the late 1980s and early 1990s\n- HTAP tries to blur this line but doesn't eliminate the need for a warehouse in most enterprise contexts\n\n**Transition:** \"Now that we've established why these systems are kept separate, let's look at how the cloud changes the economics of running both...\"",
+      "imageUrl": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-8-focus.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "image",
+      "variant": "side",
+      "label": "CLOUD VS SELF-HOST",
+      "color": "#7C3CFF",
+      "headline": "Build vs. buy is a business priority question",
+      "supporting": "Core competency → keep in-house. Routine, non-core → outsource to a vendor. The spectrum runs from bespoke in-house code to fully managed cloud SaaS.",
+      "evidenceRefs": [
+        "CHK-p12-01"
+      ],
+      "notes": "## Slide: Build vs. buy is a business priority question\n\n**Key point:** The cloud vs. self-host decision is ultimately about what your organization should own vs. delegate.\n\n**Open with:** \"Every data infrastructure decision starts with one question: should we build this or buy it?\"\n\n**Talk track:**\n- The spectrum goes from fully bespoke in-house code on one end, to cloud SaaS you access only through an API on the other\n- The middle ground — self-hosted off-the-shelf software on IaaS — is where many teams land\n- Rule of thumb: if it's a competitive differentiator, own it; if it's commoditized, let a vendor run it\n- This isn't a one-time decision — as your team's skills and load profile change, the right answer can shift\n\n**Transition:** \"So what are the real trade-offs once you pick a side? Let's break down the pros and cons...\"",
+      "imageUrl": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-12-focus.png",
+      "imageLayout": "side"
     },
     {
       "type": "comparison",
-      "label": "CLOUD vs. SELF-HOST",
-      "color": "#fbbf24",
-      "headline": "Build or buy?",
-      "supporting": "Core competency → keep in-house. Commodity capability → let a vendor run it. The real question is economic, not technical.",
+      "variant": "grid",
+      "label": "CLOUD VS SELF-HOST",
+      "color": "#7C3CFF",
+      "headline": "Cloud services vs. self-hosting",
       "beforePoints": [
-        "Full control over config and tuning",
-        "Cheaper at predictable, stable load",
-        "No vendor lock-in or deprecation risk",
-        "Requires in-house ops expertise"
+        "Faster to adopt — no provisioning or staffing required",
+        "Elastic scaling — pay only for what you use at peak",
+        "Operational expertise outsourced to a specialist provider",
+        "Variable load handled efficiently — ideal for analytical queries"
       ],
       "afterPoints": [
-        "Variable load scales up and down cheaply",
-        "Faster to adopt unfamiliar systems",
-        "Operational burden outsourced to specialists",
-        "Loss of control — bugs, outages, lock-in"
+        "No control — can't fix bugs, tune deeply, or inspect internals",
+        "Vendor lock-in — non-standard APIs make migration costly",
+        "Cheaper when load is predictable and team already has expertise",
+        "Security and compliance responsibility cannot be fully outsourced"
       ],
       "evidenceRefs": [
-        "CHK-p12-01",
         "CHK-p13-01",
         "CHK-p14-01"
       ],
-      "notes": "Key point: The build-or-buy decision is fundamentally about where your organization's competitive advantage lies — not about which is technically superior.\n- Open with: Ask the audience — how many teams have debated moving to the cloud this year? Almost every hand goes up.\n- Self-hosting wins when load is stable and expertise already exists; cloud wins when load is variable or the system is unfamiliar.\n- The hidden cloud downsides are underappreciated: no server logs, no custom tuning, vendor deprecation risk, geopolitical exposure.\n- Transition: Now that we understand the economics, let's look at how cloud-native systems are architecturally different — not just operationally outsourced."
+      "notes": "## Slide: Cloud services vs. self-hosting\n\n**Key point:** Neither is universally better — the right answer depends on your team's skills, load profile, and risk tolerance.\n\n**Open with:** \"Cloud providers will tell you it's always cheaper and faster. Self-hosting advocates will tell you the opposite. They're both right, in the right context.\"\n\n**Talk track:**\n- Cloud wins when load is variable, team lacks operational expertise, or you need to move fast\n- Self-hosting wins when load is predictable, you already know how to run the system, and you want control\n- The control downside of cloud is underrated: no server logs, no internals, no ability to patch bugs yourself\n- Vendor lock-in is a real risk — many cloud services have no standard APIs, so switching is expensive\n- Cloud capacity planning becomes financial planning — cost optimization replaces performance optimization\n\n**Transition:** \"Beyond the economics, cloud-native architecture is actually structured differently at a technical level — and that changes how you think about data systems design.\""
     },
     {
-      "type": "statement",
-      "variant": "large",
-      "label": "CLOUD vs. SELF-HOST",
-      "color": "#fbbf24",
-      "headline": "Cloud-native disaggregates storage and compute",
-      "subtitle": "S3 stores. Something else computes. The network connects them.",
-      "supporting": "Traditional: one machine owns disk + CPU. Cloud-native: dedicated storage services (S3, EBS) decoupled from compute instances — enabling elastic scaling and better hardware utilization.",
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "CLOUD VS SELF-HOST",
+      "color": "#7C3CFF",
+      "headline": "Cloud native separates storage from compute",
+      "leftContent": "Traditional systems couple CPU and disk on one machine. Cloud native systems **disaggregate** these responsibilities — storage (e.g., S3) and compute run independently and communicate over the network.",
+      "points": [
+        "**Object stores** (S3, Azure Blob, R2) hide physical machines entirely",
+        "**Compute instances** are ephemeral — local disks treated as cache",
+        "**Multitenant** infrastructure enables elasticity and cost efficiency",
+        "Snowflake, BigQuery, and Aurora all build on this separation"
+      ],
+      "mockupKind": "card",
+      "mockupContent": "Traditional architecture\n───────────────────────\n  [ CPU + RAM ]  ←→  [ Local Disk ]\n  Same machine: tightly coupled\n\nCloud native architecture\n───────────────────────\n  [ Compute Instance ]          [ Object Store ]\n    CPU, RAM, ephemeral   ←──network──→   S3 / Blob\n    cache only                           (durable, shared)\n\nExample layering:\n  BigQuery / Snowflake\n    └─ compute cluster (scales independently)\n         └─ object storage (S3 / GCS)",
       "evidenceRefs": [
         "CHK-p17-01",
         "CHK-p15-01",
         "CHK-p16-01"
       ],
-      "notes": "Key point: Disaggregation of storage and compute is the architectural signature of cloud-native systems — it's what makes elastic scaling possible.\n- Open with: In a traditional server, the disk and the CPU are in the same box. Cloud-native breaks that assumption entirely.\n- S3 only stores files. To analyze that data you must run compute elsewhere — data crosses the network. This has performance implications we'll revisit in distributed systems.\n- Cloud-native systems (Aurora, Snowflake, BigQuery) show better performance on the same hardware precisely because they're designed around this model — not retrofitted onto it.\n- Multitenancy is the flip side: shared hardware across customers requires careful isolation engineering.\n- Transition: The ops model changes too — capacity planning becomes financial planning."
+      "notes": "## Slide: Cloud native separates storage from compute\n\n**Key point:** Cloud native isn't just managed software — it's a fundamentally different architecture where storage and compute are disaggregated.\n\n**Open with:** \"The most important architectural shift in cloud native systems isn't economics — it's the physical separation of storage and compute.\"\n\n**Talk track:**\n- In traditional systems, one machine owns both disk and CPU — they're tightly coupled\n- In cloud native, S3 just stores files; compute runs elsewhere and fetches data over the network\n- This enables independent scaling: need more query power? Scale compute. Need more data capacity? Scale storage.\n- Local disks on cloud VMs are treated as ephemeral cache — not reliable long-term storage\n- Snowflake, BigQuery, Aurora all follow this model — they're not just hosted MySQL, they're architecturally different\n- The tradeoff: every I/O is now a network call, so network performance matters enormously\n\n**Delivery:** Pause on the diagram — let engineers absorb the two-tier model before moving on.\n\n**Transition:** \"This disaggregated model is powerful, but it only makes sense in a distributed context — which brings us to the next big trade-off: distributed vs. single-node systems.\""
     },
     {
-      "type": "framework",
-      "variant": "lead-in",
-      "label": "CLOUD vs. SELF-HOST",
-      "color": "#fbbf24",
-      "headline": "Operations never disappears — it transforms",
-      "points": [
-        "Automation over manual — repeatable processes replace one-off interventions",
-        "Ephemeral over persistent — VMs are disposable, not nursed indefinitely",
-        "Capacity → cost — resource planning becomes financial optimization",
-        "Integration burden grows — no standards yet for composing cloud services",
-        "Security stays in-house — compliance, monitoring, and incident response cannot be outsourced"
-      ],
-      "evidenceRefs": [
-        "CHK-p18-01"
-      ],
-      "notes": "Key point: Cloud shifts what ops teams do, not whether ops is needed — and in some ways the integration challenge grows.\n- Open with: A common misconception is that adopting cloud services eliminates operations. It doesn't — it changes its shape.\n- DBAs become service selectors and integration engineers. Capacity planning becomes a billing dashboard problem.\n- The lack of cross-service standards is a real friction point: ETL between cloud services often requires significant manual effort today.\n- Security and compliance cannot be delegated — your team still owns the application layer, library hygiene, and incident post-mortems.\n- Transition: With cloud systems inherently distributed, the next section asks: when does distribution actually help — and when does it hurt?"
-    },
-    {
-      "type": "framework",
-      "variant": "lead-in",
+      "type": "split-visual",
+      "variant": "ui-mockup",
       "label": "DISTRIBUTED SYSTEMS",
-      "color": "#60a5fa",
-      "headline": "Why go distributed?",
-      "supporting": "Six legitimate reasons — and none of them is 'because it scales'.",
+      "color": "#2563EB",
+      "headline": "When to go distributed",
+      "leftContent": "Distributed systems solve real constraints — but each reason carries a cost.",
       "points": [
-        "Fault tolerance — redundancy lets you survive node failures without downtime",
-        "Scalability — spread load when a single machine genuinely cannot keep up",
-        "Latency — serve users from geographically closer nodes",
-        "Elasticity — pay only for resources actively in use",
-        "Legal compliance — data residency laws may force geographic distribution",
-        "Specialised hardware — route ML workloads to GPUs, storage to disk-heavy nodes"
+        "**Fault tolerance** — redundancy survives machine or datacenter failure",
+        "**Scalability** — spread load beyond what one machine can handle",
+        "**Latency** — serve users from geographically close nodes",
+        "**Legal compliance** — data residency laws mandate geographic placement",
+        "**Elasticity** — scale up or down with demand in the cloud"
       ],
+      "mockupKind": "card",
+      "mockupContent": "Also valid reasons:\n\nInherent distribution\n  Two users on separate devices →\n  unavoidably distributed\n\nRequests between services\n  Data in one service, compute\n  in another → network transfer\n\nSpecialized hardware\n  Object store: many disks, few CPUs\n  Analytics: lots of CPU/RAM\n  ML training: GPUs",
       "evidenceRefs": [
         "CHK-p19-01",
         "CHK-p20-01"
       ],
-      "notes": "Key point: Distribution solves real problems, but each reason must be earned — not assumed.\n- Open with: Ask the room how many have reflexively reached for a distributed solution. Most have.\n- Walk through the six reasons — stress that each is a genuine constraint, not a preference.\n- Highlight that legal compliance (data residency) is often overlooked until it's a crisis.\n- The GPU / specialised hardware point matters for ML-heavy academic audiences.\n- Transition: These are the benefits. Now let's look at what they cost you."
+      "notes": "## Slide: When to go distributed\n\n**Key point:** There are legitimate, concrete reasons to distribute — but none of them are free.\n\n**Open with:** \"Going distributed isn't a style choice — it's a response to a specific constraint.\"\n\n**Talk track:**\n- Walk through each reason: fault tolerance, scalability, latency, legal, elasticity\n- Highlight that 'inherent distribution' is unavoidable — the moment two users on different devices interact, you're already distributed\n- Data residency laws (GDPR, country-specific regulations) can force geographic distribution regardless of engineering preference\n- Specialized hardware is underappreciated: object stores, analytics clusters, and ML systems all need different hardware profiles\n\n**Transition:** \"So distributed systems are sometimes necessary. But let's be honest about what you're signing up for...\""
     },
     {
       "type": "comparison",
+      "variant": "grid",
       "label": "DISTRIBUTED SYSTEMS",
-      "color": "#60a5fa",
-      "headline": "Distribution has a real price",
+      "color": "#2563EB",
+      "headline": "Single-node is often the right default",
       "beforePoints": [
-        "Single machine — simple failure model, no network timeouts",
-        "Function calls in-process — orders of magnitude faster than RPCs",
-        "Consistent state — one database, no cross-service synchronisation",
-        "DuckDB, SQLite, KùzuDB handle surprisingly large workloads on one node"
+        "Simple to reason about — no network failure modes",
+        "No cross-service consistency problem",
+        "Single-threaded on one machine can outperform 100-node clusters",
+        "DuckDB, SQLite, KùzuDB handle many workloads today",
+        "Cheaper and faster to build and operate"
       ],
       "afterPoints": [
-        "Every network call may silently fail — retry logic is mandatory",
-        "Microservices breed operational overhead: deploys, health checks, tracing",
-        "Cross-service consistency is now the application's problem",
-        "100 CPU cores can be outrun by a well-tuned single-threaded program"
+        "Every network call can fail — retrying may not be safe",
+        "Cross-service consistency becomes the app's problem",
+        "Distributed transactions rarely used in microservices",
+        "Observability requires tracing tools (OpenTelemetry, Jaeger)",
+        "More nodes ≠ faster — coordination overhead compounds"
       ],
       "evidenceRefs": [
         "CHK-p21-01",
-        "CHK-p22-01"
+        "CHK-p22-01",
+        "CHK-p19-01"
       ],
-      "notes": "Key point: Don't go distributed until a single machine genuinely cannot do the job.\n- Open with: The book is direct — 'performing a task on a single machine is often much simpler and cheaper.'\n- The single-threaded vs. 100-core cluster finding is a great provocation for an academic audience — cite McSherry et al. (COST paper).\n- Microservices are a people solution (team independence), not a performance solution — worth calling out explicitly.\n- Serverless is a spectrum, not a silver bullet: function-execution limits and cold starts are real.\n- Transition: The message is not 'never distribute' — it's 'be deliberate.' The next section explores the legal and societal constraints that can force your hand regardless."
+      "notes": "## Slide: Single-node is often the right default\n\n**Key point:** Distributed systems are powerful but expensive — don't go distributed unless you have a concrete reason.\n\n**Open with:** \"Here's the part that often gets buried: single-node is frequently the better choice.\"\n\n**Talk track:**\n- CPUs, RAM, and disks have all grown — a single powerful machine handles workloads that used to require clusters\n- DuckDB and SQLite are serious tools, not toys — mention them by name\n- The consistency problem is real: when each microservice owns its own database, keeping data consistent across services falls entirely on the application developer\n- Distributed transactions exist but are rarely used because they undermine service independence\n- Quote the key insight: more nodes are not always faster — a simple single-threaded program on one computer can outperform a 100-core cluster on certain workloads\n- Observability costs are hidden: you need tracing infrastructure just to debug what went wrong\n\n**Delivery:** Pause after 'single-node is often the right default' — let engineers who've over-engineered systems feel that.\n\n**Transition:** \"The takeaway: distribution solves real problems, but it creates real problems too. Know which you're trading for.\""
     },
     {
-      "type": "framework",
-      "variant": "lead-in",
+      "type": "statement",
+      "variant": "large",
       "label": "LAW & SOCIETY",
-      "color": "#f472b6",
-      "headline": "Regulation is an engineering constraint",
-      "supporting": "GDPR, CCPA, and the EU AI Act shape system architecture — not just compliance checklists.",
-      "points": [
-        "Right to be forgotten — immutable append-only logs must still support targeted deletion.",
-        "Data minimization — store only what is necessary, for only as long as needed.",
-        "True cost of data — liability, reputational risk, and legal fines belong in the cost-benefit model.",
-        "Derived data problem — deletion must propagate to indexes, caches, and ML training sets."
-      ],
+      "color": "#D97706",
+      "headline": "Legal obligations are architectural constraints",
+      "supporting": "GDPR, right to erasure, data minimization — these aren't compliance checkboxes. They reshape how you design immutable logs, derived datasets, and storage pipelines.",
       "evidenceRefs": [
-        "CHK-p24-01",
+        "CHK-p24-01"
+      ],
+      "notes": "## Slide: Legal obligations are architectural constraints\n\n**Key point:** Law doesn't just sit on top of architecture — it changes the architecture itself.\n\n**Open with:** \"Most engineers treat compliance as a layer you add at the end. The GDPR made that impossible.\"\n\n**Talk track:**\n- The right to be forgotten: sounds simple, but what does deletion mean in an append-only log?\n- Derived datasets — if a user's data was used to train an ML model, does deletion cascade there too?\n- GDPR deliberately avoids mandating specific tech — it sets principles you have to interpret and implement\n- EU AI Act adds further restrictions on how personal data feeds automated decision systems\n\n**Transition:** \"So if legal risk is an architectural input, how do you actually reason about the cost of storing data?\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "LAW & SOCIETY",
+      "color": "#D97706",
+      "headline": "Storage cost is more than your S3 bill",
+      "leftContent": "The real cost-benefit calculation includes:\n\n**Liability & reputational risk** if data is leaked or compromised\n\n**Legal fines** if storage violates GDPR or CCPA\n\n**Safety risk** when data could expose criminalized behavior — location traces, IP logs\n\n**Data minimization** — collect only what you need, for a defined purpose, no longer than necessary",
+      "mockupKind": "card",
+      "mockupContent": "COST OF STORING DATA\n\n  Direct costs\n  ─────────────────────────────\n  S3 / object storage bill\n  Compute for ETL pipelines\n  Query & analytics infra\n\n  Hidden costs\n  ─────────────────────────────\n  Liability if data is breached\n  GDPR/CCPA fines (up to 4% revenue)\n  Legal exposure from data misuse\n  Safety risk to users\n\n  Principle: Datensparsamkeit\n  ─────────────────────────────\n  \"Raw data is better\" ≠ \"more data\n  is always better\"\n  Store only what earns its place.",
+      "evidenceRefs": [
         "CHK-p25-01"
       ],
-      "notes": "Key point: Legal requirements are not afterthoughts — they constrain fundamental design decisions.\n- Open with: Most engineers think about GDPR as a compliance checkbox. It's actually a set of hard technical constraints.\n- The right to be forgotten sounds simple until you realize your system is built on an append-only log or that the deleted record was used to train a model.\n- Data minimization runs directly counter to the 'store everything speculatively' big data philosophy — a genuine architectural tension.\n- Broaden the cost model: the bill from S3 is the visible cost. Regulatory fines, breach liability, and reputational damage are the hidden costs that often dwarf it.\n- Transition: With these four trade-off axes covered — operational vs. analytical, cloud vs. self-hosted, distributed vs. single-node, and law vs. engineering — we have the vocabulary for the rest of the book."
+      "notes": "## Slide: Storage cost is more than your S3 bill\n\n**Key point:** Data minimization is not a legal nicety — it's a rational engineering decision once you account for all costs.\n\n**Open with:** \"We store data because its value exceeds the cost. But most engineers only count the direct cost.\"\n\n**Talk track:**\n- Walk through the hidden costs column — liability, fines, safety risk\n- The location data / IP log example from the source is powerful: travel to a clinic revealed by location trace\n- Datensparsamkeit (German: data frugality) — runs counter to 'big data' speculative hoarding\n- GDPR mandates: collect for a specified purpose, don't repurpose it, delete when no longer needed\n- PCI and SOC 2 show industry is moving the same direction — third-party audits are becoming standard\n\n**Transition:** \"The takeaway from this whole chapter: every architectural decision is a trade-off. Technical, economic, legal, and ethical dimensions all apply.\""
     },
     {
       "type": "recap",
-      "label": "TAKEAWAYS",
-      "color": "#14b8a6",
-      "headline": "Every choice is a trade-off",
+      "variant": "bullets",
+      "headline": "Four Trade-Offs. No Right Answers.",
+      "label": "RECAP",
+      "color": "#009B8F",
       "points": [
-        "Operational vs. Analytical — OLTP serves users; OLAP serves analysts. Different data, different audiences, different systems.",
-        "Cloud vs. Self-Hosting — Cost, control, and expertise determine which wins. Neither is universally better.",
-        "Distributed vs. Single-Node — Complexity is the tax on scale. Stay single-node as long as you can.",
-        "Law & Society — Privacy regulations are architectural constraints, not afterthoughts."
+        "**OLTP vs. OLAP** — Operational systems serve live users with point queries; analytical systems scan history at scale. Keep them separate.",
+        "**Cloud vs. Self-Hosting** — Cloud wins on variable load and speed to market; self-hosting wins on predictable load, control, and cost at steady state.",
+        "**Distributed vs. Single-Node** — Distribution buys fault tolerance, scale, and latency — but adds failure modes, complexity, and cost. Don't go distributed by default.",
+        "**Law & Society** — Privacy regulations (GDPR, CCPA) are architectural constraints, not afterthoughts. Data minimization is a valid design choice."
       ],
-      "supporting": "No architecture is correct in the abstract. The right system is the one that best fits your workload, team, and obligations.",
       "evidenceRefs": [
         "CHK-p26-01"
       ],
-      "notes": "Key point: Every architectural decision is a deliberate trade-off — not a search for the one right answer.\n- Open with: 'There are no solutions — only trade-offs. Sowell said it, and this chapter proved it.'\n- Walk each point briskly: remind the audience what question each axis answered, not the details.\n- Operational vs. Analytical: the split exists because access patterns and audiences are fundamentally different.\n- Cloud vs. Self-Hosting: cost math shifts with your skills, your load predictability, and your team size.\n- Distributed vs. Single-Node: the default should be single-node; distribute only when you have a concrete reason.\n- Law & Society: GDPR, CCPA, and AI regulation are not edge cases — they shape schema design, retention policy, and deletion mechanics.\n- Transition: 'Carry this framing into every chapter that follows — the question is never which technology is best, but which trade-offs you can live with.'"
+      "notes": "## Slide: Four Trade-Offs. No Right Answers.\n\n**Key point:** Every architecture decision in this chapter has legitimate options on both sides — the job is to match the trade-off to your context.\n\n**Open with:** \"Let's pull the thread on everything we covered — four trade-offs, each one a genuine choice.\"\n\n**Talk track:**\n- OLTP vs. OLAP: the split exists because the workloads are fundamentally incompatible at scale — different schemas, different query patterns, different audiences\n- Cloud vs. self-hosting: the DHH/Basecamp example is real — predictable load on owned hardware beat cloud economics. Context is everything.\n- Distributed vs. single-node: the instinct to distribute is strong. Resist it until you genuinely need it. DuckDB, SQLite, KùzuDB — single-node goes further than people think.\n- Law and Society: the right-to-be-forgotten collides directly with append-only logs and derived datasets. Engineering has to own this.\n\n**Transition:** \"So how do you actually make the call? Here's a framework to take with you...\""
     }
   ],
   "outline": {
     "title": "Trade-Offs in Data Systems",
-    "totalSlideCount": 13,
+    "totalSlideCount": 14,
     "sections": [
       {
         "id": "SEC-OPENING",
         "name": "Opening",
-        "purpose": "Frame the chapter's central thesis — that data system design is defined by trade-offs, not optimal solutions — and preview the four key tensions explored.",
+        "purpose": "Set the stage with the central thesis that data systems architecture is defined by trade-offs, not universal right answers.",
         "label": "OPENING",
-        "color": "#14b8a6",
-        "slideCount": 2,
-        "candidateChunkIds": [
-          "CHK-p1-01",
-          "CHK-p3-01"
-        ]
-      },
-      {
-        "id": "SEC-PROBLEM",
-        "name": "The Data-Intensive Challenge",
-        "purpose": "Establish why modern applications demand sophisticated data infrastructure and introduce the standard building blocks that compose data systems.",
-        "label": "THE CHALLENGE",
-        "color": "#f87171",
+        "color": "#009B8F",
         "slideCount": 2,
         "candidateChunkIds": [
           "CHK-p1-01",
@@ -306,9 +259,9 @@
       {
         "id": "SEC-OLTP-OLAP",
         "name": "Operational vs. Analytical Systems",
-        "purpose": "Contrast OLTP and OLAP across access patterns, audiences, and data models, and trace the evolution from data warehouses to data lakes.",
-        "label": "OLTP vs. OLAP",
-        "color": "#a78bfa",
+        "purpose": "Contrast OLTP and OLAP systems across access patterns, data shapes, users, and scale — establishing why they must be designed and operated separately.",
+        "label": "OLTP VS OLAP",
+        "color": "#FF2A2A",
         "slideCount": 3,
         "candidateChunkIds": [
           "CHK-p4-01",
@@ -319,14 +272,18 @@
           "CHK-p9-01",
           "CHK-p10-01",
           "CHK-p11-01"
+        ],
+        "candidateImageIds": [
+          "IMG-p6",
+          "IMG-p8"
         ]
       },
       {
         "id": "SEC-CLOUD",
         "name": "Cloud vs. Self-Hosting",
-        "purpose": "Weigh the economic and architectural trade-offs of managed cloud services against self-hosted systems, including cloud-native design patterns.",
-        "label": "CLOUD vs. SELF-HOST",
-        "color": "#fbbf24",
+        "purpose": "Analyze the build-vs-buy spectrum for data infrastructure, covering cloud-native architecture, storage/compute separation, and the real costs of each approach.",
+        "label": "CLOUD VS SELF-HOST",
+        "color": "#7C3CFF",
         "slideCount": 3,
         "candidateChunkIds": [
           "CHK-p12-01",
@@ -336,14 +293,17 @@
           "CHK-p16-01",
           "CHK-p17-01",
           "CHK-p18-01"
+        ],
+        "candidateImageIds": [
+          "IMG-p12"
         ]
       },
       {
         "id": "SEC-DISTRIBUTED",
         "name": "Distributed vs. Single-Node",
-        "purpose": "Examine the motivations for distribution and its real costs, cautioning against premature complexity and covering microservices and serverless patterns.",
+        "purpose": "Enumerate the concrete reasons to go distributed and the equally real costs — network failures, consistency, and operational complexity — emphasizing that single-node is often the right default.",
         "label": "DISTRIBUTED SYSTEMS",
-        "color": "#60a5fa",
+        "color": "#2563EB",
         "slideCount": 2,
         "candidateChunkIds": [
           "CHK-p19-01",
@@ -356,10 +316,10 @@
       {
         "id": "SEC-LAW",
         "name": "Data Systems, Law & Society",
-        "purpose": "Surface the ethical and regulatory dimensions of data system design — GDPR, data minimization, and the right to be forgotten — as engineering constraints.",
+        "purpose": "Frame legal and ethical obligations — GDPR, data minimization, right to erasure — as first-class architectural constraints, not afterthoughts.",
         "label": "LAW & SOCIETY",
-        "color": "#f472b6",
-        "slideCount": 1,
+        "color": "#D97706",
+        "slideCount": 2,
         "candidateChunkIds": [
           "CHK-p24-01",
           "CHK-p25-01"
@@ -367,11 +327,11 @@
       },
       {
         "id": "SEC-CLOSING",
-        "name": "Closing & Key Takeaways",
-        "purpose": "Recap the four trade-off axes and reinforce the chapter's core message: every architectural choice has pros and cons that must be weighed deliberately.",
-        "label": "TAKEAWAYS",
-        "color": "#14b8a6",
-        "slideCount": 1,
+        "name": "Recap & Key Takeaways",
+        "purpose": "Summarize the four core trade-offs covered and leave engineers with a decision framework for choosing data system architectures.",
+        "label": "RECAP",
+        "color": "#009B8F",
+        "slideCount": 2,
         "candidateChunkIds": [
           "CHK-p26-01"
         ]
@@ -566,22 +526,363 @@
       "text": "[ 56 ] Anna Kornfeld Simpson, Adriana Szekeres, Jacob Nelson, and Irene Zhang. “Securing RDMA for High-Performance Datacenter Storage Systems.” At 12th USE ! NIX Workshop on Hot Topics in Cloud Computing (HotCloud), July 2020. [ 57 ] Arjun Singh, Joon Ong, Amit Agarwal, Glen Anderson, Ashby Armistead, Roy Bannon, Seb Boving, Gaurav Desai, Bob Felderman, Paulie Germano, Anand Kanagala, Jeff Provost, Jason Simmons, Eiichi Tanda, Jim Wanderer, Urs Hölzle, Stephen Stuart, and Amin Vahdat. “Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google’s Datacenter Network.” At Annual Conference of the ACM Special Interest Group on Data Communication (SIGCOMM), August 2015. doi:10.1145/2785956.2787508 [ 58 ] Glenn K. Lockwood. “Hadoop’s Uncomfortable Fit in HPC.” glennklock ! wood.blogspot.co.uk , May 2014. Archived at perma.cc/S8XX-Y67B [ 59 ] Cathy O’Neil. Weapons of Math Destruction: How Big Data Increases Inequality and Th reatens Democracy . Crown Publishing, 2016. ISBN: 9780553418811 [ 60 ] Supreeth Shastri, Vinay Banakar, Melissa Wasserman, Arun Kumar, and Vijay Chidambaram. “Understanding and Benchmarking the Impact of GDPR on Database Systems.” Proceedings of the VLDB Endowment , volume 13, issue 7, pages 1064–1077, March 2020. doi:10.14778/3384345.3384354 [ 61 ] Martin Fowler. “Datensparsamkeit.” martinfowler.com , December 2013. Archived at perma.cc/R9QX-CME6 [ 62 ] “Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (General Data Protection Regulation).” O ffi cial Journal of the European Union L 119/1, May 2016. Summary | 31"
     }
   ],
-  "images": [],
-  "validationWarnings": [
+  "images": [
     {
-      "slideIndex": 0,
-      "field": "type",
-      "message": "First slide should be type 'title'."
+      "id": "IMG-p5",
+      "page": 5,
+      "filepath": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-5-focus.png",
+      "captionHint": "Focused area from page 5. Characterizing Transaction Processing and Analytics\nIn the early days of business data processing, a write to the database typically corre !\nsponded to a commercial transaction tak"
     },
     {
-      "slideIndex": 5,
-      "field": "supporting",
-      "message": "Supporting 206 chars (max 200)."
+      "id": "IMG-p6",
+      "page": 6,
+      "filepath": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-6-focus.png",
+      "captionHint": "Focused area from page 6. Table 1-1. Comparing characteristics of operational and analytical systems\nProperty   Operational systems (OLTP)   Analytical systems (OLAP)\nMain read pattern   Point queries (fetc"
     },
     {
-      "slideIndex": 10,
-      "field": "points",
-      "message": "6 points (max 5)."
+      "id": "IMG-p8",
+      "page": 8,
+      "filepath": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-8-focus.png",
+      "captionHint": "Focused area from page 8. Figure 1-1. A   simpli fi ed   outline of ETL into a data warehouse\nIn some cases, the data sources of the ETL processes are external SaaS products\nsuch as customer relationship ma"
+    },
+    {
+      "id": "IMG-p12",
+      "page": 12,
+      "filepath": "/extracted/c3222dab-4f05-44a0-9708-12c7251a93bb/page-12-focus.png",
+      "captionHint": "Focused area from page 12. That brings us to the end of our comparison of analytics and transaction processing.\nIn the next section we will examine another trade-off that you might have already\nseen debated "
     }
-  ]
+  ],
+  "validationWarnings": [],
+  "fidelityReport": {
+    "generatedAt": "2026-05-02T15:02:15.062Z",
+    "overallGrade": "high",
+    "summary": "The deck faithfully captures all four major sections of the source chapter: OLTP vs. OLAP, Cloud vs. Self-Hosting, Distributed vs. Single-Node, and Law & Society. The central thesis — that data systems architecture is defined by trade-offs with no universal right answers — is established in slide 2 and reinforced throughout. Key concepts including data warehouses, ETL, data lakes, cloud-native storage/compute separation, microservices, GDPR, and data minimization are all represented. A few secondary topics (data lake, systems of record/derived data, reverse ETL, supercomputing vs. cloud, serverless/FaaS, operations/DevOps changes) are absent or only lightly touched, but none are central enough to lower the grade to medium. No slides make factually unsupported claims, though a few framings slightly sharpen or editorialize what the source states more cautiously.",
+    "coverage": [
+      {
+        "sectionId": "SEC-OPENING",
+        "sectionName": "Opening: Set the stage with the central thesis",
+        "capturedKeyPoints": [
+          {
+            "text": "Thomas Sowell quote establishing trade-offs as the central lens",
+            "evidenceChunkIds": [
+              "CHK-p1-01"
+            ]
+          },
+          {
+            "text": "Data-intensive vs. compute-intensive distinction; standard building blocks (databases, caches, indexes, stream/batch processing)",
+            "evidenceChunkIds": [
+              "CHK-p1-01",
+              "CHK-p2-01"
+            ]
+          },
+          {
+            "text": "Four trade-offs announced as chapter structure: operational/analytical, cloud/self-hosting, distributed/single-node, law/society",
+            "evidenceChunkIds": [
+              "CHK-p3-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Frontend vs. backend terminology definition and the role of stateless application code vs. stateful data infrastructure",
+            "sourceChunkIds": [
+              "CHK-p3-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-OLTP-OLAP",
+        "sectionName": "Operational vs. Analytical Systems",
+        "capturedKeyPoints": [
+          {
+            "text": "OLTP vs. OLAP contrast: point queries vs. aggregates, fixed vs. ad-hoc queries, GB-TB vs. TB-PB scale, end users vs. analysts",
+            "evidenceChunkIds": [
+              "CHK-p5-01",
+              "CHK-p6-01"
+            ]
+          },
+          {
+            "text": "Business analysts and data scientists as two distinct analytical audiences; operational systems as source of data",
+            "evidenceChunkIds": [
+              "CHK-p4-01"
+            ]
+          },
+          {
+            "text": "Data warehouse concept, ETL process, and reasons for keeping OLTP and analytics separate (data silos, performance, security)",
+            "evidenceChunkIds": [
+              "CHK-p7-01",
+              "CHK-p8-01"
+            ]
+          },
+          {
+            "text": "HTAP exists but does not replace data warehouses",
+            "evidenceChunkIds": [
+              "CHK-p8-01",
+              "CHK-p9-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Data lake concept: schema-free centralized repository for raw data in any format (Avro, Parquet, images, text), cheaper than relational storage, 'sushi principle'",
+            "sourceChunkIds": [
+              "CHK-p10-01"
+            ]
+          },
+          {
+            "text": "Systems of record vs. derived data systems distinction — a key conceptual framework used throughout the book",
+            "sourceChunkIds": [
+              "CHK-p11-01"
+            ]
+          },
+          {
+            "text": "Reverse ETL and DataOps as emerging practices; stream processing enabling near-real-time analytics",
+            "sourceChunkIds": [
+              "CHK-p10-01"
+            ]
+          },
+          {
+            "text": "Data engineers and analytics engineers as specialized roles bridging operational and analytical systems",
+            "sourceChunkIds": [
+              "CHK-p4-01"
+            ]
+          },
+          {
+            "text": "Product analytics / real-time analytics systems (Pinot, Druid, ClickHouse) as a third category distinct from traditional OLAP",
+            "sourceChunkIds": [
+              "CHK-p6-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CLOUD",
+        "sectionName": "Cloud vs. Self-Hosting",
+        "capturedKeyPoints": [
+          {
+            "text": "Build vs. buy framing; core competency rule of thumb; spectrum from bespoke in-house to fully managed SaaS",
+            "evidenceChunkIds": [
+              "CHK-p12-01"
+            ]
+          },
+          {
+            "text": "Cloud pros: faster adoption, elastic scaling, outsourced expertise, cost efficiency for variable loads",
+            "evidenceChunkIds": [
+              "CHK-p13-01"
+            ]
+          },
+          {
+            "text": "Cloud cons: no control over internals/bugs/outages, vendor lock-in, non-standard APIs, political/sanctions risk, security compliance complexity",
+            "evidenceChunkIds": [
+              "CHK-p14-01"
+            ]
+          },
+          {
+            "text": "Cloud-native storage/compute disaggregation; object stores (S3, Azure Blob) hiding physical machines; ephemeral local disks; multitenancy",
+            "evidenceChunkIds": [
+              "CHK-p17-01",
+              "CHK-p15-01",
+              "CHK-p16-01"
+            ]
+          },
+          {
+            "text": "Self-hosting cheaper when load is predictable and team already has expertise",
+            "evidenceChunkIds": [
+              "CHK-p13-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Operations/DevOps/SRE role evolution in cloud era: shift from machine-level administration to service-level management, capacity planning becoming financial planning",
+            "sourceChunkIds": [
+              "CHK-p18-01"
+            ]
+          },
+          {
+            "text": "Serverless/FaaS: automatic resource allocation, metered billing for code execution, time limits, cold-start problems",
+            "sourceChunkIds": [
+              "CHK-p22-01"
+            ]
+          },
+          {
+            "text": "Virtual disk (EBS) overheads and sensitivity to network glitches as specific cloud-native architectural concern",
+            "sourceChunkIds": [
+              "CHK-p16-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-DISTRIBUTED",
+        "sectionName": "Distributed vs. Single-Node",
+        "capturedKeyPoints": [
+          {
+            "text": "Reasons to go distributed: fault tolerance, scalability, latency, legal compliance (data residency), elasticity, inherent distribution, specialized hardware",
+            "evidenceChunkIds": [
+              "CHK-p19-01",
+              "CHK-p20-01"
+            ]
+          },
+          {
+            "text": "Problems with distributed systems: network failures, cross-service consistency, distributed transactions rarely used in microservices, observability complexity",
+            "evidenceChunkIds": [
+              "CHK-p21-01",
+              "CHK-p22-01"
+            ]
+          },
+          {
+            "text": "Single-node often simpler and cheaper; DuckDB, SQLite, KùzuDB handle many workloads; more nodes ≠ faster",
+            "evidenceChunkIds": [
+              "CHK-p21-01"
+            ]
+          },
+          {
+            "text": "Microservices architecture: one team per service, independent deployment, own databases, but complexity and API evolution challenges",
+            "evidenceChunkIds": [
+              "CHK-p22-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Cloud computing vs. supercomputing/HPC comparison: different priorities, checkpoint-based recovery, RDMA networking, geographic assumptions",
+            "sourceChunkIds": [
+              "CHK-p23-01"
+            ]
+          },
+          {
+            "text": "Sustainability/carbon emissions as a reason to choose when and where to run distributed jobs",
+            "sourceChunkIds": [
+              "CHK-p20-01"
+            ]
+          },
+          {
+            "text": "Observability tooling specifics: OpenTelemetry, Zipkin, Jaeger for distributed tracing",
+            "sourceChunkIds": [
+              "CHK-p21-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-LAW",
+        "sectionName": "Data Systems, Law & Society",
+        "capturedKeyPoints": [
+          {
+            "text": "GDPR, CCPA, EU AI Act as regulatory constraints shaping data system architecture; right to erasure conflicting with immutable/append-only logs",
+            "evidenceChunkIds": [
+              "CHK-p24-01"
+            ]
+          },
+          {
+            "text": "Full cost of data storage including liability, legal fines, reputational damage, and user safety risks (location data, IP logs, criminalized behaviors)",
+            "evidenceChunkIds": [
+              "CHK-p25-01"
+            ]
+          },
+          {
+            "text": "Data minimization / Datensparsamkeit as a valid design principle counter to speculative big-data hoarding",
+            "evidenceChunkIds": [
+              "CHK-p25-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Automated decision-making systems (loan approvals, job interviews, crime suspicion) and broader societal effects of data systems including social media influence on elections",
+            "sourceChunkIds": [
+              "CHK-p24-01"
+            ]
+          },
+          {
+            "text": "PCI and SOC Type 2 compliance standards as industry-driven (not just regulatory) forces shaping data practices",
+            "sourceChunkIds": [
+              "CHK-p25-01"
+            ]
+          },
+          {
+            "text": "GDPR's deliberate technology-neutrality and the lack of clear guidelines on which architectures are compliant — meaning no simple engineering answer exists",
+            "sourceChunkIds": [
+              "CHK-p24-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CLOSING",
+        "sectionName": "Recap & Key Takeaways",
+        "capturedKeyPoints": [
+          {
+            "text": "Four trade-offs summarized: OLTP/OLAP, cloud/self-hosting, distributed/single-node, law/society — each with pros and cons, no universal right answer",
+            "evidenceChunkIds": [
+              "CHK-p26-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Forward references to subsequent chapters (Ch. 4 for data layouts, Ch. 9 for distributed systems, Ch. 14 for ethics/legal compliance) framing this as foundational terminology",
+            "sourceChunkIds": [
+              "CHK-p26-01"
+            ]
+          }
+        ]
+      }
+    ],
+    "unsupportedClaims": [
+      {
+        "slideIndex": 3,
+        "claim": "Conflating them creates bottlenecks, security gaps, and slow queries for everyone.",
+        "closestSourceSpan": "Analytical queries can be quite expensive, and running them on an OLTP database would impact the performance for other users. The OLTP systems might reside in a separate network that users are not allowed to directly access, for security or compliance reasons.",
+        "sourceChunkIds": [
+          "CHK-p7-01"
+        ]
+      },
+      {
+        "slideIndex": 8,
+        "claim": "Compute instances are ephemeral — local disks treated as cache",
+        "closestSourceSpan": "cloud native systems typically treat these disks more like an ephemeral cache and less like long-term storage",
+        "sourceChunkIds": [
+          "CHK-p16-01"
+        ]
+      },
+      {
+        "slideIndex": 10,
+        "claim": "Distributed transactions rarely used in microservices",
+        "closestSourceSpan": "they are rarely used in a microservices context because they run counter to the goal of making services independent from each other, and many databases don't support them",
+        "sourceChunkIds": [
+          "CHK-p21-01"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Add a slide covering the data lake concept (schema-free storage, 'sushi principle', cheaper than relational), and the systems-of-record vs. derived-data distinction — both are key frameworks the source explicitly flags as used throughout the rest of the book.",
+      "Add brief coverage of the data engineers / analytics engineers roles and reverse ETL, which the source introduces as emerging specializations in the OLTP/OLAP section.",
+      "Include the serverless/FaaS trade-off in the Cloud section — the source gives it substantial treatment and it is a common decision point for engineers.",
+      "Note the sustainability / carbon emissions reason for distributed placement (slide 10) which appears in the source's enumeration of distribution reasons but is absent from the deck."
+    ],
+    "deterministic": {
+      "totalSlides": 14,
+      "factualSlides": 11,
+      "factualSlidesWithEvidence": 11,
+      "evidenceUsageRatio": 1,
+      "imageSlides": 3,
+      "imageUsageRatio": 0.75,
+      "slideTypeMix": {
+        "title": 1,
+        "quote": 1,
+        "goals": 1,
+        "statement": 2,
+        "image": 3,
+        "comparison": 2,
+        "split-visual": 3,
+        "recap": 1
+      },
+      "uniqueChunkIdsCited": 20,
+      "totalChunkIds": 31,
+      "chunkCoverageRatio": 0.6451612903225806
+    }
+  }
 }

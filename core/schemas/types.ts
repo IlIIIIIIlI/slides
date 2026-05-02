@@ -150,7 +150,7 @@ export type SlideIntent =
   | 'title' | 'agenda' | 'section-divider' | 'statement'
   | 'big-statement' | 'data' | 'proof' | 'framework'
   | 'comparison' | 'quote' | 'code' | 'image' | 'demo'
-  | 'recap' | 'appendix';
+  | 'recap' | 'appendix' | 'quiz';
 
 export type CitationPolicy =
   | 'footer_required' | 'appendix_required' | 'optional' | 'none';
@@ -187,6 +187,10 @@ export interface SlideRenderProps {
   rightContent?: string;
   beforePoints?: string[];
   afterPoints?: string[];
+  question?: string;
+  options?: string[];
+  answer?: string;
+  explanation?: string;
 }
 
 export interface SlideSpec {

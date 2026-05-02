@@ -1,0 +1,637 @@
+{
+  "id": "0c34070a-528e-461f-9aca-da5fe6c474e1",
+  "title": "API Core Module Walkthrough",
+  "sourceName": "repomix-output.xml",
+  "sourceType": "xml",
+  "audienceType": "Technical",
+  "audienceProfile": "technical",
+  "audienceProfileLabel": "Technical",
+  "stylePreset": "terminal-green",
+  "slideCount": 12,
+  "generatedAt": "2026-05-02T15:06:00.870Z",
+  "slides": [
+    {
+      "type": "title",
+      "headline": "API Core Module Walkthrough",
+      "subtitle": "Generated from source material",
+      "color": "#009B8F"
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "OVERVIEW",
+      "color": "#009B8F",
+      "headline": "One module. Four responsibilities.",
+      "supporting": "Environment detection, dependency injection, and middleware management — the foundation every API request runs through.",
+      "evidenceRefs": [
+        "CHK-001-009"
+      ],
+      "notes": "## Slide: One module. Four responsibilities.\n\n**Key point:** The core module is the backbone of the API server — everything else depends on it.\n\n**Open with:** \"Before we get into any endpoint logic or business rules, let's talk about the foundation — the core module that everything else is built on.\"\n\n**Talk track:**\n- Four files, four clear responsibilities: `__init__.py`, `dependencies.py`, `environment.py`, `middleware.py`\n- Every request that hits this server flows through this module in some way\n- Understanding this layer means you can reason about any part of the system\n\n**Transition:** \"Let's see exactly what lives in each file and why it's structured this way...\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "OVERVIEW",
+      "color": "#009B8F",
+      "headline": "What we're walking through",
+      "leftContent": "Four modules. One coherent system.\n\n- **Environment** — detect and configure runtime context\n- **Dependencies** — lazy-init, lifecycle-managed services\n- **Middleware** — CORS, logging, request processing\n- **Init** — public API surface via `__all__`",
+      "mockupKind": "file-tree",
+      "mockupContent": "core/\n├── __init__.py        # Public exports\n├── environment.py     # Env detection & config\n├── dependencies.py    # DI container\n└── middleware.py      # CORS, logging, OPTIONS",
+      "evidenceRefs": [
+        "CHK-001-007",
+        "CHK-001-009"
+      ],
+      "notes": "## Slide: What we're walking through\n\n**Key point:** Each file has a single, well-scoped responsibility — this is the map.\n\n**Open with:** \"Here's the full picture at a glance — four files, each owning one layer of concern.\"\n\n**Talk track:**\n- `environment.py` answers: where am I running and how should I behave?\n- `dependencies.py` answers: what services do I need and how do I get them?\n- `middleware.py` answers: how do I handle every request before it hits a route?\n- `__init__.py` is the contract — it defines what the rest of the app can import\n- We'll go deep on each one, starting with environment detection\n\n**Transition:** \"Let's start with environment — because everything downstream depends on knowing where you are...\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "THE PROBLEM",
+      "color": "#FF2A2A",
+      "headline": "Initialization is scattered everywhere",
+      "supporting": "Without a dedicated core module, dependencies initialize ad-hoc, lifecycle is unmanaged, and environment assumptions are hard-coded across files.",
+      "evidenceRefs": [
+        "CHK-001-010",
+        "CHK-001-011",
+        "CHK-001-012"
+      ],
+      "notes": "## Slide: Initialization is scattered everywhere\n\n**Key point:** The absence of a centralized core module creates real pain — tangled startup logic, unpredictable teardown, and brittle environment detection.\n\n**Open with:** \"Before we look at what this module does, let's talk about what life looks like without it.\"\n\n**Talk track:**\n- When dependency setup is spread across files, you get race conditions at startup and silent failures at teardown\n- Hard-coded environment assumptions mean the same code behaves differently in local dev, Docker, and Snowflake Native App — and not in obvious ways\n- Middleware config scattered across request handlers means CORS breaks in one environment but not another\n\n**Transition:** \"These aren't hypothetical problems — let's look at exactly what was tangled and why it needed untangling.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "THE PROBLEM",
+      "color": "#FF2A2A",
+      "headline": "Three distinct failure modes",
+      "leftContent": "Each file was its own island — no shared lifecycle, no unified environment contract, no consistent middleware wiring.",
+      "points": [
+        "**Scattered init** — `dependencies.py`, `environment.py`, `middleware.py` each bootstrapped independently",
+        "**Lifecycle gaps** — no guaranteed `initialize()` / `cleanup()` across services",
+        "**Hard-coded env logic** — `LOCAL_DEV`, `NATIVE_APP`, `DOCKER_DEV` assumptions duplicated at call sites"
+      ],
+      "mockupKind": "file-tree",
+      "mockupContent": "core/\n├── dependencies.py   # owns service init\n├── environment.py    # owns env detection\n├── middleware.py     # owns CORS + logging\n└── (no shared contract)\n\n# Each module bootstraps alone:\n# - No shared lifecycle hook\n# - No unified config surface\n# - Env checks duplicated per file",
+      "evidenceRefs": [
+        "CHK-001-010",
+        "CHK-001-011",
+        "CHK-001-012"
+      ],
+      "notes": "## Slide: Three distinct failure modes\n\n**Key point:** The problem isn't one thing — it's three compounding issues that make the codebase fragile.\n\n**Open with:** \"Here's the concrete shape of the problem across the three files.\"\n\n**Talk track:**\n- `dependencies.py` initializes services but has no awareness of which environment it's in — that context has to be imported separately\n- `environment.py` detects `LOCAL_DEV`, `NATIVE_APP`, and `DOCKER_DEV` but that detection logic risks being re-implemented wherever env-specific behavior is needed\n- `middleware.py` calls into the environment manager, but if that hasn't been set up yet, you get a silent failure or a runtime error\n- The file tree shows no shared contract — nothing enforces the order of initialization\n\n**Transition:** \"The solution is a dedicated core module that owns all three concerns under one roof. Let's walk through how it's structured.\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "ENVIRONMENT",
+      "color": "#7C3CFF",
+      "headline": "Three environments, one codebase",
+      "supporting": "LOCAL_DEV, NATIVE_APP, and DOCKER_DEV — auto-detected at startup, no manual config required.",
+      "evidenceRefs": [
+        "CHK-001-011"
+      ],
+      "notes": "## Slide: Three environments, one codebase\n\n**Key point:** The codebase runs in three distinct environments and detects which one it's in automatically.\n\n**Open with:** \"Before we get into the internals, let's establish the context this module has to operate in.\"\n\n**Talk track:**\n- The same code ships to local dev, a Snowflake Native App, and Docker — so environment detection has to be reliable\n- No manual flag required; the `EnvironmentManager` figures it out at startup\n- Each environment gets its own CORS policy, port, and debug settings\n\n**Transition:** \"Let's look at how the detection logic actually works...\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "ENVIRONMENT",
+      "color": "#7C3CFF",
+      "headline": "Auto-detection logic",
+      "leftContent": "Priority order on startup:\n\n**1. CLI args** — explicit `--env` flag wins\n\n**2. Env vars** — `ENVIRONMENT` or `ENV` override\n\n**3. Snowflake indicators** — Native App markers in env\n\n**4. Docker signals** — container-specific env\n\n**5. Default** — falls back to `LOCAL_DEV`",
+      "mockupKind": "terminal",
+      "mockupContent": "# _detect_environment() priority chain\n\nparser = argparse.ArgumentParser(add_help=False)\n# 1. Check CLI args first\n\nenv_override = (\n    os.getenv('ENVIRONMENT')\n    or os.getenv('ENV')\n    or ''\n).strip().lower()\n# 2. Explicit env var override\n\n# 3. Snowflake Native App indicators\n# 4. Docker environment check\n# 5. Default → LOCAL_DEV",
+      "evidenceRefs": [
+        "CHK-001-011"
+      ],
+      "notes": "## Slide: Auto-detection logic\n\n**Key point:** Detection follows a strict priority chain — explicit always beats inferred.\n\n**Open with:** \"The `_detect_environment` method runs a priority chain, not a guess.\"\n\n**Talk track:**\n- CLI args are checked first — useful in CI or scripted environments\n- `ENVIRONMENT` and `ENV` env vars provide an escape hatch, especially in Docker Compose where Snowflake vars might otherwise cause a false positive\n- The comment in the code even calls this out explicitly\n- Falls back to LOCAL_DEV only if nothing else matches\n\n**Transition:** \"Once the environment is known, it configures itself — CORS, ports, reload mode, the works.\""
+    },
+    {
+      "type": "framework",
+      "variant": "cards",
+      "label": "ENVIRONMENT",
+      "color": "#7C3CFF",
+      "headline": "Per-environment configuration",
+      "points": [
+        "**LOCAL_DEV** — port 8000, `CORS: *`, reload enabled, loads `.env.local`, validates required vars",
+        "**NATIVE_APP** — port 8000, `CORS: *` for dynamic Snowflake subdomains, no reload, relative URLs",
+        "**DOCKER_DEV** — port 8000, consistent with nginx config, reload disabled, Docker-specific setup"
+      ],
+      "evidenceRefs": [
+        "CHK-001-011"
+      ],
+      "notes": "## Slide: Per-environment configuration\n\n**Key point:** All three environments share port 8000 but diverge on CORS policy, reload, and URL strategy.\n\n**Open with:** \"The interesting thing is what's the same and what's different across environments.\"\n\n**Talk track:**\n- Port 8000 is consistent across all three — intentional, matches the nginx config\n- CORS is `*` everywhere, but for different reasons: LOCAL_DEV for developer convenience, NATIVE_APP because Snowflake subdomains are dynamic and unpredictable\n- Only LOCAL_DEV enables hot reload — Docker and Native App both set `reload=False`\n- LOCAL_DEV is the only one that validates required env vars at startup and loads `.env.local`\n- NATIVE_APP returns a relative URL `/` from `get_backend_url()` — the actual host is resolved by Snowflake\n\n**Transition:** \"With environment detection handled, let's look at how dependencies are wired up on top of this foundation.\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "DEPENDENCIES",
+      "color": "#2563EB",
+      "headline": "One container. Everything wired.",
+      "supporting": "DependencyContainer centralizes all services — orchestrator, DB handler, reference manager, SQL generator — with lazy initialization and proper lifecycle management.",
+      "evidenceRefs": [
+        "CHK-001-010"
+      ],
+      "notes": "## Slide: One container. Everything wired.\n\n**Key point:** The DependencyContainer is the single source of truth for all application dependencies.\n\n**Open with:** \"Before we look at the individual services, let's talk about how they're wired together — because that architecture decision shapes everything.\"\n\n**Talk track:**\n- The container owns four core services: orchestrator, DB handler, reference manager, and SQL generator\n- Nothing initializes eagerly — everything is lazy, only spinning up when first needed\n- This is the entry point for dependency resolution across the entire API layer\n\n**Transition:** \"Let's look at how the container's `__init__` sets up its internal state before anything is actually initialized...\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "DEPENDENCIES",
+      "color": "#2563EB",
+      "headline": "Lazy init, singleton slots",
+      "leftContent": "The `__init__` method reserves slots for each service but leaves them unpopulated. The `sql_generator` is the exception — it arrives pre-built as a singleton. All others initialize on first use via `initialize()`.",
+      "points": [
+        "`_sql_generator` — injected singleton",
+        "`_orchestrator` — lazy, set on init",
+        "`_db_handler` — lazy, set on init",
+        "`_reference_manager` — lazy, set on init"
+      ],
+      "mockupKind": "file-tree",
+      "mockupContent": "DependencyContainer\n├── __init__()\n│   ├── # Configuration\n│   ├── _config          = None\n│   ├── # Core services\n│   ├── _orchestrator    = None\n│   ├── _db_handler      = None\n│   ├── _reference_manager = None\n│   └── _sql_generator   = sql_generator  # singleton\n│\n├── async initialize()\n│   ├── init config\n│   ├── init orchestrator (LangGraph)\n│   ├── init db_handler\n│   └── init reference_manager\n│\n└── async cleanup()",
+      "evidenceRefs": [
+        "CHK-001-010"
+      ],
+      "notes": "## Slide: Lazy init, singleton slots\n\n**Key point:** State is reserved at construction time, but services only come alive when `initialize()` is awaited.\n\n**Open with:** \"The `__init__` is intentionally boring — it's just reserving slots. The real work happens in `initialize()`.\"\n\n**Talk track:**\n- `sql_generator` is the outlier — it's already a singleton when the container is constructed, so it's injected directly\n- Everything else starts as `None` and is assigned during async initialization\n- This pattern means the server can start and respond to health checks even before all dependencies are ready\n- The reference manager init is wrapped to swallow errors — server starts even without reference tables\n\n**Transition:** \"Now let's look at how callers actually access these services once they're initialized — the curried getter pattern.\""
+    },
+    {
+      "type": "code",
+      "variant": "terminal",
+      "label": "DEPENDENCIES",
+      "color": "#2563EB",
+      "headline": "Curried getters expose each service",
+      "terminalTitle": "dependencies.py",
+      "codeLanguage": "python",
+      "code": "# Curried getter — returns a function, not the value\ndef get_orchestrator(self) -> Callable[[], Optional[SimpleLangGraphOrchestrator]]:\n    def _get_orchestrator() -> Optional[SimpleLangGraphOrchestrator]:\n        return self._orchestrator\n    return _get_orchestrator\n\n# Direct property access (backward compat)\n@property\ndef orchestrator(self) -> Optional[SimpleLangGraphOrchestrator]:\n    return self._orchestrator\n\n# Module-level convenience shim\ndef get_orchestrator():\n    return get_container().orchestrator",
+      "supporting": "Two access patterns coexist: curried getters for FastAPI dependency injection, and direct properties for legacy call sites.",
+      "evidenceRefs": [
+        "CHK-001-010"
+      ],
+      "notes": "## Slide: Curried getters expose each service\n\n**Key point:** The container exposes services two ways — curried functions for FastAPI's DI system, and direct properties for backward compatibility.\n\n**Open with:** \"Here's the pattern that makes this container work cleanly with FastAPI — and also not break existing code.\"\n\n**Talk track:**\n- The curried getter returns a *function* — FastAPI calls that function per-request to resolve the dependency\n- The `@property` accessor gives legacy code a clean direct path without going through FastAPI's DI machinery\n- The module-level `get_orchestrator()` shim at the bottom is purely for backward compatibility — it delegates straight to the container\n- Same pattern repeats for every service: orchestrator, reference manager, db handler, sql generator\n\n**Delivery:** Pause on the three-layer structure — curried getter, property, module shim — and call out that they all ultimately read from the same `self._orchestrator` slot.\n\n**Transition:** \"With the dependency layer covered, let's move on to how the environment shapes the configuration these services receive.\""
+    },
+    {
+      "type": "recap",
+      "variant": "bullets",
+      "label": "RECAP",
+      "color": "#009B8F",
+      "headline": "Three modules. One clean core.",
+      "points": [
+        "**environment.py** — Auto-detects LOCAL_DEV, NATIVE_APP, or DOCKER_DEV and loads env-specific CORS origins, ports, and config",
+        "**dependencies.py** — Lazy-initializing `DependencyContainer` owns every service singleton; curried getters keep API modules decoupled",
+        "**middleware.py** — Wires CORS, preflight OPTIONS handler, and request/response logging in a single `setup_middleware` call",
+        "**Trade-off** — Lazy init keeps startup fast but means missing credentials surface at first use, not at boot",
+        "**Next steps** — Add health-check probes, extend `DependencyContainer.cleanup()`, and introduce per-environment secrets validation"
+      ],
+      "evidenceRefs": [
+        "CHK-001-009",
+        "CHK-001-010",
+        "CHK-001-011",
+        "CHK-001-012"
+      ],
+      "notes": "## Slide: Three modules. One clean core.\n\n**Key point:** The entire API foundation is three focused files with clear separation of concerns.\n\n**Open with:** \"So what have we actually got here? Three files, three jobs — no overlap.\"\n\n**Talk track:**\n- environment.py is the entry point for runtime identity — it decides how everything else behaves\n- dependencies.py is the heart — every service goes through the container, lazy so startup never fails on a missing optional credential like OpenRouter\n- middleware.py is thin on purpose — it reads from the environment manager and delegates, no hard-coded origins\n- The key trade-off to call out: lazy initialization means a bad API key won't blow up on startup — it'll surface when a route first calls `get_orchestrator()`. That's a deliberate choice, but teams should add readiness probes if they want fail-fast behavior\n- Next steps: cleanup() is stubbed right now — that's the place to add connection teardown; also worth adding per-environment validation gates so Docker and Native App fail loudly if required vars are absent\n\n**Transition:** \"If you're extending this — start with the container. Add your service there, expose a getter, done.\""
+    }
+  ],
+  "outline": {
+    "title": "API Core Module Walkthrough",
+    "totalSlideCount": 12,
+    "sections": [
+      {
+        "id": "SEC-OPENING",
+        "name": "Opening",
+        "purpose": "Introduce the core module, its purpose, and what the audience will take away from this walkthrough.",
+        "label": "OVERVIEW",
+        "color": "#009B8F",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-009",
+          "CHK-001-007"
+        ]
+      },
+      {
+        "id": "SEC-PROBLEM",
+        "name": "The Problem",
+        "purpose": "Articulate why a dedicated core module is needed: scattered initialization, tangled lifecycle management, and hard-coded environment assumptions.",
+        "label": "THE PROBLEM",
+        "color": "#FF2A2A",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-010",
+          "CHK-001-011",
+          "CHK-001-012"
+        ]
+      },
+      {
+        "id": "SEC-ENVIRONMENT",
+        "name": "Environment Detection",
+        "purpose": "Explain how the EnvironmentManager auto-detects and configures LOCAL_DEV, NATIVE_APP, and DOCKER_DEV environments, including CORS origins and port strategy.",
+        "label": "ENVIRONMENT",
+        "color": "#7C3CFF",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-001-011"
+        ]
+      },
+      {
+        "id": "SEC-DEPENDENCIES",
+        "name": "Dependency Injection",
+        "purpose": "Show how DependencyContainer uses lazy initialization, singleton management, and curried getter functions to wire together orchestrator, DB handler, reference manager, and SQL generator.",
+        "label": "DEPENDENCIES",
+        "color": "#2563EB",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-001-010"
+        ]
+      },
+      {
+        "id": "SEC-MIDDLEWARE",
+        "name": "Middleware Layer",
+        "purpose": "Walk through the middleware stack: CORS setup driven by environment config, request/response logging middleware, and the global OPTIONS preflight handler.",
+        "label": "MIDDLEWARE",
+        "color": "#D97706",
+        "slideCount": 1,
+        "candidateChunkIds": [
+          "CHK-001-012"
+        ]
+      },
+      {
+        "id": "SEC-CLOSING",
+        "name": "Closing",
+        "purpose": "Recap the three-module architecture, highlight key trade-offs, and point to next steps for extending the core module.",
+        "label": "RECAP",
+        "color": "#009B8F",
+        "slideCount": 1,
+        "candidateChunkIds": [
+          "CHK-001-009",
+          "CHK-001-010",
+          "CHK-001-011",
+          "CHK-001-012"
+        ]
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "id": "CHK-001-001",
+      "paragraph": 1,
+      "text": "This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix. The content has been processed where content has been compressed (code blocks are separated by ⋮---- delimiter)."
+    },
+    {
+      "id": "CHK-001-002",
+      "paragraph": 2,
+      "text": "<file_summary> This section contains a summary of this file."
+    },
+    {
+      "id": "CHK-001-003",
+      "paragraph": 3,
+      "text": "<purpose> This file contains a packed representation of a subset of the repository's contents that is considered the most important context. It is designed to be easily consumable by AI systems for analysis, code review, or other automated processes. </purpose>"
+    },
+    {
+      "id": "CHK-001-004",
+      "paragraph": 4,
+      "text": "<file_format> The content is organized as follows: 1. This summary section 2. Repository information 3. Directory structure 4. Repository files (if enabled) 5. Multiple file entries, each consisting of: - File path as an attribute - Full contents of the file </file_format>"
+    },
+    {
+      "id": "CHK-001-005",
+      "paragraph": 5,
+      "text": "<usage_guidelines> - This file should be treated as read-only. Any changes should be made to the original repository files, not this packed version. - When processing this file, use the file path to distinguish between different files in the repository. - Be aware that this file may contain sensitive information. Handle it with the same level of security as you would the original repository. </usage_guidelines>"
+    },
+    {
+      "id": "CHK-001-006",
+      "paragraph": 6,
+      "text": "<notes> - Some files may have been excluded based on .gitignore rules and Repomix's configuration - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files - Files matching these patterns are excluded: **/*.tsbuildinfo, **/.next/**, **/.nuxt/**, **/.turbo/**, **/.cache/**, **/dist/**, **/build/**, **/coverage/**, **/node_modules/**, **/public/**/*.svg, **/assets/**/*.svg, **/__pycache__/**, **/.pytest_cache/**, **/.mypy_cache/**, **/.venv/**, **/venv/**, **/schema_cache/**, **/*.pkl, **/*.log, **/*.map - Files matching patterns in .gitignore are excluded - Files matching default ignore patterns are excluded - Content has been compressed - code blocks are separated by ⋮---- delimiter - Long base64 data strings (e.g., data:image/png;base64,...) have been truncated to reduce token count - Files are sorted by Git change count (files with more changes are at the bottom) </notes>"
+    },
+    {
+      "id": "CHK-001-007",
+      "paragraph": 7,
+      "text": "<directory_structure> __init__.py dependencies.py environment.py middleware.py </directory_structure>"
+    },
+    {
+      "id": "CHK-001-008",
+      "paragraph": 8,
+      "text": "<files> This section contains the contents of the repository's files."
+    },
+    {
+      "id": "CHK-001-009",
+      "paragraph": 9,
+      "text": "<file path=\"__init__.py\"> \"\"\" Core Module =========== Core functionality for the API server including environment detection, dependency injection, and middleware management. \"\"\" ⋮---- __all__ = [ </file>"
+    },
+    {
+      "id": "CHK-001-010",
+      "paragraph": 10,
+      "text": "<file path=\"dependencies.py\"> \"\"\" Dependency Injection Container ============================== Manages all application dependencies with lazy initialization and proper lifecycle management. \"\"\" ⋮---- # Add paths ⋮---- # Core imports ⋮---- # LangGraph imports ⋮---- class DependencyContainer ⋮---- \"\"\" Centralized dependency injection container using lazy initialization \"\"\" ⋮---- def __init__(self) ⋮---- # Configuration ⋮---- # Core services ⋮---- # Singletons self._sql_generator = sql_generator # Already a singleton ⋮---- # Initialization flags ⋮---- async def initialize(self) ⋮---- \"\"\"Initialize all core dependencies\"\"\" ⋮---- # Initialize configuration ⋮---- # OpenRouter API key is optional — only needed when LLM_PROVIDER=openrouter openrouter_api_key = os.getenv('OPENROUTER_API_KEY') ⋮---- # Initialize LangGraph orchestrator ⋮---- # Initialize database handler and reference manager ⋮---- # Don't raise here, allow server to start without reference tables ⋮---- async def cleanup(self) ⋮---- \"\"\"Cleanup resources\"\"\" ⋮---- # Add any cleanup logic here if needed ⋮---- # =================================================================== # DEPENDENCY GETTERS (Curried functions for API modules) ⋮---- def get_config(self) -> Callable[[], Config] ⋮---- \"\"\"Get configuration getter function\"\"\" def _get_config() -> Config ⋮---- def get_orchestrator(self) -> Callable[[], Optional[SimpleLangGraphOrchestrator]] ⋮---- \"\"\"Get orchestrator getter function\"\"\" def _get_orchestrator() -> Optional[SimpleLangGraphOrchestrator] ⋮---- def get_reference_manager(self) -> Callable[[], Optional[ReferenceTableManager]] ⋮---- \"\"\"Get reference manager getter function\"\"\" def _get_reference_manager() -> Optional[ReferenceTableManager] ⋮---- def get_db_handler(self) -> Callable[[], Any] ⋮---- \"\"\"Get database handler getter function\"\"\" def _get_db_handler() -> Any ⋮---- def get_agent_registry(self) -> Callable[[], dict] ⋮---- \"\"\"Get agent registry getter function\"\"\" def _get_agent_registry() -> dict ⋮---- def get_sql_generator(self) -> Callable[[], Any] ⋮---- \"\"\"Get SQL generator getter function\"\"\" def _get_sql_generator() -> Any ⋮---- # DIRECT ACCESS METHODS (for backward compatibility) ⋮---- @property def config(self) -> Config ⋮---- \"\"\"Direct access to configuration\"\"\" ⋮---- @property def orchestrator(self) -> Optional[SimpleLangGraphOrchestrator] ⋮---- \"\"\"Direct access to orchestrator\"\"\" ⋮---- @property def reference_manager(self) -> Optional[ReferenceTableManager] ⋮---- \"\"\"Direct access to reference manager\"\"\" ⋮---- @property def db_handler(self) -> Any ⋮---- \"\"\"Direct access to database handler\"\"\" ⋮---- @property def agent_registry(self) -> dict ⋮---- \"\"\"Direct access to agent registry\"\"\" ⋮---- @property def sql_gen(self) -> Any ⋮---- \"\"\"Direct access to SQL generator\"\"\" ⋮---- # Global container instance _container: Optional[DependencyContainer] = None ⋮---- def get_container() -> DependencyContainer ⋮---- \"\"\"Get or create global dependency container\"\"\" ⋮---- _container = DependencyContainer() ⋮---- # Convenience functions for backward compatibility def get_orchestrator() ⋮---- \"\"\"Get orchestrator instance\"\"\" ⋮---- def get_reference_manager() ⋮---- \"\"\"Get reference manager instance\"\"\" ⋮---- def get_config() ⋮---- \"\"\"Get configuration instance\"\"\" ⋮---- def get_db_handler_instance() ⋮---- \"\"\"Get database handler instance\"\"\" ⋮---- def get_agent_registry() ⋮---- \"\"\"Get agent registry\"\"\" ⋮---- def get_sql_generator() ⋮---- \"\"\"Get SQL generator instance\"\"\" </file>"
+    },
+    {
+      "id": "CHK-001-011",
+      "paragraph": 11,
+      "text": "<file path=\"environment.py\"> \"\"\" Environment Detection and Configuration Management ================================================= Handles environment detection, configuration loading, and environment-specific setup. \"\"\" ⋮---- # Import existing configuration ⋮---- class Environment(Enum) ⋮---- \"\"\"Environment types\"\"\" LOCAL_DEV = \"local_dev\" NATIVE_APP = \"native_app\" DOCKER_DEV = \"docker_dev\" ⋮---- @dataclass class EnvironmentConfig ⋮---- \"\"\"Environment-specific configuration\"\"\" env_type: Environment backend_host: str = \"0.0.0.0\" backend_port: int = 8000 cors_origins: list = None debug_mode: bool = False reload: bool = False ⋮---- def __post_init__(self) ⋮---- class EnvironmentManager ⋮---- \"\"\"Manages environment detection and configuration\"\"\" ⋮---- def __init__(self) ⋮---- def _detect_environment(self) -> Environment ⋮---- \"\"\"Auto-detect current environment\"\"\" # Check command line arguments first parser = argparse.ArgumentParser(add_help=False) ⋮---- # Explicit env override (useful in Docker/Compose where Snowflake env vars may be present) env_override = (os.getenv('ENVIRONMENT') or os.getenv('ENV') or '').strip().lower() ⋮---- # Auto-detection logic # Check for Snowflake Native App indicators ⋮---- # Check for Docker environment ⋮---- # Default to local development ⋮---- def _create_env_config(self) -> EnvironmentConfig ⋮---- \"\"\"Create environment-specific configuration\"\"\" ⋮---- backend_port=8000, # Keep consistent with nginx config ⋮---- else: # DOCKER_DEV ⋮---- reload=False # Don't reload in Docker ⋮---- def _get_local_cors_origins(self) -> list ⋮---- \"\"\"Get CORS origins for local development\"\"\" ⋮---- \"*\" # Allow all for development ⋮---- def _get_native_app_cors_origins(self) -> list ⋮---- \"\"\"Get CORS origins for Snowflake Native App\"\"\" ⋮---- \"*\" # Native App needs dynamic subdomain support ⋮---- def setup_environment(self) ⋮---- \"\"\"Setup environment-specific configurations\"\"\" # Set environment variable for other modules to use ⋮---- def _setup_local_env(self) ⋮---- \"\"\"Setup local development environment\"\"\" # Load .env.local if exists env_file = '.env.local' ⋮---- # Validate required variables for local dev required_vars = [ ⋮---- missing_vars = [var for var in required_vars if not os.getenv(var)] ⋮---- def _setup_native_app_env(self) ⋮---- \"\"\"Setup Native App environment\"\"\" # Native App specific setup will be handled by Snowflake ⋮---- def _setup_docker_env(self) ⋮---- \"\"\"Setup Docker development environment\"\"\" # Docker-specific setup ⋮---- def get_backend_url(self) -> str ⋮---- \"\"\"Get backend URL for current environment\"\"\" ⋮---- # In Native App, the URL will be determined by Snowflake return \"/\" # Relative URL ⋮---- def is_local_dev(self) -> bool ⋮---- \"\"\"Check if running in local development mode\"\"\" ⋮---- def is_native_app(self) -> bool ⋮---- \"\"\"Check if running in Native App mode\"\"\" ⋮---- def is_docker_dev(self) -> bool ⋮---- \"\"\"Check if running in Docker development mode\"\"\" ⋮---- # Global environment manager instance _env_manager: Optional[EnvironmentManager] = None ⋮---- def get_environment_manager() -> EnvironmentManager ⋮---- \"\"\"Get or create global environment manager\"\"\" ⋮---- _env_manager = EnvironmentManager() ⋮---- def detect_environment() -> Environment ⋮---- \"\"\"Convenience function to detect environment\"\"\" </file>"
+    },
+    {
+      "id": "CHK-001-012",
+      "paragraph": 12,
+      "text": "<file path=\"middleware.py\"> \"\"\" Middleware Management ==================== Handles all middleware configuration including CORS, logging, and request processing. \"\"\" ⋮---- def setup_middleware(app: FastAPI) ⋮---- \"\"\"Setup all middleware for the FastAPI application\"\"\" env_manager = get_environment_manager() ⋮---- # Setup CORS middleware ⋮---- # Setup logging middleware ⋮---- # Setup global OPTIONS handler ⋮---- def _setup_cors_middleware(app: FastAPI, env_manager) ⋮---- \"\"\"Setup CORS middleware based on environment\"\"\" cors_origins = env_manager.env_config.cors_origins ⋮---- def _setup_options_handler(app: FastAPI) ⋮---- \"\"\"Setup global OPTIONS handler for CORS preflight requests\"\"\" ⋮---- @app.options(\"/{path:path}\") async def handle_options(path: str) ⋮---- \"\"\"Global OPTIONS handler for CORS preflight requests\"\"\" ⋮---- def _setup_logging_middleware(app: FastAPI) ⋮---- \"\"\"Setup request/response logging middleware\"\"\" ⋮---- @app.middleware(\"http\") async def logging_middleware(request: Request, call_next) ⋮---- \"\"\"Log requests and responses, add CORS headers for critical paths\"\"\" start_time = time.time() path = request.url.path ⋮---- # Log critical paths ⋮---- # Process the request ⋮---- response = await call_next(request) ⋮---- # Log unhandled exceptions ⋮---- # Add CORS headers for critical paths ⋮---- response.headers[\"Access-Control-Max-Age\"] = \"86400\" # 24 hours ⋮---- # Log response for critical paths ⋮---- duration = (time.time() - start_time) * 1000 ⋮---- def _is_critical_path(path: str) -> bool ⋮---- \"\"\"Check if path is critical and should be logged\"\"\" critical_patterns = [ </file>"
+    }
+  ],
+  "images": [],
+  "validationWarnings": [],
+  "fidelityReport": {
+    "generatedAt": "2026-05-02T15:06:00.869Z",
+    "overallGrade": "medium",
+    "summary": "The deck faithfully covers the three main technical modules (environment, dependencies, middleware) and their key mechanics. The Opening and Closing sections are well represented, and the Environment and Dependency sections are thorough. However, the Problem section introduces framing ('Three distinct failure modes', 'Scattered init') that is interpretive/constructed rather than stated in the source — the source shows a well-structured module, not a broken prior state. The Middleware section is significantly underrepresented, with no dedicated slide walking through the CORS setup, logging middleware details, or OPTIONS handler beyond a single bullet in the recap. There are also minor unsupported claims around 'failure modes' and lifecycle gaps that cannot be traced to the source.",
+    "coverage": [
+      {
+        "sectionId": "SEC-OPENING",
+        "sectionName": "Opening",
+        "capturedKeyPoints": [
+          {
+            "text": "Core module covers environment detection, dependency injection, and middleware management",
+            "evidenceChunkIds": [
+              "CHK-001-009"
+            ]
+          },
+          {
+            "text": "Four files in the core module: __init__.py, dependencies.py, environment.py, middleware.py",
+            "evidenceChunkIds": [
+              "CHK-001-007",
+              "CHK-001-009"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      },
+      {
+        "sectionId": "SEC-PROBLEM",
+        "sectionName": "The Problem",
+        "capturedKeyPoints": [
+          {
+            "text": "Each file owns a separate concern with no shared lifecycle contract surfaced in the source",
+            "evidenceChunkIds": [
+              "CHK-001-010",
+              "CHK-001-011",
+              "CHK-001-012"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "The source does not describe a prior broken state or 'failure modes' — the problem framing is editorially constructed and not sourced from the document",
+            "sourceChunkIds": [
+              "CHK-001-010",
+              "CHK-001-011",
+              "CHK-001-012"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-ENVIRONMENT",
+        "sectionName": "Environment Detection",
+        "capturedKeyPoints": [
+          {
+            "text": "Three environment types: LOCAL_DEV, NATIVE_APP, DOCKER_DEV via Environment enum",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          },
+          {
+            "text": "Auto-detection priority: CLI args → ENVIRONMENT/ENV env vars → Snowflake indicators → Docker signals → default LOCAL_DEV",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          },
+          {
+            "text": "Port 8000 is consistent across all environments, matching nginx config",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          },
+          {
+            "text": "CORS origins use wildcard '*' for all environments; LOCAL_DEV for developer convenience, NATIVE_APP for dynamic Snowflake subdomain support",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          },
+          {
+            "text": "LOCAL_DEV loads .env.local and validates required environment variables",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          },
+          {
+            "text": "NATIVE_APP returns relative URL '/' from get_backend_url()",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          },
+          {
+            "text": "reload=False in Docker and Native App; hot reload only in LOCAL_DEV",
+            "evidenceChunkIds": [
+              "CHK-001-011"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      },
+      {
+        "sectionId": "SEC-DEPENDENCIES",
+        "sectionName": "Dependency Injection",
+        "capturedKeyPoints": [
+          {
+            "text": "DependencyContainer uses lazy initialization with None slots for orchestrator, db_handler, reference_manager; sql_generator injected as pre-built singleton",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "async initialize() method sets up config, LangGraph orchestrator, db handler, and reference manager",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "Reference manager init does not raise on failure — server starts without reference tables",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "OpenRouter API key is optional, only needed when LLM_PROVIDER=openrouter",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "Curried getter functions return callables for FastAPI dependency injection",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "Direct @property accessors for backward compatibility alongside module-level convenience shims",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "Global _container singleton via get_container()",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "async cleanup() method exists but is stubbed — no actual teardown logic implemented yet",
+            "sourceChunkIds": [
+              "CHK-001-010"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-MIDDLEWARE",
+        "sectionName": "Middleware Layer",
+        "capturedKeyPoints": [
+          {
+            "text": "setup_middleware() wires CORS, logging, and OPTIONS handler in one call",
+            "evidenceChunkIds": [
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "CORS setup driven by environment config via env_manager.env_config.cors_origins",
+            "evidenceChunkIds": [
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "Global OPTIONS handler for CORS preflight requests",
+            "evidenceChunkIds": [
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "Request/response logging middleware with timing and critical path detection",
+            "evidenceChunkIds": [
+              "CHK-001-012"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Access-Control-Max-Age header set to 86400 (24 hours) on critical path responses — a concrete implementation detail not surfaced in the deck",
+            "sourceChunkIds": [
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "_is_critical_path() helper function filters which paths get extra CORS headers and verbose logging — not mentioned in any slide",
+            "sourceChunkIds": [
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "Middleware adds CORS headers for critical paths in addition to the CORSMiddleware — dual-layer CORS strategy not explained",
+            "sourceChunkIds": [
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "No dedicated slide for the middleware section — it only appears as a single bullet in the recap slide",
+            "sourceChunkIds": [
+              "CHK-001-012"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CLOSING",
+        "sectionName": "Closing",
+        "capturedKeyPoints": [
+          {
+            "text": "Recap of three-module architecture with one bullet per module",
+            "evidenceChunkIds": [
+              "CHK-001-009",
+              "CHK-001-010",
+              "CHK-001-011",
+              "CHK-001-012"
+            ]
+          },
+          {
+            "text": "Key trade-off called out: lazy init means missing credentials surface at first use, not at boot",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          },
+          {
+            "text": "Next steps: extend cleanup(), add health-check probes, per-environment secrets validation",
+            "evidenceChunkIds": [
+              "CHK-001-010"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      }
+    ],
+    "unsupportedClaims": [
+      {
+        "slideIndex": 4,
+        "claim": "Initialization is scattered everywhere. Without a dedicated core module, dependencies initialize ad-hoc, lifecycle is unmanaged, and environment assumptions are hard-coded across files.",
+        "closestSourceSpan": "Manages all application dependencies with lazy initialization and proper lifecycle management.",
+        "sourceChunkIds": [
+          "CHK-001-010"
+        ]
+      },
+      {
+        "slideIndex": 5,
+        "claim": "Three distinct failure modes. Each file was its own island — no shared lifecycle, no unified environment contract, no consistent middleware wiring.",
+        "closestSourceSpan": "Core functionality for the API server including environment detection, dependency injection, and middleware management.",
+        "sourceChunkIds": [
+          "CHK-001-009",
+          "CHK-001-010",
+          "CHK-001-011",
+          "CHK-001-012"
+        ]
+      },
+      {
+        "slideIndex": 5,
+        "claim": "No shared contract. Each module bootstraps alone: no shared lifecycle hook, no unified config surface, env checks duplicated per file.",
+        "sourceChunkIds": [
+          "CHK-001-010",
+          "CHK-001-011",
+          "CHK-001-012"
+        ]
+      },
+      {
+        "slideIndex": 11,
+        "claim": "cleanup() is stubbed right now — that's the place to add connection teardown",
+        "closestSourceSpan": "async def cleanup(self): \"\"\"Cleanup resources\"\"\" # Add any cleanup logic here if needed",
+        "sourceChunkIds": [
+          "CHK-001-010"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Add a dedicated middleware slide (slides 6–11 skip it entirely) covering the dual-layer CORS strategy, _is_critical_path() filtering, and the 24-hour Access-Control-Max-Age header.",
+      "Reframe or remove slides 4–5 ('The Problem' / 'Three distinct failure modes') — the source describes a well-structured module, not a broken prior state; these slides make unsupported before/after claims.",
+      "Add a note or slide point that cleanup() is currently stubbed with no teardown logic, since this is explicitly visible in the source and relevant to the lifecycle narrative.",
+      "Clarify the unsupported claim on slide 11 that cleanup() 'is stubbed right now' — while directionally correct, it is a presenter interpretation; cite the source comment directly instead."
+    ],
+    "deterministic": {
+      "totalSlides": 12,
+      "factualSlides": 10,
+      "factualSlidesWithEvidence": 10,
+      "evidenceUsageRatio": 1,
+      "imageSlides": 0,
+      "imageUsageRatio": 0,
+      "slideTypeMix": {
+        "title": 1,
+        "statement": 4,
+        "split-visual": 4,
+        "framework": 1,
+        "code": 1,
+        "recap": 1
+      },
+      "uniqueChunkIdsCited": 5,
+      "totalChunkIds": 12,
+      "chunkCoverageRatio": 0.4166666666666667
+    }
+  }
+}

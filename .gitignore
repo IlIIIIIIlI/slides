@@ -14,6 +14,7 @@
 
 # production
 /build
+/public/extracted
 
 # misc
 .DS_Store
@@ -33,3 +34,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# auto-generated from .agents/skills/*/SKILL.md (see scripts/inline-skills.mjs)
+/lib/generation/skills.generated.ts

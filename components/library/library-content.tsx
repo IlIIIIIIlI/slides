@@ -31,7 +31,7 @@ function CardSkeleton() {
 }
 
 export function LibraryContent() {
-  const { presentations, filteredPresentations, loading, error, filters, setFilters, hasActiveFilters, clearFilters } = usePresentationList();
+  const { presentations, filteredPresentations, loading, error, refetch, filters, setFilters, hasActiveFilters, clearFilters } = usePresentationList();
 
   const audienceOptions = useMemo(
     () => [...new Set(presentations.map((p) => p.audienceType))].sort(),
@@ -101,7 +101,7 @@ export function LibraryContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPresentations.map((item) => (
-            <PresentationCard key={item.id} item={item} />
+            <PresentationCard key={item.id} item={item} onDeleted={refetch} />
           ))}
         </div>
       )}

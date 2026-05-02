@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -72,6 +73,7 @@ function PresentationView({ id }: { id: string }) {
   const [isIframeExpanded, setIsIframeExpanded] = useState(false);
   const [showEvidence, setShowEvidence] = useState(false);
   const [slideDirection, setSlideDirection] = useState<"forward" | "backward">("forward");
+  const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
 
   useEffect(() => {
     fetch(`/api/presentations/${id}`)
@@ -94,6 +96,9 @@ function PresentationView({ id }: { id: string }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (slides.length === 0) return;
+      const target = e.target as HTMLElement | null;
+      const isInteractiveTarget = !!target?.closest("button, input, textarea, select, a");
+      if (isInteractiveTarget && (e.key === " " || e.key === "Enter")) return;
       if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
         setSlideDirection("forward");
@@ -153,6 +158,13 @@ function PresentationView({ id }: { id: string }) {
       {/* Progress bar */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 z-50">
         <div className="h-full transition-all duration-300 ease-out" style={{ width: `${progress}%`, backgroundColor: slide.color || "#14b8a6" }} />
+      </div>
+
+      {/* Bottom-left brand glyph */}
+      <div className="absolute bottom-3 left-8 z-50 text-[#D1D5DB] opacity-70 select-none pointer-events-none">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M11 7a4 4 0 1 1-3-3.87" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
       </div>
 
       {/* Floating page indicator (keyboard nav: ←/→/Space/Home/End/Esc, i for sources) */}
@@ -336,8 +348,28 @@ function PresentationView({ id }: { id: string }) {
                   <div className="flex-1 text-center text-[11px] font-medium" style={{ color: "var(--slide-text-muted)" }}>code</div>
                 </div>
                 <div className="bg-[#1e1e1e]">
-                  <SyntaxHighlighter language="python" style={vscDarkPlus} customStyle={{ margin: 0, padding: "1.5rem", background: "#1e1e1e", fontSize: "14px", lineHeight: "1.6" }} showLineNumbers={false}>{slide.code || ""}</SyntaxHighlighter>
+                  <SyntaxHighlighter language={slide.codeLanguage || "python"} style={vscDarkPlus} customStyle={{ margin: 0, padding: "1.5rem", background: "#1e1e1e", fontSize: "14px", lineHeight: "1.6" }} showLineNumbers={false}>{slide.code || ""}</SyntaxHighlighter>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {slide.type === "code" && v === "terminal" && (
+            <div className="mt-10 w-full">
+              <h2 className="type-display text-5xl font-bold leading-tight tracking-[-0.035em] mb-3" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              {slide.supporting && <p className="text-lg font-light mb-8 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
+              <div className="rounded-xl overflow-hidden border border-gray-200 bg-white">
+                <div className="px-5 py-3 bg-[#f6f6f7] border-b border-gray-200 text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-500">{slide.terminalTitle ?? "TERMINAL"}</div>
+                <pre className="p-8 font-mono text-base leading-relaxed text-gray-900 whitespace-pre-wrap">
+                  {(slide.code ?? "").split("\n").map((line, i) => {
+                    const isComment = line.trim().startsWith("#") || line.trim().startsWith("//");
+                    return (
+                      <div key={i}>
+                        <span style={{ color: isComment ? "#111111" : "#2563EB" }}>{line}</span>
+                      </div>
+                    );
+                  })}
+                </pre>
               </div>
             </div>
           )}
@@ -382,7 +414,7 @@ function PresentationView({ id }: { id: string }) {
             </div>
           )}
 
-          {slide.type === "recap" && (
+          {slide.type === "recap" && v !== "resources" && (
             <div className="mt-20">
               <h2 className="type-display text-7xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="space-y-6">
@@ -396,7 +428,51 @@ function PresentationView({ id }: { id: string }) {
             </div>
           )}
 
-          {slide.type === "split-visual" && (
+          {slide.type === "recap" && v === "resources" && (
+            <div className="mt-12 w-full">
+              <h2 className="type-display text-6xl font-bold mb-12 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,0.45fr)] gap-12">
+                <div className="space-y-8">
+                  {(slide.resources ?? []).map((group, gi) => (
+                    <div key={gi}>
+                      {group.group && (
+                        <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em]" style={{ color: slide.color || "var(--slide-text-muted)" }}>{group.group}</p>
+                      )}
+                      <ul className="space-y-2">
+                        {group.items.map((it, ii) => (
+                          <li key={ii} className="leading-relaxed">
+                            <div className="text-lg font-medium" style={{ color: "var(--slide-text-primary)" }}>{stripMd(it.title)}</div>
+                            {(it.url || it.description) && (
+                              <div className="text-sm font-light" style={{ color: "var(--slide-text-muted)" }}>
+                                {it.description ? inlineMd(it.description) : null}
+                                {it.url && (
+                                  <span className="ml-1 font-mono text-xs">{it.url}</span>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <div className="w-px self-stretch" style={{ background: "var(--slide-text-faint, #DADCE1)" }} />
+                <div>
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em]" style={{ color: slide.color || "var(--slide-text-muted)" }}>Built with</p>
+                  <ul className="space-y-3">
+                    {(slide.tools ?? []).map((t, ti) => (
+                      <li key={ti}>
+                        <div className="text-base font-medium" style={{ color: "var(--slide-text-primary)" }}>{stripMd(t.name)}</div>
+                        {t.description && <div className="text-sm font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(t.description)}</div>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {slide.type === "split-visual" && v !== "ui-mockup" && (
             <div className="mt-20">
               <h2 className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-2 gap-16">
@@ -412,7 +488,59 @@ function PresentationView({ id }: { id: string }) {
             </div>
           )}
 
-          {slide.type === "comparison" && (
+          {slide.type === "split-visual" && v === "ui-mockup" && (
+            <div className="mt-16 w-full">
+              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-12 items-start">
+                <div>
+                  <h2 className="type-display text-6xl font-bold mb-6 leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                  {slide.leftContent && <p className="text-2xl font-light leading-relaxed" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(slide.leftContent)}</p>}
+                  {slide.points && slide.points.length > 0 && (
+                    <ul className="mt-6 space-y-3">
+                      {slide.points.map((p, i) => {
+                        const [leadRaw, ...rest] = p.split("—");
+                        const lead = stripMd(leadRaw.trim());
+                        const tail = rest.join("—").trim();
+                        return (
+                          <li key={i} className="text-lg leading-relaxed flex items-start gap-3">
+                            <span className="mt-2 inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: slide.color }} />
+                            <span>
+                              <span className="font-semibold" style={{ color: "var(--slide-text-primary)" }}>{lead}</span>
+                              {tail && <span className="font-light" style={{ color: "var(--slide-text-muted)" }}> — {inlineMd(tail)}</span>}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+                <div className="rounded-xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+                  {slide.mockupKind === "browser" && (
+                    <>
+                      <div className="flex items-center gap-2 px-4 py-3 bg-[#f6f6f7] border-b border-gray-200">
+                        <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-[#ff5f57]" /><div className="w-3 h-3 rounded-full bg-[#febc2e]" /><div className="w-3 h-3 rounded-full bg-[#28c840]" /></div>
+                        <div className="flex-1 mx-2"><div className="rounded bg-white border border-gray-200 px-3 py-1 text-xs text-gray-500 truncate font-mono">{slide.mockupUrl ?? slide.iframeUrl ?? "https://..."}</div></div>
+                      </div>
+                      <pre className="p-6 font-mono text-sm leading-relaxed text-gray-800 whitespace-pre-wrap">{slide.mockupContent}</pre>
+                    </>
+                  )}
+                  {slide.mockupKind === "terminal" && (
+                    <>
+                      <div className="px-4 py-2.5 bg-[#f6f6f7] border-b border-gray-200 text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-500">{slide.terminalTitle ?? "TERMINAL"}</div>
+                      <pre className="p-6 font-mono text-sm leading-relaxed text-gray-900 whitespace-pre-wrap">{slide.mockupContent}</pre>
+                    </>
+                  )}
+                  {slide.mockupKind === "file-tree" && (
+                    <pre className="p-6 font-mono text-sm leading-relaxed text-gray-800 whitespace-pre">{slide.mockupContent}</pre>
+                  )}
+                  {(slide.mockupKind === "card" || !slide.mockupKind) && (
+                    <pre className="p-6 font-mono text-sm leading-relaxed whitespace-pre overflow-x-auto" style={{ color: "var(--slide-text-secondary)" }}>{slide.mockupContent}</pre>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {slide.type === "comparison" && v !== "stats" && (
             <div className="mt-20">
               <h2 className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-2 gap-16">
@@ -442,12 +570,63 @@ function PresentationView({ id }: { id: string }) {
             </div>
           )}
 
+          {slide.type === "comparison" && v === "stats" && (
+            <div className="mt-12 w-full">
+              <h2 className="type-display text-6xl font-bold mb-4 tracking-[-0.035em] leading-tight" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              {slide.supporting && <p className="text-xl font-light mb-12 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
+              <div className="grid grid-cols-2 gap-8">
+                {([
+                  { num: slide.beforeNumber, label: slide.beforeLabel, isWinner: slide.winner === "before", side: "before" as const },
+                  { num: slide.afterNumber, label: slide.afterLabel, isWinner: slide.winner === "after", side: "after" as const },
+                ]).map((card, i) => {
+                  const winnerColor = slide.color || "#22C55E";
+                  const loserColor = "#D97706";
+                  const accent = card.isWinner ? winnerColor : (slide.winner ? loserColor : "var(--slide-text-primary)");
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-2xl bg-white p-10 transition-all"
+                      style={{
+                        border: `1px solid ${card.isWinner ? winnerColor : "rgba(218,220,225,0.9)"}`,
+                        boxShadow: card.isWinner ? `0 0 0 1px ${winnerColor}33, 0 4px 32px ${winnerColor}1a` : "none",
+                      }}
+                    >
+                      <div className="type-display text-8xl font-bold leading-none mb-6 tabular-nums" style={{ color: accent as string }}>{stripMd(card.num)}</div>
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--slide-text-muted)" }}>{stripMd(card.label)}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              {(slide.beforePoints || slide.afterPoints) && (
+                <div className="mt-10 grid grid-cols-2 gap-8 text-base font-light" style={{ color: "var(--slide-text-muted)" }}>
+                  <ul className="space-y-2">{slide.beforePoints?.map((p, i) => <li key={i}>— {inlineMd(p)}</li>)}</ul>
+                  <ul className="space-y-2">{slide.afterPoints?.map((p, i) => <li key={i}>— {inlineMd(p)}</li>)}</ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {slide.type === "big-number" && v === "hero" && (
             <div className="mt-20 text-center">
               <div className="type-display text-[12rem] font-bold leading-none mb-8" style={{ background: `linear-gradient(135deg, ${slide.color} 0%, ${slide.color}99 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stripMd(slide.bigNumber)}</div>
               {slide.numberLabel && <p className="text-3xl font-light mb-12" style={{ color: "var(--slide-text-muted)" }}>{stripMd(slide.numberLabel)}</p>}
               <h2 className="type-display text-5xl font-bold tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               {slide.supporting && <p className="text-2xl font-light mt-6 max-w-3xl mx-auto" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(slide.supporting)}</p>}
+            </div>
+          )}
+
+          {slide.type === "big-number" && v === "metrics-row" && (
+            <div className="mt-16 w-full">
+              <h2 className="type-display text-5xl font-bold mb-12 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <div className={`grid gap-8`} style={{ gridTemplateColumns: `repeat(${Math.min(slide.metrics?.length ?? 1, 4)}, minmax(0, 1fr))` }}>
+                {(slide.metrics ?? []).map((m, i) => (
+                  <div key={i} className="rounded-2xl bg-white border border-gray-200 p-8">
+                    <div className="type-display text-6xl font-bold leading-none mb-4 tabular-nums" style={{ color: slide.color || "var(--slide-text-primary)" }}>{stripMd(m.value)}</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.25em]" style={{ color: "var(--slide-text-muted)" }}>{stripMd(m.label)}</div>
+                  </div>
+                ))}
+              </div>
+              {slide.supporting && <p className="text-lg font-light mt-10 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
             </div>
           )}
 
@@ -523,7 +702,7 @@ function PresentationView({ id }: { id: string }) {
                       <h2 className="type-display text-6xl font-bold mb-6 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{cleanHeadline}</h2>
                       {slide.supporting && <p className="text-2xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
                     </div>
-                    {slide.imageUrl && <div className="flex-shrink-0 w-80"><div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200/50"><img src={slide.imageUrl} alt={cleanHeadline} className="w-full h-auto object-contain" /></div></div>}
+                    {slide.imageUrl && <div className="flex-shrink-0 w-80"><div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200/50"><Image src={slide.imageUrl} alt={cleanHeadline} width={640} height={480} className="w-full h-auto object-contain" unoptimized /></div></div>}
                   </div>
                 ) : (
                   <>
@@ -531,9 +710,139 @@ function PresentationView({ id }: { id: string }) {
                       <h2 className="type-display text-6xl font-bold mb-6 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{cleanHeadline}</h2>
                       {slide.supporting && <p className="text-2xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
                     </div>
-                    {slide.imageUrl && <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/50 max-w-5xl mx-auto"><img src={slide.imageUrl} alt={cleanHeadline} className="w-full h-auto object-contain" style={{ maxHeight: "600px" }} /></div>}
+                    {slide.imageUrl && <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/50 max-w-5xl mx-auto"><Image src={slide.imageUrl} alt={cleanHeadline} width={1200} height={800} className="w-full h-auto object-contain" style={{ maxHeight: "600px" }} unoptimized /></div>}
                   </>
                 )}
+              </div>
+            );
+          })()}
+
+          {slide.type === "quiz" && (() => {
+            const selected = quizAnswers[currentSlide];
+            const cleanAnswer = stripMd(slide.answer).trim().toLowerCase();
+            const isRevealed = !!selected;
+            return (
+              <div className="mx-auto flex h-[calc(100vh-11rem)] max-h-[720px] w-full max-w-5xl flex-col justify-center overflow-hidden">
+                {slide.headline && (
+                  <p className="mb-4 text-xs font-semibold uppercase tracking-wider" style={{ color: slide.color || "var(--slide-text-muted)" }}>
+                    {stripMd(slide.headline)}
+                  </p>
+                )}
+                <h2 className="type-display mb-7 text-4xl font-semibold leading-tight" style={{ color: "var(--slide-text-primary)" }}>
+                  {inlineMd(slide.question)}
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {slide.options?.slice(0, 5).map((option, idx) => {
+                    const letter = String.fromCharCode(65 + idx);
+                    const cleanOption = stripMd(option).trim().toLowerCase();
+                    const isSelected = selected === option;
+                    const isAnswer = cleanOption === cleanAnswer;
+                    const showCorrect = isRevealed && isAnswer;
+                    const showWrong = isRevealed && isSelected && !isAnswer;
+                    return (
+                      <button
+                        key={`${letter}-${option}`}
+                        type="button"
+                        onClick={() => setQuizAnswers((prev) => ({ ...prev, [currentSlide]: option }))}
+                        className="min-h-[96px] rounded-xl border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2"
+                        style={{
+                          borderColor: showCorrect ? (slide.color || "#14b8a6") : showWrong ? "#ef4444" : isSelected ? "rgba(17, 24, 39, 0.35)" : "rgba(229, 231, 235, 0.95)",
+                          boxShadow: showCorrect ? `0 0 0 1px ${slide.color || "#14b8a6"}33` : "none",
+                          outlineColor: slide.color || "#14b8a6",
+                        }}
+                        aria-pressed={isSelected}
+                      >
+                        <div className="flex gap-3">
+                          <span
+                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                            style={{
+                              backgroundColor: showCorrect ? `${slide.color || "#14b8a6"}1a` : showWrong ? "rgba(239,68,68,0.12)" : "rgba(0,0,0,0.04)",
+                              color: showCorrect ? (slide.color || "#14b8a6") : showWrong ? "#ef4444" : "var(--slide-text-muted)",
+                            }}
+                          >
+                            {letter}
+                          </span>
+                          <span className="text-lg leading-snug" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(option)}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="mt-6 min-h-[132px]">
+                  {isRevealed ? (
+                    <div className="max-h-[132px] overflow-y-auto rounded-xl border-l-4 bg-white px-5 py-4" style={{ borderLeftColor: slide.color || "#14b8a6" }}>
+                      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider" style={{ color: slide.color || "var(--slide-text-muted)" }}>
+                        {selected.trim().toLowerCase() === cleanAnswer ? "Correct" : "Review"}
+                      </p>
+                      <p className="mb-2 text-xl font-semibold" style={{ color: "var(--slide-text-primary)" }}>{inlineMd(slide.answer)}</p>
+                      {slide.explanation && <p className="text-base leading-relaxed" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(slide.explanation)}</p>}
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-gray-200 bg-white/60 px-5 py-4 text-sm" style={{ color: "var(--slide-text-muted)" }}>
+                      Select an answer to reveal the explanation.
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {slide.type === "chart" && (() => {
+            const data = slide.chartData ?? { xLabels: [], series: [] };
+            const W = 1100, H = 420, PAD_L = 80, PAD_R = 40, PAD_T = 30, PAD_B = 60;
+            const innerW = W - PAD_L - PAD_R;
+            const innerH = H - PAD_T - PAD_B;
+            const allValues = data.series.flatMap((s) => s.points);
+            const yMin = Math.min(0, ...allValues);
+            const yMax = Math.max(...allValues, 1);
+            const yRange = yMax - yMin || 1;
+            const palette = ["#2563EB", "#06B6D4", "#7C3CFF", "#D97706", "#22C55E", "#FF2A2A"];
+            const xCount = data.xLabels.length || 1;
+            const yToPx = (y: number) => PAD_T + innerH - ((y - yMin) / yRange) * innerH;
+            const xToPx = (i: number) => PAD_L + (xCount === 1 ? innerW / 2 : (i * innerW) / (xCount - 1));
+            const ticks = 5;
+            return (
+              <div className="mt-10 w-full">
+                <h2 className="type-display text-5xl font-bold mb-3 tracking-[-0.035em] text-center" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                {slide.supporting && <p className="text-lg font-light mb-8 max-w-3xl mx-auto text-center" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-5xl mx-auto" role="img" aria-label={stripMd(slide.headline)}>
+                  {Array.from({ length: ticks + 1 }).map((_, i) => {
+                    const value = yMin + (yRange * i) / ticks;
+                    const y = yToPx(value);
+                    return (
+                      <g key={i}>
+                        <line x1={PAD_L} x2={W - PAD_R} y1={y} y2={y} stroke="#E7E8EC" strokeDasharray="4 6" strokeWidth={1} />
+                        <text x={PAD_L - 12} y={y + 4} fontSize={14} textAnchor="end" fill="#8A8C96">{Math.round(value * 100) / 100}</text>
+                      </g>
+                    );
+                  })}
+                  {data.xLabels.map((lbl, i) => (
+                    <text key={i} x={xToPx(i)} y={H - PAD_B + 22} fontSize={14} textAnchor="middle" fill="#8A8C96">{lbl}</text>
+                  ))}
+                  <line x1={PAD_L} x2={W - PAD_R} y1={yToPx(yMin)} y2={yToPx(yMin)} stroke="#DADCE1" strokeWidth={1} />
+                  {(slide.chartKind === "bar" ? data.series : []).map((ser, si) => {
+                    const color = ser.color || palette[si % palette.length];
+                    const barW = innerW / xCount * 0.6 / data.series.length;
+                    return ser.points.map((p, i) => {
+                      const groupX = xToPx(i) - (data.series.length * barW) / 2 + si * barW;
+                      const y = yToPx(p);
+                      return <rect key={`${si}-${i}`} x={groupX} y={y} width={barW} height={yToPx(yMin) - y} fill={color} />;
+                    });
+                  })}
+                  {(slide.chartKind !== "bar" ? data.series : []).map((ser, si) => {
+                    const color = ser.color || palette[si % palette.length];
+                    const d = ser.points.map((p, i) => `${i === 0 ? "M" : "L"} ${xToPx(i)} ${yToPx(p)}`).join(" ");
+                    return <path key={si} d={d} fill="none" stroke={color} strokeWidth={4} strokeLinejoin="round" strokeLinecap="round" />;
+                  })}
+                </svg>
+                <div className="mt-6 flex flex-wrap justify-center gap-6">
+                  {data.series.map((ser, si) => (
+                    <div key={si} className="flex items-center gap-2 text-sm" style={{ color: "var(--slide-text-secondary)" }}>
+                      <span className="inline-block w-4 h-1 rounded" style={{ backgroundColor: ser.color || palette[si % palette.length] }} />
+                      <span>{stripMd(ser.label)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           })()}

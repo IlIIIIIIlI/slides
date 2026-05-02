@@ -34,9 +34,46 @@ interface PresentationMeta {
   generatedAt: string;
 }
 
+interface FidelityChunkPoint { text: string; evidenceChunkIds?: string[]; sourceChunkIds?: string[] }
+interface FidelitySectionCoverage {
+  sectionId: string;
+  sectionName: string;
+  capturedKeyPoints: FidelityChunkPoint[];
+  missedKeyPoints: FidelityChunkPoint[];
+}
+interface FidelityUnsupportedClaim {
+  slideIndex: number;
+  claim: string;
+  closestSourceSpan?: string;
+  sourceChunkIds: string[];
+}
+interface FidelityDeterministic {
+  totalSlides: number;
+  factualSlides: number;
+  factualSlidesWithEvidence: number;
+  evidenceUsageRatio: number;
+  imageSlides: number;
+  imageUsageRatio: number;
+  slideTypeMix: Record<string, number>;
+  uniqueChunkIdsCited: number;
+  totalChunkIds: number;
+  chunkCoverageRatio: number;
+}
+interface FidelityReport {
+  generatedAt: string;
+  overallGrade: "high" | "medium" | "low";
+  summary: string;
+  deterministic: FidelityDeterministic;
+  coverage: FidelitySectionCoverage[];
+  unsupportedClaims: FidelityUnsupportedClaim[];
+  recommendations: string[];
+}
+
 interface FullPresentation extends PresentationMeta {
   slides: Slide[];
   brand?: Brand;
+  fidelityReport?: FidelityReport;
+  chunks?: { id: string; page?: number; paragraph?: number; text: string }[];
 }
 
 const DEFAULT_BRAND: Brand = { text: "SYNOGIZE LAB", gradientFrom: "#f59e0b", gradientTo: "#3b82f6" };
@@ -67,8 +104,9 @@ function OverviewTab({ presentation, onSwitchToSources }: { presentation: FullPr
     );
   }
 
+  const slides = presentation.slides ?? [];
   const typeCounts: Record<string, number> = {};
-  for (const s of presentation.slides) typeCounts[s.type] = (typeCounts[s.type] ?? 0) + 1;
+  for (const s of slides) typeCounts[s.type] = (typeCounts[s.type] ?? 0) + 1;
 
   return (
     <div className="space-y-6">
@@ -110,16 +148,8 @@ function OverviewTab({ presentation, onSwitchToSources }: { presentation: FullPr
 // ========================
 
 // Free-form text. The list below is just autocomplete suggestions, not a closed enum.
-const AUDIENCE_SUGGESTIONS = [
-  "Technical",
-  "Executive",
-  "Investor",
-  "Customer",
-  "Academic",
-  "Mixed",
-  "Engineering managers",
-  "C-suite + senior PMs",
-];
+// Anything the user types that isn't recognized falls back to Technical on the server.
+const AUDIENCE_SUGGESTIONS = ["Technical", "Academic"];
 
 function AudienceCombobox({
   value,
@@ -161,7 +191,7 @@ function AudienceCombobox({
           onChange={(e) => { onChange(e.target.value); if (!open) setOpen(true); }}
           onFocus={() => setOpen(true)}
           disabled={disabled}
-          placeholder="e.g. Technical, or 'Senior PMs at a fintech'"
+          placeholder="Technical or Academic (free text falls back to Technical)"
           className="h-9 pr-8"
           autoComplete="off"
         />
@@ -229,6 +259,7 @@ const SOURCE_BADGE: Record<string, string> = {
   url: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   md: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   txt: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  code: "bg-violet-500/10 text-violet-400 border-violet-500/20",
 };
 
 const STEP_ORDER = ["extracting", "outlining", "drafting", "validating", "done"] as const;
@@ -267,7 +298,7 @@ function GenerationProgress({ state }: { state: ReturnType<typeof useGenerate>["
   );
 }
 
-function SourcesTab({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
+function SourcesTab({ selectedId, onSelect, onDeleteDeck }: { selectedId: string | null; onSelect: (id: string) => void; onDeleteDeck: (id: string) => Promise<boolean> }) {
   const [mode, setMode] = useState<"file" | "url">("file");
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState("");
@@ -294,6 +325,13 @@ function SourcesTab({ selectedId, onSelect }: { selectedId: string | null; onSel
       fetchLibrary();
     }
   }, [state.step, state.result, fetchLibrary]);
+
+  // Refresh when a deck is deleted from anywhere in the workspace.
+  useEffect(() => {
+    const onDeleted = () => fetchLibrary();
+    window.addEventListener("k2s:deck-deleted", onDeleted);
+    return () => window.removeEventListener("k2s:deck-deleted", onDeleted);
+  }, [fetchLibrary]);
 
   const handleAnalyze = () => {
     if (state.step !== "idle" && state.step !== "error") return;
@@ -356,7 +394,7 @@ function SourcesTab({ selectedId, onSelect }: { selectedId: string | null; onSel
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) setFile(f); }}
             >
-              <input ref={fileRef} type="file" accept=".txt,.md,.pdf,image/*" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              <input ref={fileRef} type="file" accept=".txt,.md,.pdf,image/*,.js,.jsx,.ts,.tsx,.py,.java,.kt,.go,.rs,.rb,.php,.cs,.cpp,.cc,.c,.h,.hpp,.swift,.scala,.sh,.bash,.zsh,.sql,.json,.yaml,.yml,.toml,.html,.css,.scss,.vue,.svelte" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
               {file ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-8 h-8 rounded-md bg-teal-500/15 flex items-center justify-center">
@@ -373,7 +411,7 @@ function SourcesTab({ selectedId, onSelect }: { selectedId: string | null; onSel
                     <Upload className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <p className="text-sm text-muted-foreground">Drop a file or click to browse</p>
-                  <p className="text-xs text-muted-foreground/60 mt-1">.txt · .md · .pdf · png/jpg — max 25 MB</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">.txt · .md · .pdf · png/jpg · code (.ts/.py/.go/...) — max 25 MB</p>
                 </>
               )}
             </div>
@@ -494,13 +532,33 @@ function SourcesTab({ selectedId, onSelect }: { selectedId: string | null; onSel
                       <p className="text-xs font-medium truncate">{item.title}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{item.slideCount} slides · {item.audienceType}</p>
                     </div>
-                    <Link
-                      href={`/player?id=${item.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-all"
-                    >
-                      <Play className="w-3 h-3" />
-                    </Link>
+                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                      <Link
+                        href={`/player?id=${item.id}`}
+                        onClick={(e) => e.stopPropagation()}
+                        title="Play"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <Play className="w-3 h-3" />
+                      </Link>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm(`Delete "${item.title}"? This cannot be undone.`)) return;
+                          const ok = await onDeleteDeck(item.id);
+                          if (ok) await fetchLibrary();
+                        }}
+                        title="Delete deck"
+                        aria-label={`Delete ${item.title}`}
+                        className="text-muted-foreground hover:text-red-500"
+                      >
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -771,6 +829,11 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
     setLocal(prev => prev.map((s, i) => i === idx ? { ...s, ...patch } : s));
   }
 
+  function removeSlide(idx: number) {
+    setLocal(prev => prev.filter((_, i) => i !== idx));
+    setExpandedIdx((cur) => (cur === idx ? null : cur !== null && cur > idx ? cur - 1 : cur));
+  }
+
   async function handleSave() {
     if (!presentation) return;
     setSaving(true);
@@ -814,20 +877,37 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
         const accent = slide.color ?? "#71717a";
         return (
           <div key={idx} className="rounded-xl border border-border overflow-hidden">
-            <button
-              className="w-full flex items-center gap-4 p-4 text-left hover:bg-accent/30 transition-colors"
-              onClick={() => setExpandedIdx(isOpen ? null : idx)}
-            >
-              <span className="text-xs font-mono text-muted-foreground/60 w-6 flex-shrink-0">{String(idx + 1).padStart(2, "0")}</span>
-              <Badge variant="outline" className="text-xs font-mono flex-shrink-0" style={{ color: accent, borderColor: `${accent}40` }}>
-                {slide.type}
-              </Badge>
-              <span className="flex-1 min-w-0 text-sm truncate">
-                {slide.headline ?? slide.quote ?? "(no headline)"}
-              </span>
-              {slide.label && <span className="text-xs text-muted-foreground flex-shrink-0">{slide.label}</span>}
-              <span className="text-muted-foreground text-xs ml-2">{isOpen ? "▲" : "▼"}</span>
-            </button>
+            <div className="flex items-stretch">
+              <button
+                className="flex-1 flex items-center gap-4 p-4 text-left hover:bg-accent/30 transition-colors"
+                onClick={() => setExpandedIdx(isOpen ? null : idx)}
+              >
+                <span className="text-xs font-mono text-muted-foreground/60 w-6 flex-shrink-0">{String(idx + 1).padStart(2, "0")}</span>
+                <Badge variant="outline" className="text-xs font-mono flex-shrink-0" style={{ color: accent, borderColor: `${accent}40` }}>
+                  {slide.type}
+                </Badge>
+                <span className="flex-1 min-w-0 text-sm truncate">
+                  {slide.headline ?? slide.quote ?? slide.question ?? "(no headline)"}
+                </span>
+                {slide.label && <span className="text-xs text-muted-foreground flex-shrink-0">{slide.label}</span>}
+                <span className="text-muted-foreground text-xs ml-2">{isOpen ? "▲" : "▼"}</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm(`Delete slide #${idx + 1}? This won't be saved until you click Save.`)) removeSlide(idx);
+                }}
+                title="Delete slide"
+                aria-label={`Delete slide ${idx + 1}`}
+                className="flex items-center justify-center px-3 text-muted-foreground/60 hover:text-red-500 hover:bg-red-500/5 transition-colors border-l border-border/50"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 6h18" />
+                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                </svg>
+              </button>
+            </div>
 
             {isOpen && (
               <div className="border-t border-border p-4 space-y-4 bg-accent/5">
@@ -936,6 +1016,23 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
                   </div>
                 )}
 
+                {slide.type === "quiz" && (
+                  <div className="space-y-3">
+                    <Field label="Question">
+                      <Textarea className="text-xs" rows={2} value={slide.question ?? ""} onChange={e => updateSlide(idx, { question: e.target.value })} />
+                    </Field>
+                    <Field label="Options (one per line)">
+                      <Textarea className="text-xs" rows={4} value={(slide.options ?? []).join("\n")} onChange={e => updateSlide(idx, { options: e.target.value.split("\n") })} />
+                    </Field>
+                    <Field label="Answer">
+                      <Input className="h-7 text-xs" value={slide.answer ?? ""} onChange={e => updateSlide(idx, { answer: e.target.value })} />
+                    </Field>
+                    <Field label="Explanation">
+                      <Textarea className="text-xs" rows={2} value={slide.explanation ?? ""} onChange={e => updateSlide(idx, { explanation: e.target.value })} />
+                    </Field>
+                  </div>
+                )}
+
                 <Field label="Speaker Notes">
                   <Textarea className="text-xs" rows={3} value={slide.notes ?? ""} placeholder="Bullet prompts for speaker" onChange={e => updateSlide(idx, { notes: e.target.value })} />
                 </Field>
@@ -949,16 +1046,211 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
 }
 
 // ========================
+// Fidelity Tab
+// ========================
+
+const GRADE_STYLES: Record<FidelityReport["overallGrade"], { label: string; bg: string; text: string; border: string }> = {
+  high:   { label: "High",   bg: "bg-emerald-500/10", text: "text-emerald-500", border: "border-emerald-500/30" },
+  medium: { label: "Medium", bg: "bg-amber-500/10",   text: "text-amber-500",   border: "border-amber-500/30" },
+  low:    { label: "Low",    bg: "bg-red-500/10",     text: "text-red-500",     border: "border-red-500/30" },
+};
+
+function pct(n: number) { return `${Math.round(n * 100)}%`; }
+
+type DeckChunk = { id: string; page?: number; paragraph?: number; text: string };
+
+function ChunkExcerpts({ ids, chunks }: { ids: string[]; chunks: Map<string, DeckChunk> }) {
+  if (!ids.length) return null;
+  return (
+    <div className="mt-1.5 space-y-1.5">
+      {ids.map((id) => {
+        const chunk = chunks.get(id);
+        return (
+          <div key={id} className="rounded border border-border/50 bg-muted/40 px-2.5 py-1.5">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] font-mono text-muted-foreground/70">{id}</span>
+              {chunk?.page !== undefined && (
+                <span className="text-[10px] text-muted-foreground/60">p{chunk.page}{chunk.paragraph !== undefined ? `¶${chunk.paragraph}` : ""}</span>
+              )}
+            </div>
+            {chunk ? (
+              <p className="text-[11px] leading-relaxed text-muted-foreground/90 italic line-clamp-3">{chunk.text}</p>
+            ) : (
+              <p className="text-[11px] italic text-muted-foreground/50">(chunk not found)</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresentation | null; onDeleteSlide: (idx: number) => Promise<void> | void }) {
+  if (!presentation) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center gap-4">
+        <p className="text-sm text-muted-foreground">Select a presentation from Sources to inspect its fidelity report.</p>
+      </div>
+    );
+  }
+  const report = presentation.fidelityReport;
+  if (!report) {
+    return (
+      <div className="rounded-lg border border-dashed border-border p-10 text-center space-y-2">
+        <p className="text-sm text-muted-foreground">No fidelity report on this deck yet.</p>
+        <p className="text-xs text-muted-foreground/70">Decks generated before this feature shipped don&apos;t have one. Regenerate the deck to get fidelity grading.</p>
+      </div>
+    );
+  }
+  const det = report.deterministic;
+  const grade = GRADE_STYLES[report.overallGrade];
+  const chunkById = new Map((presentation.chunks ?? []).map((c) => [c.id, c]));
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-stretch">
+        <div className={cn("rounded-xl border p-6 flex flex-col items-center justify-center min-w-[160px]", grade.bg, grade.border)}>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-2">Overall</p>
+          <p className={cn("text-4xl font-bold", grade.text)}>{grade.label}</p>
+        </div>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-2">Summary</p>
+            <p className="text-sm leading-relaxed">{report.summary || "No narrative summary."}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Evidence usage" value={pct(det.evidenceUsageRatio)} sub={`${det.factualSlidesWithEvidence}/${det.factualSlides} factual slides cite chunks`} />
+        <StatCard label="Chunk coverage" value={pct(det.chunkCoverageRatio)} sub={`${det.uniqueChunkIdsCited}/${det.totalChunkIds} chunks referenced`} />
+        <StatCard label="Image usage" value={det.totalChunkIds === 0 || det.imageSlides + det.imageUsageRatio === 0 ? "—" : pct(det.imageUsageRatio)} sub={`${det.imageSlides} image slides`} />
+        <StatCard label="Total slides" value={det.totalSlides} sub={Object.entries(det.slideTypeMix).slice(0, 3).map(([t, n]) => `${t} ${n}`).join(" · ")} />
+      </div>
+
+      {report.recommendations.length > 0 && (
+        <Card>
+          <CardContent className="p-5 space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Recommendations</p>
+            <ul className="space-y-1.5">
+              {report.recommendations.map((r, i) => (
+                <li key={i} className="text-sm leading-relaxed flex gap-2">
+                  <span className="text-muted-foreground/60">→</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {report.coverage.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Coverage by section</p>
+          {report.coverage.map((sec) => (
+            <Card key={sec.sectionId}>
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold">{sec.sectionName || sec.sectionId}</p>
+                  <span className="text-[10px] font-mono text-muted-foreground/60">{sec.sectionId}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-emerald-500 mb-2">Captured</p>
+                    {sec.capturedKeyPoints.length === 0 ? (
+                      <p className="text-xs text-muted-foreground/70">—</p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {sec.capturedKeyPoints.map((p, i) => (
+                          <li key={i} className="text-xs leading-relaxed">
+                            <p>{p.text}</p>
+                            {p.evidenceChunkIds && p.evidenceChunkIds.length > 0 && (
+                              <ChunkExcerpts ids={p.evidenceChunkIds} chunks={chunkById} />
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-amber-500 mb-2">Missed</p>
+                    {sec.missedKeyPoints.length === 0 ? (
+                      <p className="text-xs text-muted-foreground/70">—</p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {sec.missedKeyPoints.map((p, i) => (
+                          <li key={i} className="text-xs leading-relaxed">
+                            <p>{p.text}</p>
+                            {p.sourceChunkIds && p.sourceChunkIds.length > 0 && (
+                              <ChunkExcerpts ids={p.sourceChunkIds} chunks={chunkById} />
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {report.unsupportedClaims.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Unsupported claims</p>
+          {report.unsupportedClaims.map((c, i) => (
+            <Card key={i} className="border-amber-500/30">
+              <CardContent className="p-5 space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <p className="text-sm leading-relaxed">{c.claim}</p>
+                  {c.slideIndex >= 0 && (
+                    <span className="text-[10px] font-mono text-muted-foreground/70 shrink-0">slide #{c.slideIndex + 1}</span>
+                  )}
+                </div>
+                {c.closestSourceSpan && (
+                  <p className="text-xs leading-relaxed text-muted-foreground italic">closest source: &ldquo;{c.closestSourceSpan}&rdquo;</p>
+                )}
+                {c.sourceChunkIds.length > 0 && <ChunkExcerpts ids={c.sourceChunkIds} chunks={chunkById} />}
+                {c.slideIndex >= 0 && c.slideIndex < (presentation.slides?.length ?? 0) && (
+                  <div className="pt-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs text-red-500 hover:text-red-500 border-red-500/30 hover:bg-red-500/5"
+                      onClick={async () => {
+                        if (confirm(`Delete slide #${c.slideIndex + 1}? This change is saved immediately.`)) {
+                          await onDeleteSlide(c.slideIndex);
+                        }
+                      }}
+                    >
+                      Delete slide #{c.slideIndex + 1}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <p className="text-[10px] text-muted-foreground/50 text-right">Generated {new Date(report.generatedAt).toLocaleString()}</p>
+    </div>
+  );
+}
+
+// ========================
 // Main Workspace
 // ========================
 
-type Tab = "sources" | "overview" | "theme" | "slides";
+type Tab = "sources" | "overview" | "theme" | "slides" | "fidelity";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "sources", label: "Sources" },
   { id: "overview", label: "Overview" },
   { id: "theme", label: "Theme" },
   { id: "slides", label: "Slides" },
+  { id: "fidelity", label: "Fidelity" },
 ];
 
 export default function Workspace() {
@@ -971,7 +1263,12 @@ export default function Workspace() {
     if (!selectedId) { setPresentation(null); return; }
     setLoadingPresentation(true);
     fetch(`/api/presentations/${selectedId}`)
-      .then((r) => r.json())
+      .then(async (r) => {
+        if (!r.ok) throw new Error("not found");
+        const data = await r.json();
+        if (!data || typeof data !== "object" || !Array.isArray(data.slides)) throw new Error("malformed");
+        return data as FullPresentation;
+      })
       .then(setPresentation)
       .catch(() => setPresentation(null))
       .finally(() => setLoadingPresentation(false));
@@ -985,6 +1282,21 @@ export default function Workspace() {
   const handleSaved = useCallback((slides: Slide[]) => {
     setPresentation(prev => prev ? { ...prev, slides, slideCount: slides.length } : null);
   }, []);
+
+  const handleDeleteSlide = useCallback(async (idx: number) => {
+    if (!selectedId) return;
+    setPresentation(prev => {
+      if (!prev) return prev;
+      const next = prev.slides.filter((_, i) => i !== idx);
+      // fire-and-forget PATCH; deletes are persisted immediately when triggered from Fidelity tab
+      fetch(`/api/presentations/${selectedId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slides: next }),
+      }).catch(() => {});
+      return { ...prev, slides: next, slideCount: next.length };
+    });
+  }, [selectedId]);
 
   const handleThemeChange = useCallback(async (presetId: string) => {
     if (!selectedId) return;
@@ -1005,6 +1317,22 @@ export default function Workspace() {
     });
     setPresentation(prev => prev ? { ...prev, brand } : null);
   }, [selectedId]);
+
+  const handleDeleteDeck = useCallback(async (id: string): Promise<boolean> => {
+    const res = await fetch(`/api/presentations/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("Failed to delete the deck.");
+      return false;
+    }
+    if (selectedId === id) {
+      setSelectedId(null);
+      setPresentation(null);
+      setActiveTab("sources");
+    }
+    window.dispatchEvent(new CustomEvent("k2s:deck-deleted", { detail: { id } }));
+    return true;
+  }, [selectedId]);
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -1033,11 +1361,29 @@ export default function Workspace() {
               </div>
             )}
             {presentation && (
-              <Button size="sm" variant="outline" asChild>
-                <Link href={`/player?id=${presentation.id}`}>
-                  <Play className="w-3.5 h-3.5 mr-1" /> Play
-                </Link>
-              </Button>
+              <>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/player?id=${presentation.id}`}>
+                    <Play className="w-3.5 h-3.5 mr-1" /> Play
+                  </Link>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-red-500 hover:text-red-500 border-red-500/30 hover:bg-red-500/5"
+                  onClick={async () => {
+                    if (confirm(`Delete deck "${presentation.title}"? This cannot be undone.`)) {
+                      const ok = await handleDeleteDeck(presentation.id);
+                      if (ok) {
+                        // refresh the library list inside SourcesTab via a custom event
+                        window.dispatchEvent(new CustomEvent("k2s:deck-deleted", { detail: { id: presentation.id } }));
+                      }
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -1065,7 +1411,7 @@ export default function Workspace() {
 
         {/* Tab content */}
         <div className={activeTab !== "sources" ? "hidden" : ""}>
-          <SourcesTab selectedId={selectedId} onSelect={handleSelect} />
+          <SourcesTab selectedId={selectedId} onSelect={handleSelect} onDeleteDeck={handleDeleteDeck} />
         </div>
         <div className={activeTab !== "overview" ? "hidden" : ""}>
           <OverviewTab presentation={presentation} onSwitchToSources={() => setActiveTab("sources")} />
@@ -1075,6 +1421,9 @@ export default function Workspace() {
         </div>
         <div className={activeTab !== "slides" ? "hidden" : ""}>
           <SlidesTab presentation={presentation} onSaved={handleSaved} onSwitchToSources={() => setActiveTab("sources")} />
+        </div>
+        <div className={activeTab !== "fidelity" ? "hidden" : ""}>
+          <FidelityTab presentation={presentation} onDeleteSlide={handleDeleteSlide} />
         </div>
       </div>
     </div>

@@ -14,6 +14,7 @@ const SOURCE_TYPE_STYLES: Record<string, string> = {
   url: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   md: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   txt: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  code: "bg-violet-500/10 text-violet-400 border-violet-500/20",
 };
 
 function CardSkeleton() {

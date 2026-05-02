@@ -8,6 +8,7 @@
 import fs from "fs/promises";
 import path from "path";
 import { JSDOM } from "jsdom";
+import { findFocusedCropBounds } from "@/lib/generation/image-crop";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
@@ -54,6 +55,43 @@ function chunkPlainText(text: string): ExtractedChunk[] {
     id: `CHK-001-${String(i + 1).padStart(3, "0")}`,
     paragraph: i + 1,
     text: p,
+  }));
+}
+
+const CODE_EXTENSIONS = new Set([
+  "js", "jsx", "ts", "tsx", "mjs", "cjs",
+  "py", "pyw",
+  "java", "kt", "kts", "scala",
+  "go", "rs", "rb", "php", "cs",
+  "c", "h", "cc", "cpp", "hpp", "cxx",
+  "swift", "m", "mm",
+  "sh", "bash", "zsh", "fish",
+  "sql",
+  "json", "yaml", "yml", "toml",
+  "html", "css", "scss", "sass", "less",
+  "vue", "svelte",
+  "lua", "pl", "r", "dart", "ex", "exs", "elm", "clj", "cljs", "hs",
+]);
+
+function isCodeExtension(ext: string): boolean {
+  return CODE_EXTENSIONS.has(ext.toLowerCase());
+}
+
+/**
+ * Build chunks for source code. Splits on blank-line boundaries but preserves
+ * indentation and newlines inside each block so the model sees real code, not
+ * a whitespace-collapsed paragraph.
+ */
+function chunkCode(text: string): ExtractedChunk[] {
+  const blocks = text
+    .split(/\n\s*\n/)
+    .map((b) => b.replace(/[ \t]+\n/g, "\n").replace(/\s+$/g, "").replace(/^\s*\n+/, ""))
+    .filter((b) => b.trim().length >= 8 && /[A-Za-z0-9_]/.test(b));
+
+  return blocks.map((b, i) => ({
+    id: `CHK-001-${String(i + 1).padStart(3, "0")}`,
+    paragraph: i + 1,
+    text: b,
   }));
 }
 
@@ -160,18 +198,39 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
           canvasContext: ctx as unknown as CanvasRenderingContext2D,
           viewport,
         }).promise;
+        const renderedImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const cropBounds = findFocusedCropBounds(renderedImageData);
+        const outputCanvas = cropBounds
+          ? createCanvas(cropBounds.width, cropBounds.height)
+          : canvas;
+        if (cropBounds) {
+          const cropCtx = outputCanvas.getContext("2d");
+          cropCtx.drawImage(
+            canvas,
+            cropBounds.x,
+            cropBounds.y,
+            cropBounds.width,
+            cropBounds.height,
+            0,
+            0,
+            cropBounds.width,
+            cropBounds.height,
+          );
+        }
         if (!outDirCreated) {
           await fs.mkdir(outDir, { recursive: true });
           outDirCreated = true;
         }
-        const filename = `page-${p}.png`;
-        const buffer = await canvas.encode("png");
+        const filename = cropBounds ? `page-${p}-focus.png` : `page-${p}.png`;
+        const buffer = await outputCanvas.encode("png");
         await fs.writeFile(path.join(outDir, filename), buffer);
         images.push({
           id: `IMG-p${p}`,
           page: p,
           filepath: `/extracted/${presentationId}/${filename}`,
-          captionHint: pageText.slice(0, 200),
+          captionHint: cropBounds
+            ? `Focused area from page ${p}. ${pageText.slice(0, 180)}`
+            : pageText.slice(0, 200),
         });
       } catch {
         // Render failure is non-fatal — skip this page's image.
@@ -323,8 +382,17 @@ export async function extractText(
     return { ...body, sourceName: file.name, sourceType: "pdf" };
   }
 
-  // txt / md fallback
+  // txt / md / code fallback
   const text = await file.text();
+  if (isCodeExtension(ext)) {
+    return {
+      fullText: text,
+      chunks: chunkCode(text),
+      images: [],
+      sourceName: file.name,
+      sourceType: "code",
+    };
+  }
   return {
     fullText: text,
     chunks: chunkPlainText(text),

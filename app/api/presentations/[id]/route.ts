@@ -24,6 +24,26 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  if (!id || !validId(id)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  const filePath = path.join(DATA_DIR, `${id}.json`);
+  try {
+    await fs.unlink(filePath);
+  } catch (err) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
+  }
+  // Best-effort: also remove any extracted assets for this deck.
+  const extractedDir = path.join(process.cwd(), "public", "extracted", id);
+  await fs.rm(extractedDir, { recursive: true, force: true }).catch(() => {});
+  return NextResponse.json({ ok: true });
+}
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
