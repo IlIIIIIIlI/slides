@@ -4,8 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
-import type { Slide, Brand } from "../slides";
+import { vscDarkPlus, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import type { Slide, Brand, FileTreeNode } from "../slides";
 import { resolveVariant } from "@/lib/slide-variants";
 import { inlineMd, stripMd } from "@/lib/markdown-inline";
 
@@ -26,7 +26,7 @@ function TreeNode({
   color,
   defaultOpen = false,
 }: {
-  name: string;
+  name: React.ReactNode;
   children?: React.ReactNode;
   isFolder: boolean;
   color?: string;
@@ -59,6 +59,46 @@ function TreeNode({
       {isFolder && isOpen && children && <div className="ml-4 border-l border-gray-200">{children}</div>}
     </div>
   );
+}
+
+// FileTreeView — renders structured FileTreeNode[] using TreeNode + a faint trailing comment.
+function FileTreeView({ nodes, color, depth = 0 }: { nodes: FileTreeNode[]; color?: string; depth?: number }) {
+  return (
+    <>
+      {nodes.map((node, i) => {
+        const hasChildren = !!node.children && node.children.length > 0;
+        const label = (
+          <>
+            <span>{node.name}</span>
+            {node.comment && <span className="ml-3 text-gray-400">{node.comment}</span>}
+          </>
+        );
+        return (
+          <TreeNode
+            key={`${depth}-${i}-${node.name}`}
+            name={label}
+            isFolder={hasChildren}
+            color={color}
+            defaultOpen={depth === 0}
+          >
+            {hasChildren && <FileTreeView nodes={node.children!} color={color} depth={depth + 1} />}
+          </TreeNode>
+        );
+      })}
+    </>
+  );
+}
+
+// Recovery parser for ui-mockup leftContent. The model is told to put bullets
+// in `points`, but when it inlines them as ` - x — y - x — y` we split here so
+// the slide doesn't render as one wall of text.
+function splitLeftContent(raw?: string): { lead?: string; bullets: string[] } {
+  if (!raw) return { bullets: [] };
+  const parts = raw.split(/(?:\r?\n|\s)+[-*]\s+(?=\S)/g);
+  if (parts.length < 3) return { lead: raw, bullets: [] };
+  const lead = parts[0].trim();
+  const bullets = parts.slice(1).map((s) => s.trim()).filter(Boolean);
+  return { lead: lead || undefined, bullets };
 }
 
 // Presentation view
@@ -360,16 +400,12 @@ function PresentationView({ id }: { id: string }) {
               {slide.supporting && <p className="text-lg font-light mb-8 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
               <div className="rounded-xl overflow-hidden border border-gray-200 bg-white">
                 <div className="px-5 py-3 bg-[#f6f6f7] border-b border-gray-200 text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-500">{slide.terminalTitle ?? "TERMINAL"}</div>
-                <pre className="p-8 font-mono text-base leading-relaxed text-gray-900 whitespace-pre-wrap">
-                  {(slide.code ?? "").split("\n").map((line, i) => {
-                    const isComment = line.trim().startsWith("#") || line.trim().startsWith("//");
-                    return (
-                      <div key={i}>
-                        <span style={{ color: isComment ? "#111111" : "#2563EB" }}>{line}</span>
-                      </div>
-                    );
-                  })}
-                </pre>
+                <SyntaxHighlighter
+                  language={slide.codeLanguage || "shell"}
+                  style={oneLight}
+                  customStyle={{ margin: 0, padding: "1.75rem 2rem", background: "transparent", fontSize: "15px", lineHeight: "1.55" }}
+                  showLineNumbers={false}
+                >{slide.code || ""}</SyntaxHighlighter>
               </div>
             </div>
           )}
@@ -488,15 +524,20 @@ function PresentationView({ id }: { id: string }) {
             </div>
           )}
 
-          {slide.type === "split-visual" && v === "ui-mockup" && (
+          {slide.type === "split-visual" && v === "ui-mockup" && (() => {
+            const recovered = splitLeftContent(slide.leftContent);
+            const bullets = [...(slide.points ?? []), ...recovered.bullets];
+            return (
             <div className="mt-16 w-full">
               <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-12 items-start">
                 <div>
                   <h2 className="type-display text-6xl font-bold mb-6 leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
-                  {slide.leftContent && <p className="text-2xl font-light leading-relaxed" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(slide.leftContent)}</p>}
-                  {slide.points && slide.points.length > 0 && (
+                  {recovered.lead && (
+                    <p className="text-2xl font-light leading-relaxed whitespace-pre-line" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(recovered.lead)}</p>
+                  )}
+                  {bullets.length > 0 && (
                     <ul className="mt-6 space-y-3">
-                      {slide.points.map((p, i) => {
+                      {bullets.map((p, i) => {
                         const [leadRaw, ...rest] = p.split("—");
                         const lead = stripMd(leadRaw.trim());
                         const tail = rest.join("—").trim();
@@ -530,7 +571,13 @@ function PresentationView({ id }: { id: string }) {
                     </>
                   )}
                   {slide.mockupKind === "file-tree" && (
-                    <pre className="p-6 font-mono text-sm leading-relaxed text-gray-800 whitespace-pre">{slide.mockupContent}</pre>
+                    <div className="p-5 font-mono text-sm leading-relaxed text-gray-800">
+                      {slide.mockupTree && slide.mockupTree.length > 0 ? (
+                        <FileTreeView nodes={slide.mockupTree} color={slide.color} />
+                      ) : (
+                        <pre className="whitespace-pre">{slide.mockupContent}</pre>
+                      )}
+                    </div>
                   )}
                   {(slide.mockupKind === "card" || !slide.mockupKind) && (
                     <pre className="p-6 font-mono text-sm leading-relaxed whitespace-pre overflow-x-auto" style={{ color: "var(--slide-text-secondary)" }}>{slide.mockupContent}</pre>
@@ -538,7 +585,8 @@ function PresentationView({ id }: { id: string }) {
                 </div>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {slide.type === "comparison" && v !== "stats" && (
             <div className="mt-20">

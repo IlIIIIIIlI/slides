@@ -364,9 +364,33 @@ Quote max width: 1050–1220 px
 
 ### C. Left Text + Right UI Slide → `split-visual` (variant `ui-mockup`)
 
-Use for explaining a concept with a product-like visual. **Set `mockupKind` to one of `browser | terminal | file-tree | card`** and put the rendered text in `mockupContent`. The left column uses `headline` + `leftContent` (and optional `points` for short bullet lead-ins).
+Use for explaining a concept with a product-like visual. **Set `mockupKind` to one of `browser | terminal | file-tree | card`** and supply the right-side body as described below.
 
-`mockupContent` is rendered inside a `<pre>` — newlines and indentation are preserved. Use real shell prompts, real-looking URLs, real file paths. **Do NOT** stuff ASCII-art architecture diagrams, before/after comparisons, or pipeline arrows into a mockup. If the visual you want to show is a comparison of two states, use `comparison/stats`. If it's a benchmark or trend, use `chart`. If it's an architecture diagram, prefer an actual `image` slide referencing a source figure.
+**Left column rules — strictly enforced:**
+- `headline` is the bold title.
+- `leftContent` is **one short paragraph** (≤ 2 sentences) of context. Plain prose only.
+- If you need bullets, put them in `points` (one bullet per array entry, optional `lead — explanation` shape — the renderer styles the lead bold). **Never** inline `-` or `*` bullet markers inside `leftContent`; the renderer will not unflatten them and the slide will look like a wall of text.
+
+**Right-column body by `mockupKind`:**
+- `browser` — supply `mockupContent` (multi-line string). Optionally set `mockupUrl` for the address bar.
+- `terminal` — supply `mockupContent` (commands / output). Optional `terminalTitle` for the top-bar label.
+- `card` — supply `mockupContent`. Use this for a small product-like surface (settings panel, log line, etc.).
+- `file-tree` — **do NOT** draw ASCII art with `├──` / `│` / `└──`. Supply structured `mockupTree`:
+
+  ```jsonc
+  "mockupTree": [
+    { "name": "core/", "children": [
+      { "name": "__init__.py", "comment": "# Public exports" },
+      { "name": "environment.py", "comment": "# Env detection & config" },
+      { "name": "dependencies.py", "comment": "# DI container" },
+      { "name": "middleware.py", "comment": "# CORS, logging, OPTIONS" }
+    ]}
+  ]
+  ```
+
+  Each node is `{ name, comment?, children? }`. `children` makes a node a folder; absence makes it a file. The renderer draws folder/file icons + indentation guides automatically.
+
+**General mockup rules:** Use real shell prompts, real-looking URLs, real file paths. **Do NOT** stuff ASCII-art architecture diagrams, before/after comparisons, or pipeline arrows into a mockup. If the visual you want to show is a comparison of two states, use `comparison/stats`. If it's a benchmark or trend, use `chart`. If it's an architecture diagram, prefer an actual `image` slide referencing a source figure.
 
 Structure:
 

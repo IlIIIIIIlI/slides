@@ -27,6 +27,12 @@ export interface ToolItem {
   description?: string;
 }
 
+export interface FileTreeNode {
+  name: string;
+  comment?: string;
+  children?: FileTreeNode[];
+}
+
 export interface Slide {
   type:
     | "title"
@@ -73,6 +79,7 @@ export interface Slide {
   mockupKind?: "browser" | "terminal" | "file-tree" | "card";
   mockupContent?: string;
   mockupUrl?: string;
+  mockupTree?: FileTreeNode[];
   // For big-number layout
   bigNumber?: string;
   numberLabel?: string;

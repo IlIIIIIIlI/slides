@@ -1,0 +1,2808 @@
+{
+  "id": "f59513a1-b9f2-45a3-9463-cb1c5a4eabb3",
+  "title": "AI Agent Service",
+  "sourceName": "backend.txt",
+  "sourceType": "txt",
+  "audienceType": "Technical",
+  "audienceProfile": "technical",
+  "audienceProfileLabel": "Technical",
+  "stylePreset": "vintage-editorial",
+  "slideCount": 13,
+  "generatedAt": "2026-05-02T16:01:42.583Z",
+  "slides": [
+    {
+      "type": "title",
+      "variant": "left",
+      "headline": "AI Agent Service",
+      "subtitle": "A microservices architecture for orchestrating specialized AI agents over gRPC",
+      "label": "OVERVIEW",
+      "color": "#009B8F",
+      "evidenceRefs": [
+        "CHK-001-001",
+        "CHK-001-002"
+      ],
+      "notes": "## Slide: AI Agent Service\n\n**Key point:** This system routes tasks to specialized AI agents — it's not a single monolith, it's a coordinated fleet.\n\n**Open with:** \"What you're looking at is a system designed to do one thing well: break complex tasks apart and send them to the right agent.\"\n\n**Talk track:**\n- The core idea is microservices applied to AI — each agent has a single responsibility\n- gRPC is the glue — typed, fast, and built for service-to-service calls\n- We'll cover architecture, implementation, and how you'd extend it\n\n**Transition:** \"Before we get into the internals, let's be clear on what problem this is solving...\""
+    },
+    {
+      "type": "goals",
+      "variant": "numbered",
+      "headline": "What we'll cover",
+      "label": "OVERVIEW",
+      "color": "#009B8F",
+      "points": [
+        "**Architecture** — How a FastAPI gateway, Manager Agent, and three specialized agents fit together",
+        "**Communication** — Why gRPC over protobuf handles internal traffic while REST handles the outside world",
+        "**Extensibility** — The pattern for adding new agents without touching existing ones"
+      ],
+      "evidenceRefs": [
+        "CHK-001-002"
+      ],
+      "notes": "## Slide: What we'll cover\n\n**Key point:** Three clean layers — architecture, protocol, extensibility.\n\n**Open with:** \"Here's the map for the next 15 minutes.\"\n\n**Talk track:**\n- Architecture first — the shape of the system, who talks to whom\n- Then we'll go inside the gRPC layer — protobuf messages, health checks, the works\n- Finally, the developer experience: how do you bolt on a new agent?\n\n**Delivery:** Keep this brief — it's a signpost, not a deep dive. One sentence per point, then move.\n\n**Transition:** \"Let's start with the architecture...\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "ARCHITECTURE",
+      "color": "#2563EB",
+      "headline": "Five services. One coherent system.",
+      "supporting": "API Gateway → Manager Agent → three specialized agents, all wired through gRPC — every request flows through a deliberate orchestration layer.",
+      "evidenceRefs": [
+        "CHK-001-004",
+        "CHK-001-005"
+      ],
+      "notes": "## Slide: Five services. One coherent system.\n\n**Key point:** The system isn't a monolith — it's a small fleet of specialized services with a clear chain of command.\n\n**Open with:** \"Before we go into code, let's orient ourselves. There are five moving parts, and they have very clear responsibilities.\"\n\n**Talk track:**\n- Client never talks to agents directly — everything goes through the gateway\n- Manager Agent is the brain — it decides what to dispatch and in what order\n- The three specialized agents are leaves — they receive work, call the LLM, return results\n- All inter-service calls are gRPC, not REST — that's a deliberate choice we'll cover\n\n**Transition:** \"Let's put that topology on screen…\""
+    },
+    {
+      "type": "framework",
+      "variant": "cards",
+      "label": "ARCHITECTURE",
+      "color": "#2563EB",
+      "headline": "Service topology",
+      "supporting": "Each service owns a single port and a single responsibility.",
+      "points": [
+        "**API Gateway :8000** — FastAPI HTTP entry point; forwards all requests to the Manager Agent",
+        "**Manager Agent** — Analyzes tasks, builds execution plans, dispatches work over gRPC",
+        "**Perplexity Agent :50051** — Web search and information retrieval",
+        "**Math Agent :50052** — Mathematical computations and code generation",
+        "**Summarization Agent :50053** — Two-pass text summarization and synthesis"
+      ],
+      "evidenceRefs": [
+        "CHK-001-006",
+        "CHK-001-007",
+        "CHK-001-008"
+      ],
+      "notes": "## Slide: Service topology\n\n**Key point:** Every service has exactly one job and one port — no ambiguity about who does what.\n\n**Open with:** \"Here's the full topology. Five nodes, each with a defined role.\"\n\n**Talk track:**\n- The gateway is thin by design — it validates, routes, and returns. No business logic.\n- Manager Agent is the only service that knows about all the others — it's the orchestration hub\n- The three specialized agents are stateless workers — they receive a prompt, call the LLM, return text\n- Port numbers are fixed and explicit: 8000 external, 50051–50053 internal gRPC\n- Notice that ALL agents — including Manager — call the same LLM service. No agent has a private model.\n\n**Transition:** \"The interesting part is how a request actually flows through all of this…\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "ARCHITECTURE",
+      "color": "#2563EB",
+      "headline": "Two communication layers",
+      "leftContent": "External clients talk REST over HTTP/JSON with full OpenAPI docs at `localhost:8000/docs`. Internally, every service-to-service call uses gRPC with strongly-typed Protobuf messages and built-in health checks.",
+      "points": [
+        "**External** — HTTP/JSON, Swagger docs, easy client integration",
+        "**Internal** — gRPC, Protobuf, bi-directional streaming, auto codegen",
+        "**Health checks** — every agent exposes `GetStatus` over gRPC"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "GRPC SERVICE DEFINITION",
+      "mockupContent": "service AgentService {\n    rpc Process(ProcessRequest)\n        returns (ProcessResponse);\n\n    rpc GetStatus(StatusRequest)\n        returns (StatusResponse);\n}\n\n# External entry point\nPOST http://localhost:8000/process\nContent-Type: application/json\n{ \"text\": \"What is quantum computing?\" }",
+      "evidenceRefs": [
+        "CHK-001-011",
+        "CHK-001-012",
+        "CHK-001-013",
+        "CHK-001-014"
+      ],
+      "notes": "## Slide: Two communication layers\n\n**Key point:** REST at the boundary, gRPC inside — each protocol is chosen for its context.\n\n**Open with:** \"There are actually two distinct communication protocols at play here, and the split is intentional.\"\n\n**Talk track:**\n- REST on the outside means any client — curl, a frontend, another service — can call the gateway without special tooling\n- gRPC on the inside gives you strong typing, automatic serialization, and lower overhead for the high-frequency internal calls\n- The Protobuf contract defines exactly two RPCs per agent: `Process` and `GetStatus` — clean and minimal\n- Health checks are a first-class citizen in the protocol — Manager pings `GetStatus` before trusting a service\n- Swagger docs are auto-generated at `/docs` — useful for exploration and testing\n\n**Transition:** \"Now that we understand the shape of the system, let's go inside the Manager Agent and see how it actually decides what to do with a request.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "headline": "BaseAgent lifecycle",
+      "label": "AGENTS",
+      "color": "#7C3CFF",
+      "leftContent": "Every agent extends BaseAgent and follows the same four-phase pipeline: validate → pre-process → implement → post-process. Status transitions through IDLE, PROCESSING, and ERROR are tracked on every call.",
+      "points": [
+        "**validate_input** — rejects empty or non-string payloads early",
+        "**_process_implementation** — abstract hook subclasses must override",
+        "**_call_llm** — wraps LLMRequest with config-driven temperature and model",
+        "**AgentStatus** — IDLE / PROCESSING / ERROR enum on every instance"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "base_agent.py",
+      "mockupContent": "class AgentStatus(Enum):\n    IDLE       = \"idle\"\n    PROCESSING = \"processing\"\n    ERROR      = \"error\"\n\nasync def process(self, input_text: str) -> str:\n    self.status = AgentStatus.PROCESSING\n    await self.validate_input(input_text)\n    processed  = await self.pre_process(input_text)\n    response   = await self._process_implementation(processed)\n    final      = await self.post_process(response)\n    self.total_processed += 1\n    self.status = AgentStatus.IDLE\n    return final\n\nasync def _call_llm(self, prompt: str) -> LLMResponse:\n    request = LLMRequest(\n        prompt=prompt,\n        temperature=self.config.temperature,\n        max_tokens=self.config.max_tokens,\n        model=self.config.model\n    )\n    return await self.llm_service.generate(\n        provider_name=self.config.provider,\n        request=request\n    )",
+      "evidenceRefs": [
+        "CHK-001-175",
+        "CHK-001-176",
+        "CHK-001-178",
+        "CHK-001-191",
+        "CHK-001-197",
+        "CHK-001-205"
+      ],
+      "notes": "## Slide: BaseAgent lifecycle\n\n**Key point:** Every specialized agent inherits one shared, testable pipeline — subclasses only need to override `_process_implementation`.\n\n**Open with:** \"Before we look at the specialized agents, let's understand what they all share...\"\n\n**Talk track:**\n- The status enum is simple but powerful — at any moment you know if an agent is idle, working, or faulted\n- `process()` is the only public entry point — validation, pre/post processing all happen automatically\n- `_call_llm` centralises all LLM config: temperature, model, provider come from `AgentConfig` — one place to tune\n- Subclasses literally only implement one method: `_process_implementation`\n\n**Transition:** \"So what does a subclass actually do? Let's look at the most complex one — the Manager Agent.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "headline": "Manager Agent: LLM-driven planning",
+      "label": "AGENTS",
+      "color": "#7C3CFF",
+      "leftContent": "The Manager Agent sends the raw user query to the LLM and receives a structured JSON workflow plan — a list of typed steps with explicit dependency indices. Invalid or self-referential dependencies are sanitised before execution begins.",
+      "points": [
+        "**TaskType** enum — RESEARCH / COMPUTATION / SUMMARIZATION / COMPOUND",
+        "**WorkflowStep** — agent_type, input_text, depends_on list, output, completed flag",
+        "**Dependency validation** — strips deps ≥ current step index or negative indices",
+        "**Final summary** — auto-triggered when steps ≥ min_steps_for_summary"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "manager_agent.py — _process_implementation",
+      "mockupContent": "# LLM returns a pure JSON workflow plan\nanalysis_prompt = f\"\"\"\nReturn a pure JSON object:\n{{\n  \"task_type\": \"RESEARCH|COMPUTATION|SUMMARIZATION|COMPOUND\",\n  \"steps\": [\n    {{\n      \"agent\": \"perplexity|math|summarization\",\n      \"input\": \"specific instruction\",\n      \"depends_on\": []   # valid previous step indices only\n    }}\n  ]\n}}\n\"\"\"\nresponse = await self._call_llm(analysis_prompt)\nanalysis  = json.loads(response.text)\n\n# Sanitise dependencies before building WorkflowSteps\nfor i, step in enumerate(analysis[\"steps\"]):\n    step[\"depends_on\"] = [\n        dep for dep in step.get(\"depends_on\", [])\n        if isinstance(dep, int) and 0 <= dep < i\n    ]\n\nworkflow_steps = [\n    WorkflowStep(s[\"agent\"], s[\"input\"], s[\"depends_on\"])\n    for s in analysis[\"steps\"]\n]",
+      "evidenceRefs": [
+        "CHK-001-211",
+        "CHK-001-212",
+        "CHK-001-213",
+        "CHK-001-214",
+        "CHK-001-251",
+        "CHK-001-236",
+        "CHK-001-237"
+      ],
+      "notes": "## Slide: Manager Agent — LLM-driven planning\n\n**Key point:** The Manager offloads workflow design to the LLM itself — it doesn't hardcode routing logic.\n\n**Open with:** \"This is the clever part. The Manager doesn't have a routing table — it asks the LLM to design the workflow.\"\n\n**Talk track:**\n- The prompt asks the LLM to return structured JSON: task type, steps, dependencies — not prose\n- Four task types cover the full space: pure research, pure math, pure summary, or any combination\n- Dependency sanitisation is defensive: any dep that references itself or a future step is stripped silently\n- The WorkflowStep object is the unit of execution — agent_type maps directly to a gRPC client\n- If the plan has ≥ 2 steps, a final summarisation pass is triggered automatically\n\n**Delivery:** Pause on the dependency sanitisation — it's easy to miss but prevents deadlocks.\n\n**Transition:** \"Once the plan is valid, execution kicks off — and that's where parallelism comes in.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "headline": "Parallel execution & specialised agents",
+      "label": "AGENTS",
+      "color": "#7C3CFF",
+      "leftContent": "Steps whose dependencies are already complete are gathered into a parallel group and dispatched with asyncio.gather. Each specialised agent implements a focused two-pass LLM pattern: strategy/analysis first, then execution/synthesis.",
+      "points": [
+        "**Perplexity** — search strategy pass → execute search + citations pass",
+        "**Math** — solution approach pass → safe exec of generated Python code",
+        "**Summarization** — analysis pass → structured summary polish pass",
+        "**asyncio.gather** — independent steps in a dependency tier run concurrently"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "manager_agent.py — _execute_workflow",
+      "mockupContent": "# Collect steps whose dependencies are satisfied\npending_steps = [\n    (i, step, clients[step.agent_type], resolved_input)\n    for i, step in enumerate(workflow_steps)\n    if not step.completed and all(\n        workflow_steps[dep].completed\n        for dep in step.depends_on\n    )\n]\n\n# Dispatch the entire group concurrently\ntasks = [\n    client.process(input_text)\n    for _, step, client, input_text in pending_steps\n]\nresults = await asyncio.gather(*tasks, return_exceptions=True)\n\nfor (i, step, _, _), result in zip(pending_steps, results):\n    if isinstance(result, Exception):\n        raise result\n    step.output    = result\n    step.completed = True\n\n# {STEP_N} placeholders in later steps are\n# replaced with the output of step N before dispatch",
+      "evidenceRefs": [
+        "CHK-001-217",
+        "CHK-001-230",
+        "CHK-001-231",
+        "CHK-001-015"
+      ],
+      "notes": "## Slide: Parallel execution & specialised agents\n\n**Key point:** Independent steps run concurrently via asyncio.gather — no wasted wall-clock time waiting for unrelated work.\n\n**Open with:** \"The execution engine is simpler than it looks — it's a loop that keeps finding steps whose deps are done and fires them all at once.\"\n\n**Talk track:**\n- `{STEP_N}` placeholder substitution is how results flow between steps — clean and explicit\n- asyncio.gather with return_exceptions=True means one failure doesn't silently swallow others\n- Each specialised agent uses a two-pass LLM pattern: think first, then act — reduces hallucination in each domain\n- Math agent adds a safe exec layer on top: generated Python runs in a restricted namespace, no imports allowed\n- The whole loop exits only when every WorkflowStep is marked completed — deadlock is detected by an iteration ceiling\n\n**Delivery:** Draw attention to the placeholder substitution mechanic — it's the glue between steps.\n\n**Transition:** \"Let's look at how all of this is wired together at the infrastructure level.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "GRPC & PROTO",
+      "color": "#D97706",
+      "headline": "One contract, two RPCs",
+      "leftContent": "Every agent exposes the same protobuf service: `Process` for work and `GetStatus` for health. The stub is generated once; all agents share the interface.",
+      "points": [
+        "`Process` — unary RPC: `ProcessRequest` → `ProcessResponse(success, output_text, error_message)`",
+        "`GetStatus` — unary RPC: `StatusRequest` → `StatusResponse(status, total_processed, config)`",
+        "Serialization via Protobuf; channel created with `grpc.aio.insecure_channel`"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "agent.proto (compiled stub)",
+      "mockupContent": "# AgentServiceStub — generated, do not edit\n\nself.Process = channel.unary_unary(\n    '/agent.AgentService/Process',\n    request_serializer=ProcessRequest.SerializeToString,\n    response_deserializer=ProcessResponse.FromString,\n)\n\nself.GetStatus = channel.unary_unary(\n    '/agent.AgentService/GetStatus',\n    request_serializer=StatusRequest.SerializeToString,\n    response_deserializer=StatusResponse.FromString,\n)",
+      "evidenceRefs": [
+        "CHK-001-100",
+        "CHK-001-105",
+        "CHK-001-107"
+      ],
+      "notes": "## Slide: One contract, two RPCs\n\n**Key point:** All agents share a single generated protobuf contract — `Process` and `GetStatus`. Nothing custom.\n\n**Open with:** \"Every microservice speaks the same language — literally. There's one `.proto` file and two RPCs.\"\n\n**Talk track:**\n- `Process` is the workhorse — takes text in, returns text out plus a success flag\n- `GetStatus` doubles as the health-check surface — the Manager polls it to decide readiness\n- The stub is auto-generated by protoc; nobody writes the serialization logic manually\n- Point out the unary-unary pattern — no streaming, keeps things simple and predictable\n\n**Transition:** \"So that's the contract. Now let's look at how the client and server sides wrap it in real code.\""
+    },
+    {
+      "type": "code",
+      "variant": "split",
+      "label": "GRPC & PROTO",
+      "color": "#D97706",
+      "headline": "AgentClient ↔ AgentService",
+      "supporting": "Client opens an async channel and calls `stub.Process`; server wraps any `BaseAgent` and delegates. Health check retries 3× with 1 s backoff before failing.",
+      "code": "# CLIENT (agent_client.py)\nclass AgentClient:\n    def __init__(self, address: str):\n        self.channel = grpc.aio.insecure_channel(address)\n        self.stub = AgentServiceStub(self.channel)\n\n    async def process(self, input_text: str) -> str:\n        req = ProcessRequest(input_text=input_text)\n        resp = await self.stub.Process(req)\n        if not resp.success:\n            raise Exception(resp.error_message)\n        return resp.output_text\n\n    async def health_check(self) -> bool:          # 3 retries, 1 s apart\n        for attempt in range(3):\n            try:\n                resp = await self.stub.GetStatus(\n                    StatusRequest(agent_name=\"health_check\")\n                )\n                return resp.status == \"SERVING\"\n            except grpc.aio.AioRpcError:\n                if attempt == 2: return False\n                await asyncio.sleep(1)\n\n# SERVER (agent_service.py)\nclass AgentService(AgentServiceServicer):\n    async def Process(self, request, context):\n        result = await self.agent.process(request.input_text)\n        return ProcessResponse(success=True, output_text=result)\n\n    async def GetStatus(self, request, context):\n        return StatusResponse(agent_name=self.agent.config.name,\n                              status=\"SERVING\")",
+      "codeLanguage": "python",
+      "evidenceRefs": [
+        "CHK-001-121",
+        "CHK-001-122",
+        "CHK-001-123",
+        "CHK-001-124",
+        "CHK-001-129",
+        "CHK-001-130",
+        "CHK-001-131",
+        "CHK-001-132"
+      ],
+      "notes": "## Slide: AgentClient ↔ AgentService\n\n**Key point:** The client/server pairing is thin by design — client retries health checks, server just delegates to `BaseAgent`.\n\n**Open with:** \"The client and server are mirror images — one sends, one receives, both speak the same proto contract.\"\n\n**Talk track:**\n- `AgentClient.__init__` does one thing: open an async channel and create the stub\n- `process()` is five lines — serialize, await, check success flag, return text\n- `health_check()` is the interesting one: 3 attempts, 1-second sleep between each, returns False on final failure — the Manager uses this to gate request dispatch\n- Server-side `AgentService` is equally thin: call `self.agent.process()`, wrap result in a `ProcessResponse`\n- The `serve_agent()` function wires it all together with a `ThreadPoolExecutor(max_workers=10)` backing the async gRPC server\n\n**Delivery:** Walk the left side (client) top to bottom, then jump to the server block. Point out the symmetry.\n\n**Transition:** \"With the transport layer covered, let's zoom out to how the Manager orchestrates these clients into an actual workflow.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "EXTEND & SECURE",
+      "color": "#FF2A2A",
+      "headline": "Add a new agent in 3 steps",
+      "leftContent": "Every agent follows the same contract: implement the gRPC servicer, declare the proto interface, then register in the shell runner. No framework changes required.",
+      "points": [
+        "**Create** — subclass `AgentServiceServicer`, implement `Process`",
+        "**Define** — declare `rpc Process` and `rpc GetStatus` in protobuf",
+        "**Register** — one line in `run_services.sh` to wire it up"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "run_services.sh",
+      "mockupContent": "# 1. Create the agent service\nclass NewAgentService(agent_pb2_grpc.AgentServiceServicer):\n    async def Process(self, request, context):\n        result = await self.agent.process(request.input_text)\n        return agent_pb2.ProcessResponse(output_text=result)\n\n# 2. Proto contract (agent.proto)\nservice AgentService {\n    rpc Process(ProcessRequest) returns (ProcessResponse);\n    rpc GetStatus(StatusRequest) returns (StatusResponse);\n}\n\n# 3. Register in run_services.sh\nstart_service \"new_agent\" \"src.services.new_agent_service\"",
+      "evidenceRefs": [
+        "CHK-001-021",
+        "CHK-001-022",
+        "CHK-001-023",
+        "CHK-001-024",
+        "CHK-001-025",
+        "CHK-001-026",
+        "CHK-001-027",
+        "CHK-001-028"
+      ],
+      "notes": "## Slide: Add a new agent in 3 steps\n\n**Key point:** The extension model is deliberately minimal — three discrete steps, no magic.\n\n**Open with:** \"If you want to plug in a new capability, the system doesn't fight you.\"\n\n**Talk track:**\n- Step 1 is just Python — subclass the gRPC servicer, implement `Process`. The base agent handles retries, logging, and LLM calls.\n- Step 2 is the proto contract — two RPC methods, `Process` and `GetStatus`. Every agent speaks the same language.\n- Step 3 is literally one shell line. The runner script handles process lifecycle.\n- This pattern means you could add a Code Interpreter agent, an Image agent, anything — and the Manager Agent will pick it up automatically once it's registered.\n\n**Transition:** \"Now let's look at what's protecting all of this at the boundary...\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "EXTEND & SECURE",
+      "color": "#FF2A2A",
+      "headline": "Security baked in, not bolted on",
+      "leftContent": "Three defence layers work together: Clerk JWT authentication at the gateway, regex-based sensitive-data masking in every log formatter, and gRPC health checks on all downstream services.",
+      "points": [
+        "**Auth** — `ClerkAuthMiddleware` validates `Bearer` tokens on every request",
+        "**Log masking** — `SensitiveDataFormatter` redacts API keys and JWTs via regex",
+        "**Health checks** — all agents expose `GetStatus`, manager retries up to 10×"
+      ],
+      "mockupKind": "terminal",
+      "terminalTitle": "middleware/auth.py + logging_config.py",
+      "mockupContent": "# ClerkAuthMiddleware — gateway enforcement\nauth_header = request.headers.get(\"Authorization\")\nif not auth_header or not auth_header.startswith(\"Bearer \"):\n    raise HTTPException(status_code=401, detail=\"Missing authorization token\")\n\n# SensitiveDataFormatter — log redaction patterns\nSENSITIVE_PATTERNS = [\n    (r'sk-[a-zA-Z0-9-]{32,}',           '[REDACTED_API_KEY]'),\n    (r'Bearer\\s+[\\w-]+\\.[\\w-]+\\.[\\w-]+', '[REDACTED_TOKEN]'),\n]\n\n# Applied on every log record\nformatted_msg = re.sub(pattern, replacement, formatted_msg)",
+      "evidenceRefs": [
+        "CHK-001-030",
+        "CHK-001-031",
+        "CHK-001-034",
+        "CHK-001-036",
+        "CHK-001-133",
+        "CHK-001-134",
+        "CHK-001-135",
+        "CHK-001-136"
+      ],
+      "notes": "## Slide: Security baked in, not bolted on\n\n**Key point:** Three independent layers — auth, log masking, health checks — each handling a different threat surface.\n\n**Open with:** \"Security here isn't a single checkbox — it's layered at the transport, the logs, and the service mesh.\"\n\n**Talk track:**\n- The Clerk middleware is the outermost gate. No valid Bearer token, no entry — 401 before the request even touches the Manager Agent.\n- The `SensitiveDataFormatter` is subtle but important: API keys matching `sk-...` and JWT tokens are regex-replaced in every log line before they hit disk or stdout. You can't accidentally leak keys through logging.\n- Health checks mean the Manager won't route traffic to a dead agent — it retries up to 10 times with 5-second intervals before surfacing an error.\n- Point out: these three concerns are cleanly separated — middleware, formatter, and client — so you can evolve each independently.\n\n**Delivery:**\n- Pause on the regex patterns — they're specific. That's intentional.\n- Good moment for: \"Any questions on the auth model before we wrap up?\""
+    },
+    {
+      "type": "recap",
+      "variant": "resources",
+      "label": "RECAP",
+      "color": "#009B8F",
+      "headline": "Ship it. Here's what you need.",
+      "resources": [
+        {
+          "group": "Key Architectural Decisions",
+          "items": [
+            {
+              "title": "gRPC for internal communication",
+              "description": "Strongly typed, high-performance transport between Manager and specialized agents"
+            },
+            {
+              "title": "Manager Agent as orchestrator",
+              "description": "LLM-driven workflow planning with dependency resolution and parallel execution"
+            },
+            {
+              "title": "FastAPI gateway at :8000",
+              "description": "HTTP/JSON entry point with Swagger docs at /docs"
+            }
+          ]
+        },
+        {
+          "group": "Quick Start",
+          "items": [
+            {
+              "title": "Set env vars",
+              "description": "OPENAI_API_KEY and PERPLEXITY_API_KEY"
+            },
+            {
+              "title": "Launch all services",
+              "description": "cd services/agent_service && sh run_services.sh"
+            },
+            {
+              "title": "Hit the API",
+              "description": "POST /process — try it at localhost:8000/docs"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "name": "Perplexity Agent",
+          "description": "localhost:50051"
+        },
+        {
+          "name": "Math Agent",
+          "description": "localhost:50052"
+        },
+        {
+          "name": "Summarization Agent",
+          "description": "localhost:50053"
+        },
+        {
+          "name": "Next: Add agents",
+          "description": "Subclass BaseAgent, register in run_services.sh"
+        }
+      ],
+      "evidenceRefs": [
+        "CHK-001-016",
+        "CHK-001-017",
+        "CHK-001-018",
+        "CHK-001-019",
+        "CHK-001-020",
+        "CHK-001-029"
+      ],
+      "notes": "## Slide: Ship it. Here's what you need.\n\n**Key point:** Three decisions define this system — gRPC internally, LLM-orchestrated workflows, FastAPI externally. Two commands get you running.\n\n**Open with:** \"Let's bring it all together. Three architectural bets, three quick-start steps, and three ports to know.\"\n\n**Talk track:**\n- gRPC was a deliberate choice — protobuf contracts enforce the interface between Manager and agents at compile time, not runtime\n- The Manager's LLM-driven planner is the most interesting piece — it writes its own execution graph, resolves dependencies, and groups parallel work automatically\n- Getting started is genuinely two commands: set your keys, run the shell script — everything else comes up together\n- If you want to extend this: subclass BaseAgent, implement _process_implementation, register in run_services.sh — that's the full surface area for adding a new agent\n\n**Transition:** \"Questions? The Swagger UI at localhost:8000/docs is the fastest way to poke at it live.\""
+    }
+  ],
+  "outline": {
+    "title": "AI Agent Service",
+    "totalSlideCount": 13,
+    "sections": [
+      {
+        "id": "SEC-OPENING",
+        "name": "Opening",
+        "purpose": "Introduce the AI Agent Service, its purpose, and the three key ideas the deck will cover.",
+        "label": "OVERVIEW",
+        "color": "#009B8F",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-001",
+          "CHK-001-002",
+          "CHK-001-003"
+        ]
+      },
+      {
+        "id": "SEC-ARCHITECTURE",
+        "name": "System Architecture",
+        "purpose": "Show the high-level service topology — API Gateway, Manager Agent, and three specialized agents — and how they are wired together.",
+        "label": "ARCHITECTURE",
+        "color": "#2563EB",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-001-004",
+          "CHK-001-005",
+          "CHK-001-006",
+          "CHK-001-007",
+          "CHK-001-008",
+          "CHK-001-009",
+          "CHK-001-011",
+          "CHK-001-012",
+          "CHK-001-013",
+          "CHK-001-014"
+        ]
+      },
+      {
+        "id": "SEC-CORE-AGENTS",
+        "name": "Agent Internals",
+        "purpose": "Walk through the BaseAgent lifecycle, the Manager Agent's LLM-driven workflow planning, and each specialized agent's implementation.",
+        "label": "AGENTS",
+        "color": "#7C3CFF",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-001-015",
+          "CHK-001-175",
+          "CHK-001-176",
+          "CHK-001-177",
+          "CHK-001-178",
+          "CHK-001-191",
+          "CHK-001-197",
+          "CHK-001-205",
+          "CHK-001-211",
+          "CHK-001-212",
+          "CHK-001-213",
+          "CHK-001-214",
+          "CHK-001-251",
+          "CHK-001-252",
+          "CHK-001-253",
+          "CHK-001-254",
+          "CHK-001-255",
+          "CHK-001-261",
+          "CHK-001-217",
+          "CHK-001-230",
+          "CHK-001-231",
+          "CHK-001-236",
+          "CHK-001-237"
+        ]
+      },
+      {
+        "id": "SEC-GRPC-COMMS",
+        "name": "gRPC Communication Layer",
+        "purpose": "Explain the protobuf service contract, the AgentClient/AgentService pairing, health checks, and how the Manager connects to remote agents.",
+        "label": "GRPC & PROTO",
+        "color": "#D97706",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-100",
+          "CHK-001-105",
+          "CHK-001-107",
+          "CHK-001-108",
+          "CHK-001-109",
+          "CHK-001-110",
+          "CHK-001-121",
+          "CHK-001-122",
+          "CHK-001-123",
+          "CHK-001-124",
+          "CHK-001-127",
+          "CHK-001-129",
+          "CHK-001-130",
+          "CHK-001-131",
+          "CHK-001-132"
+        ]
+      },
+      {
+        "id": "SEC-EXTENSIBILITY",
+        "name": "Extensibility & Security",
+        "purpose": "Show how to add a new agent in three steps, and cover the auth middleware, sensitive-data log masking, and health-check patterns.",
+        "label": "EXTEND & SECURE",
+        "color": "#FF2A2A",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-021",
+          "CHK-001-022",
+          "CHK-001-023",
+          "CHK-001-024",
+          "CHK-001-025",
+          "CHK-001-026",
+          "CHK-001-027",
+          "CHK-001-028",
+          "CHK-001-030",
+          "CHK-001-031",
+          "CHK-001-034",
+          "CHK-001-036",
+          "CHK-001-133",
+          "CHK-001-134",
+          "CHK-001-135",
+          "CHK-001-136"
+        ]
+      },
+      {
+        "id": "SEC-CLOSING",
+        "name": "Closing",
+        "purpose": "Recap the key architectural decisions, list quick-start steps, and point to next steps for contributors.",
+        "label": "RECAP",
+        "color": "#009B8F",
+        "slideCount": 1,
+        "candidateChunkIds": [
+          "CHK-001-016",
+          "CHK-001-017",
+          "CHK-001-018",
+          "CHK-001-019",
+          "CHK-001-020",
+          "CHK-001-029"
+        ]
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "id": "CHK-001-001",
+      "paragraph": 1,
+      "text": "// README.md # AI Agent Service"
+    },
+    {
+      "id": "CHK-001-002",
+      "paragraph": 2,
+      "text": "A microservices-based AI agent system that orchestrates multiple specialized agents through gRPC communication."
+    },
+    {
+      "id": "CHK-001-003",
+      "paragraph": 3,
+      "text": "```bash cd services/agent_service sh run_services.sh ``` go to localhost:8000/docs to see the api docs and try."
+    },
+    {
+      "id": "CHK-001-004",
+      "paragraph": 4,
+      "text": "```mermaid graph TD Client[Client] --> API[FastAPI Gateway :8000] API --> Manager[Manager Agent] Manager --> P[Perplexity Agent :50051] Manager --> M[Math Agent :50052] Manager --> S[Summarization Agent :50053] P --> LLM[LLM Service] M --> LLM S --> LLM Manager --> LLM ```"
+    },
+    {
+      "id": "CHK-001-005",
+      "paragraph": 5,
+      "text": "### Service Components"
+    },
+    {
+      "id": "CHK-001-006",
+      "paragraph": 6,
+      "text": "1. **API Gateway** (Port 8000) - FastAPI service - Handles HTTP requests - Forwards requests to Manager Agent"
+    },
+    {
+      "id": "CHK-001-007",
+      "paragraph": 7,
+      "text": "2. **Manager Agent** - Orchestrates workflow between agents - Analyzes tasks and creates execution plans - Manages dependencies between agent outputs - Connects to other agents via gRPC"
+    },
+    {
+      "id": "CHK-001-008",
+      "paragraph": 8,
+      "text": "3. **Specialized Agents** - Perplexity Agent (Port 50051): Web search and information retrieval - Math Agent (Port 50052): Mathematical computations - Summarization Agent (Port 50053): Text summarization"
+    },
+    {
+      "id": "CHK-001-009",
+      "paragraph": 9,
+      "text": "## 🔄 Workflow Process ```mermaid sequenceDiagram participant C as Client participant A as API Gateway participant M as Manager Agent participant LLM as LLM Service participant AG as Agent Services C->>A: HTTP Request A->>M: Forward Request M->>LLM: Analyze Task LLM-->>M: Workflow Steps loop For each step M->>AG: gRPC Process Call AG->>LLM: Generate Response LLM-->>AG: Response AG-->>M: Step Result end M->>A: Final Response A->>C: HTTP Response ```"
+    },
+    {
+      "id": "CHK-001-010",
+      "paragraph": 10,
+      "text": "## 💡 Implementation Details"
+    },
+    {
+      "id": "CHK-001-011",
+      "paragraph": 11,
+      "text": "### Communication Protocol"
+    },
+    {
+      "id": "CHK-001-012",
+      "paragraph": 12,
+      "text": "```mermaid graph LR subgraph \"Internal Communication\" gRPC[gRPC Protocol] Proto[Protobuf Messages] Health[Health Checks] end subgraph \"External Communication\" HTTP[HTTP/REST] JSON[JSON Payloads] Docs[Swagger Docs] end ```"
+    },
+    {
+      "id": "CHK-001-013",
+      "paragraph": 13,
+      "text": "1. **Internal Communication (gRPC)** - High-performance RPC framework - Strongly typed service definitions - Bi-directional streaming - Automatic code generation"
+    },
+    {
+      "id": "CHK-001-014",
+      "paragraph": 14,
+      "text": "2. **External API (REST)** - HTTP/JSON interface - OpenAPI documentation - Easy integration for clients"
+    },
+    {
+      "id": "CHK-001-015",
+      "paragraph": 15,
+      "text": "```mermaid graph TD Input[User Input] --> Analysis[Task Analysis] Analysis --> Planning[Workflow Planning] Planning --> Execution[Parallel Execution] Execution --> Integration[Result Integration] Integration --> Output[Final Output] subgraph \"Workflow Steps\" Planning --> Steps[Create Steps] Steps --> Dependencies[Check Dependencies] Dependencies --> Parallel[Group Parallel Tasks] end ```"
+    },
+    {
+      "id": "CHK-001-016",
+      "paragraph": 16,
+      "text": "1. **Environment Setup**"
+    },
+    {
+      "id": "CHK-001-017",
+      "paragraph": 17,
+      "text": "```bash # Required environment variables OPENAI_API_KEY=your_openai_key PERPLEXITY_API_KEY=your_perplexity_key ```"
+    },
+    {
+      "id": "CHK-001-018",
+      "paragraph": 18,
+      "text": "2. **Start Services**"
+    },
+    {
+      "id": "CHK-001-019",
+      "paragraph": 19,
+      "text": "```bash cd services/agent_service sh run_services.sh ```"
+    },
+    {
+      "id": "CHK-001-020",
+      "paragraph": 20,
+      "text": "3. **Access API** - API Documentation: http://localhost:8000/docs - Agent Services: - Perplexity: localhost:50051 - Math: localhost:50052 - Summarization: localhost:50053"
+    },
+    {
+      "id": "CHK-001-021",
+      "paragraph": 21,
+      "text": "## 🔧 Development Guide"
+    },
+    {
+      "id": "CHK-001-022",
+      "paragraph": 22,
+      "text": "### Adding New Agents"
+    },
+    {
+      "id": "CHK-001-023",
+      "paragraph": 23,
+      "text": "1. Create agent service file:"
+    },
+    {
+      "id": "CHK-001-024",
+      "paragraph": 24,
+      "text": "```python class NewAgentService(agent_pb2_grpc.AgentServiceServicer): async def Process(self, request, context): result = await self.agent.process(request.input_text) return agent_pb2.ProcessResponse(output_text=result) ```"
+    },
+    {
+      "id": "CHK-001-025",
+      "paragraph": 25,
+      "text": "2. Update proto definition:"
+    },
+    {
+      "id": "CHK-001-026",
+      "paragraph": 26,
+      "text": "```protobuf service AgentService { rpc Process(ProcessRequest) returns (ProcessResponse); rpc GetStatus(StatusRequest) returns (StatusResponse); } ```"
+    },
+    {
+      "id": "CHK-001-027",
+      "paragraph": 27,
+      "text": "3. Register in run_services.sh:"
+    },
+    {
+      "id": "CHK-001-028",
+      "paragraph": 28,
+      "text": "```bash start_service \"new_agent\" \"src.services.new_agent_service\" ```"
+    },
+    {
+      "id": "CHK-001-029",
+      "paragraph": 29,
+      "text": "```http POST /process Content-Type: application/json { \"text\": \"Your query here\", \"config\": { \"temperature\": 0.7, \"max_tokens\": 1000 } } ```"
+    },
+    {
+      "id": "CHK-001-030",
+      "paragraph": 30,
+      "text": "## 🔐 Security & Best Practices"
+    },
+    {
+      "id": "CHK-001-031",
+      "paragraph": 31,
+      "text": "- Service authentication via API keys - Health checks for all services - Graceful shutdown handling - Comprehensive logging - Error handling and retries"
+    },
+    {
+      "id": "CHK-001-032",
+      "paragraph": 32,
+      "text": "// setup.py from setuptools import setup, find_packages"
+    },
+    {
+      "id": "CHK-001-033",
+      "paragraph": 33,
+      "text": "setup( name=\"agent_service\", version=\"0.1\", packages=find_packages(), package_data={ 'src.proto': ['*.proto'], }, include_package_data=True )"
+    },
+    {
+      "id": "CHK-001-034",
+      "paragraph": 34,
+      "text": "// middleware/auth.py # middleware/auth.py from fastapi import Request, HTTPException from clerk import Clerk from functools import lru_cache import os"
+    },
+    {
+      "id": "CHK-001-035",
+      "paragraph": 35,
+      "text": "clerk = Clerk(secret_key=os.getenv(\"CLERK_SECRET_KEY\"))"
+    },
+    {
+      "id": "CHK-001-036",
+      "paragraph": 36,
+      "text": "class ClerkAuthMiddleware: async def __call__(self, request: Request, call_next): try: # 从请求头获取 token auth_header = request.headers.get(\"Authorization\") if not auth_header or not auth_header.startswith(\"Bearer \"): raise HTTPException(status_code=401, detail=\"Missing authorization token\")"
+    },
+    {
+      "id": "CHK-001-037",
+      "paragraph": 37,
+      "text": "token = auth_header.split(\" \")[1]"
+    },
+    {
+      "id": "CHK-001-038",
+      "paragraph": 38,
+      "text": "# 验证 token try: # 使用缓存装饰器来提高性能 @lru_cache(maxsize=1000, ttl=300) # 5分钟缓存 def verify_token(token: str): return clerk.verify_token(token)"
+    },
+    {
+      "id": "CHK-001-039",
+      "paragraph": 39,
+      "text": "claims = verify_token(token) request.state.user_id = claims['sub'] except Exception as e: raise HTTPException(status_code=401, detail=\"Invalid token\")"
+    },
+    {
+      "id": "CHK-001-040",
+      "paragraph": 40,
+      "text": "response = await call_next(request) return response"
+    },
+    {
+      "id": "CHK-001-041",
+      "paragraph": 41,
+      "text": "except HTTPException as he: raise he except Exception as e: raise HTTPException(status_code=500, detail=str(e))"
+    },
+    {
+      "id": "CHK-001-042",
+      "paragraph": 42,
+      "text": "// tests/unit/test_cache_service.py import pytest from httpx import AsyncClient from services.cache_service.src.main import app"
+    },
+    {
+      "id": "CHK-001-043",
+      "paragraph": 43,
+      "text": "@pytest.mark.asyncio async def test_cache_operations(): async with AsyncClient(app=app, base_url=\"http://test\") as client: # Test setting cache response = await client.post(\"/cache\", json={ \"key\": \"test_key\", \"value\": \"test_value\", \"ttl\": 3600 }) assert response.status_code == 200"
+    },
+    {
+      "id": "CHK-001-044",
+      "paragraph": 44,
+      "text": "# Test getting cache response = await client.get(\"/cache/test_key\") assert response.status_code == 200 assert response.json()[\"value\"] == \"test_value\""
+    },
+    {
+      "id": "CHK-001-045",
+      "paragraph": 45,
+      "text": "// src/api.py from fastapi import FastAPI, HTTPException, Depends from pydantic import BaseModel, Field from typing import Optional, Dict, Any import asyncio import logfire import os from middleware.auth import ClerkAuthMiddleware"
+    },
+    {
+      "id": "CHK-001-046",
+      "paragraph": 46,
+      "text": "# Configure Logfire first, before creating the FastAPI app logfire.configure( service_name=\"api_gateway\", environment=os.getenv(\"ENVIRONMENT\", \"development\") )"
+    },
+    {
+      "id": "CHK-001-047",
+      "paragraph": 47,
+      "text": "# Create the FastAPI app app = FastAPI( title=\"Agent Service API\", description=\"AI Agent Service API\", version=\"0.1.0\" ) app.add_middleware(ClerkAuthMiddleware)"
+    },
+    {
+      "id": "CHK-001-048",
+      "paragraph": 48,
+      "text": "# Configure Logfire instrumentation immediately after creating the app logfire.instrument_fastapi(app)"
+    },
+    {
+      "id": "CHK-001-049",
+      "paragraph": 49,
+      "text": "# Initialize metrics after instrumentation request_counter = logfire.metric_counter( 'api_requests_total', description='Total number of API requests' ) error_counter = logfire.metric_counter( 'api_errors_total', description='Total number of API errors' )"
+    },
+    {
+      "id": "CHK-001-050",
+      "paragraph": 50,
+      "text": "class Query(BaseModel): text: str = Field(..., description=\"Query text to process\") config: Optional[Dict[str, Any]] = Field(None, description=\"Optional configuration parameters\")"
+    },
+    {
+      "id": "CHK-001-051",
+      "paragraph": 51,
+      "text": "class Config: schema_extra = { \"example\": { \"text\": \"What is the impact of quantum computing?\", \"config\": {\"temperature\": 0.7} } }"
+    },
+    {
+      "id": "CHK-001-052",
+      "paragraph": 52,
+      "text": "@app.on_event(\"startup\") async def startup_event(): global manager_agent"
+    },
+    {
+      "id": "CHK-001-053",
+      "paragraph": 53,
+      "text": "try: from .main import setup_and_run_services manager_agent = await setup_and_run_services() logfire.info(\"API service started successfully\") except Exception as e: logfire.error(f\"Failed to initialize services: {str(e)}\") raise RuntimeError(f\"Failed to initialize services: {str(e)}\")"
+    },
+    {
+      "id": "CHK-001-054",
+      "paragraph": 54,
+      "text": "@app.on_event(\"shutdown\") async def shutdown_event(): if manager_agent: await manager_agent.cleanup() logfire.info(\"API service shut down successfully\")"
+    },
+    {
+      "id": "CHK-001-055",
+      "paragraph": 55,
+      "text": "@app.post(\"/process\") async def process_query(query: Query): request_counter.add(1) if not manager_agent: error_counter.add(1) raise HTTPException(status_code=503, detail=\"Service not initialized\")"
+    },
+    {
+      "id": "CHK-001-056",
+      "paragraph": 56,
+      "text": "with logfire.span('process_query', query_length=len(query.text)): try: result = await manager_agent.process(query.text) return {\"result\": result} except Exception as e: error_counter.add(1) logfire.error(f\"Query processing error: {str(e)}\") raise HTTPException(status_code=500, detail=str(e))"
+    },
+    {
+      "id": "CHK-001-057",
+      "paragraph": 57,
+      "text": "@app.get(\"/health\") async def health_check(): if not manager_agent: raise HTTPException(status_code=503, detail=\"Service not initialized\")"
+    },
+    {
+      "id": "CHK-001-058",
+      "paragraph": 58,
+      "text": "with logfire.span('health_check'): try: services_status = await manager_agent._check_services() status = \"healthy\" if services_status else \"unhealthy\" logfire.info(f\"Health check: {status}\") return { \"status\": status, \"details\": \"All services are running\" if services_status else \"Some services are not responding\" } except Exception as e: logfire.error(f\"Health check error: {str(e)}\") raise HTTPException(status_code=500, detail=str(e))"
+    },
+    {
+      "id": "CHK-001-059",
+      "paragraph": 59,
+      "text": "// src/main.py from typing import Dict from src.llm.service import LLMService from src.llm.providers.openai_provider import OpenAIProvider from src.config.agent_config import AgentConfig from src.agents.perplexity_agent import PerplexityAgent from src.agents.math_agent import MathAgent from src.agents.summarization_agent import SummarizationAgent from src.agents.manager_agent import ManagerAgent from src.registry.agent_registry import AgentRegistry import asyncio import os from dotenv import load_dotenv"
+    },
+    {
+      "id": "CHK-001-060",
+      "paragraph": 60,
+      "text": "async def setup_llm_service() -> LLMService: \"\"\"Setup and configure LLM service\"\"\" service = LLMService()"
+    },
+    {
+      "id": "CHK-001-061",
+      "paragraph": 61,
+      "text": "# Register providers openai_provider = OpenAIProvider(api_key=os.getenv(\"OPENAI_API_KEY\")) service.register_provider(\"openai\", openai_provider)"
+    },
+    {
+      "id": "CHK-001-062",
+      "paragraph": 62,
+      "text": "def create_agent_configs() -> Dict[str, AgentConfig]: \"\"\"Create configurations for all agents\"\"\" return { \"perplexity\": AgentConfig( name=\"perplexity_agent\", description=\"Web information retrieval and integration agent\", capabilities=[\"web_search\", \"information_integration\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.7 ), \"math\": AgentConfig( name=\"math_agent\", description=\"Mathematical computation and code generation agent\", capabilities=[\"math\", \"code_generation\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.2 ), \"summary\": AgentConfig( name=\"summary_agent\", description=\"Comprehensive summarization agent\", capabilities=[\"summarization\", \"analysis\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.5 ), \"manager\": AgentConfig( name=\"manager_agent\", description=\"Workflow management and orchestration agent\", capabilities=[\"task_analysis\", \"workflow_management\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.7 ) }"
+    },
+    {
+      "id": "CHK-001-063",
+      "paragraph": 63,
+      "text": "async def setup_agent_registry(llm_service: LLMService) -> AgentRegistry: \"\"\"Setup and configure agent registry\"\"\" registry = AgentRegistry(llm_service)"
+    },
+    {
+      "id": "CHK-001-064",
+      "paragraph": 64,
+      "text": "# Register agent types registry.register_agent_type(\"perplexity\", PerplexityAgent) registry.register_agent_type(\"math\", MathAgent) registry.register_agent_type(\"summarization\", SummarizationAgent)"
+    },
+    {
+      "id": "CHK-001-065",
+      "paragraph": 65,
+      "text": "# Create agent instances configs = create_agent_configs()"
+    },
+    {
+      "id": "CHK-001-066",
+      "paragraph": 66,
+      "text": "registry.create_agent(\"perplexity\", configs[\"perplexity\"]) registry.create_agent(\"math\", configs[\"math\"]) registry.create_agent(\"summarization\", configs[\"summary\"])"
+    },
+    {
+      "id": "CHK-001-067",
+      "paragraph": 67,
+      "text": "async def setup_and_run_services(): # Setup LLM service llm_service = await setup_llm_service()"
+    },
+    {
+      "id": "CHK-001-068",
+      "paragraph": 68,
+      "text": "# Start individual agent services in separate processes perplexity_process = await asyncio.create_subprocess_exec( 'python', '-m', 'src.services.perplexity_service' ) math_process = await asyncio.create_subprocess_exec( 'python', '-m', 'src.services.math_service' ) summarization_process = await asyncio.create_subprocess_exec( 'python', '-m', 'src.services.summarization_service' )"
+    },
+    {
+      "id": "CHK-001-069",
+      "paragraph": 69,
+      "text": "# Wait for services to start await asyncio.sleep(5) # Give services time to initialize"
+    },
+    {
+      "id": "CHK-001-070",
+      "paragraph": 70,
+      "text": "# Setup manager agent manager_config = create_agent_configs()[\"manager\"] manager_agent = ManagerAgent(manager_config, llm_service)"
+    },
+    {
+      "id": "CHK-001-071",
+      "paragraph": 71,
+      "text": "# Connect manager to other agents await manager_agent.connect_agent(\"perplexity\", \"localhost:50051\") await manager_agent.connect_agent(\"math\", \"localhost:50052\") await manager_agent.connect_agent(\"summarization\", \"localhost:50053\")"
+    },
+    {
+      "id": "CHK-001-072",
+      "paragraph": 72,
+      "text": "# Verify services are available max_retries = 3 for attempt in range(max_retries): try: if await manager_agent._check_services(): return manager_agent await asyncio.sleep(2) except Exception as e: if attempt == max_retries - 1: raise RuntimeError(f\"Failed to start services: {str(e)}\") await asyncio.sleep(2)"
+    },
+    {
+      "id": "CHK-001-073",
+      "paragraph": 73,
+      "text": "async def main(): \"\"\"Main entry point for the application\"\"\" try: manager_agent = await setup_and_run_services() return manager_agent except Exception as e: print(f\"Error: {str(e)}\") raise"
+    },
+    {
+      "id": "CHK-001-074",
+      "paragraph": 74,
+      "text": "if __name__ == \"__main__\": # Test code when running directly loop = asyncio.new_event_loop() asyncio.set_event_loop(loop) try: manager = loop.run_until_complete(main()) # Example usage result = loop.run_until_complete( manager.process(\"What is the impact of quantum computing on cryptocurrency?\") ) print(result) finally: loop.close()"
+    },
+    {
+      "id": "CHK-001-075",
+      "paragraph": 75,
+      "text": "// src/llm/service.py from typing import Dict, Optional from .provider import LLMProvider, LLMRequest, LLMResponse"
+    },
+    {
+      "id": "CHK-001-076",
+      "paragraph": 76,
+      "text": "class LLMService: \"\"\"Service to manage different LLM providers\"\"\""
+    },
+    {
+      "id": "CHK-001-077",
+      "paragraph": 77,
+      "text": "def __init__(self): self._providers: Dict[str, LLMProvider] = {}"
+    },
+    {
+      "id": "CHK-001-078",
+      "paragraph": 78,
+      "text": "def register_provider(self, name: str, provider: LLMProvider) -> None: \"\"\" Register a new LLM provider"
+    },
+    {
+      "id": "CHK-001-079",
+      "paragraph": 79,
+      "text": "Args: name: Provider name provider: Provider instance \"\"\" self._providers[name] = provider"
+    },
+    {
+      "id": "CHK-001-080",
+      "paragraph": 80,
+      "text": "def get_provider(self, name: str) -> Optional[LLMProvider]: \"\"\" Get a registered provider by name"
+    },
+    {
+      "id": "CHK-001-081",
+      "paragraph": 81,
+      "text": "Args: name: Provider name"
+    },
+    {
+      "id": "CHK-001-082",
+      "paragraph": 82,
+      "text": "Returns: Optional[LLMProvider]: Provider instance if found \"\"\" return self._providers.get(name)"
+    },
+    {
+      "id": "CHK-001-083",
+      "paragraph": 83,
+      "text": "async def generate(self, provider_name: str, request: LLMRequest) -> LLMResponse: \"\"\" Generate response using specified provider"
+    },
+    {
+      "id": "CHK-001-084",
+      "paragraph": 84,
+      "text": "Args: provider_name: Name of the provider to use request: LLM request parameters"
+    },
+    {
+      "id": "CHK-001-085",
+      "paragraph": 85,
+      "text": "Returns: LLMResponse: Response from the LLM"
+    },
+    {
+      "id": "CHK-001-086",
+      "paragraph": 86,
+      "text": "Raises: ValueError: If provider not found \"\"\" provider = self.get_provider(provider_name) if not provider: raise ValueError(f\"Provider {provider_name} not found\")"
+    },
+    {
+      "id": "CHK-001-087",
+      "paragraph": 87,
+      "text": "return await provider.generate(request)"
+    },
+    {
+      "id": "CHK-001-088",
+      "paragraph": 88,
+      "text": "// src/llm/provider.py from abc import ABC, abstractmethod from typing import Dict, Any, Optional from pydantic import BaseModel"
+    },
+    {
+      "id": "CHK-001-089",
+      "paragraph": 89,
+      "text": "class LLMResponse(BaseModel): \"\"\"Response structure from LLM providers\"\"\" text: str usage: Dict[str, int] model: str raw_response: Optional[Dict[str, Any]] = None"
+    },
+    {
+      "id": "CHK-001-090",
+      "paragraph": 90,
+      "text": "class LLMRequest(BaseModel): \"\"\"Request structure for LLM providers\"\"\" prompt: str temperature: float = 0.7 max_tokens: Optional[int] = None stop: Optional[list[str]] = None model: str stream: bool = False"
+    },
+    {
+      "id": "CHK-001-091",
+      "paragraph": 91,
+      "text": "class LLMProvider(ABC): \"\"\"Abstract base class for LLM providers\"\"\""
+    },
+    {
+      "id": "CHK-001-092",
+      "paragraph": 92,
+      "text": "@abstractmethod async def generate(self, request: LLMRequest) -> LLMResponse: \"\"\" Generate response from LLM"
+    },
+    {
+      "id": "CHK-001-093",
+      "paragraph": 93,
+      "text": "Args: request: LLM request parameters"
+    },
+    {
+      "id": "CHK-001-094",
+      "paragraph": 94,
+      "text": "Returns: LLMResponse: Structured response from LLM \"\"\" pass"
+    },
+    {
+      "id": "CHK-001-095",
+      "paragraph": 95,
+      "text": "// src/llm/providers/openai_provider.py from typing import Dict, Any import openai from openai import OpenAI, AsyncOpenAI from ..provider import LLMProvider, LLMRequest, LLMResponse"
+    },
+    {
+      "id": "CHK-001-096",
+      "paragraph": 96,
+      "text": "class OpenAIProvider(LLMProvider): \"\"\"OpenAI API provider implementation\"\"\""
+    },
+    {
+      "id": "CHK-001-097",
+      "paragraph": 97,
+      "text": "def __init__(self, api_key: str): print(\"###api_key:\", api_key) try: # Try to use AsyncOpenAI (v1.0.0+) self.client = AsyncOpenAI(api_key=api_key) self.is_async = True except (AttributeError, ImportError): # Fallback to synchronous client for older versions self.client = OpenAI(api_key=api_key) self.is_async = False"
+    },
+    {
+      "id": "CHK-001-098",
+      "paragraph": 98,
+      "text": "async def generate(self, request: LLMRequest) -> LLMResponse: try: if self.is_async: response = await self.client.chat.completions.create( model=request.model, messages=[{\"role\": \"user\", \"content\": request.prompt}], temperature=request.temperature, max_tokens=request.max_tokens, stream=request.stream ) else: response = self.client.chat.completions.create( model=request.model, messages=[{\"role\": \"user\", \"content\": request.prompt}], temperature=request.temperature, max_tokens=request.max_tokens, stream=request.stream )"
+    },
+    {
+      "id": "CHK-001-099",
+      "paragraph": 99,
+      "text": "return LLMResponse( text=response.choices[0].message.content, usage={ \"prompt_tokens\": response.usage.prompt_tokens, \"completion_tokens\": response.usage.completion_tokens, \"total_tokens\": response.usage.total_tokens }, model=response.model, raw_response=response.model_dump() if hasattr(response, 'model_dump') else response.to_dict() ) except Exception as e: raise Exception(f\"OpenAI API error: {str(e)}\")"
+    },
+    {
+      "id": "CHK-001-100",
+      "paragraph": 100,
+      "text": "// src/proto/agent_pb2_grpc.py # Generated by the gRPC Python protocol compiler plugin. DO NOT EDIT! \"\"\"Client and server classes corresponding to protobuf-defined services.\"\"\" import grpc import warnings"
+    },
+    {
+      "id": "CHK-001-101",
+      "paragraph": 101,
+      "text": "from . import agent_pb2 as agent__pb2"
+    },
+    {
+      "id": "CHK-001-102",
+      "paragraph": 102,
+      "text": "GRPC_GENERATED_VERSION = '1.68.1' GRPC_VERSION = grpc.__version__ _version_not_supported = False"
+    },
+    {
+      "id": "CHK-001-103",
+      "paragraph": 103,
+      "text": "try: from grpc._utilities import first_version_is_lower _version_not_supported = first_version_is_lower(GRPC_VERSION, GRPC_GENERATED_VERSION) except ImportError: _version_not_supported = True"
+    },
+    {
+      "id": "CHK-001-104",
+      "paragraph": 104,
+      "text": "if _version_not_supported: raise RuntimeError( f'The grpc package installed is at version {GRPC_VERSION},' + f' but the generated code in agent_pb2_grpc.py depends on' + f' grpcio>={GRPC_GENERATED_VERSION}.' + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}' + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.' )"
+    },
+    {
+      "id": "CHK-001-105",
+      "paragraph": 105,
+      "text": "class AgentServiceStub(object): \"\"\"Missing associated documentation comment in .proto file.\"\"\""
+    },
+    {
+      "id": "CHK-001-106",
+      "paragraph": 106,
+      "text": "def __init__(self, channel): \"\"\"Constructor."
+    },
+    {
+      "id": "CHK-001-107",
+      "paragraph": 107,
+      "text": "Args: channel: A grpc.Channel. \"\"\" self.Process = channel.unary_unary( '/agent.AgentService/Process', request_serializer=agent__pb2.ProcessRequest.SerializeToString, response_deserializer=agent__pb2.ProcessResponse.FromString, _registered_method=True) self.GetStatus = channel.unary_unary( '/agent.AgentService/GetStatus', request_serializer=agent__pb2.StatusRequest.SerializeToString, response_deserializer=agent__pb2.StatusResponse.FromString, _registered_method=True)"
+    },
+    {
+      "id": "CHK-001-108",
+      "paragraph": 108,
+      "text": "class AgentServiceServicer(object): \"\"\"Missing associated documentation comment in .proto file.\"\"\""
+    },
+    {
+      "id": "CHK-001-109",
+      "paragraph": 109,
+      "text": "def Process(self, request, context): \"\"\"Missing associated documentation comment in .proto file.\"\"\" context.set_code(grpc.StatusCode.UNIMPLEMENTED) context.set_details('Method not implemented!') raise NotImplementedError('Method not implemented!')"
+    },
+    {
+      "id": "CHK-001-110",
+      "paragraph": 110,
+      "text": "def GetStatus(self, request, context): \"\"\"Missing associated documentation comment in .proto file.\"\"\" context.set_code(grpc.StatusCode.UNIMPLEMENTED) context.set_details('Method not implemented!') raise NotImplementedError('Method not implemented!')"
+    },
+    {
+      "id": "CHK-001-111",
+      "paragraph": 111,
+      "text": "def add_AgentServiceServicer_to_server(servicer, server): rpc_method_handlers = { 'Process': grpc.unary_unary_rpc_method_handler( servicer.Process, request_deserializer=agent__pb2.ProcessRequest.FromString, response_serializer=agent__pb2.ProcessResponse.SerializeToString, ), 'GetStatus': grpc.unary_unary_rpc_method_handler( servicer.GetStatus, request_deserializer=agent__pb2.StatusRequest.FromString, response_serializer=agent__pb2.StatusResponse.SerializeToString, ), } generic_handler = grpc.method_handlers_generic_handler( 'agent.AgentService', rpc_method_handlers) server.add_generic_rpc_handlers((generic_handler,)) server.add_registered_method_handlers('agent.AgentService', rpc_method_handlers)"
+    },
+    {
+      "id": "CHK-001-112",
+      "paragraph": 112,
+      "text": "# This class is part of an EXPERIMENTAL API. class AgentService(object): \"\"\"Missing associated documentation comment in .proto file.\"\"\""
+    },
+    {
+      "id": "CHK-001-113",
+      "paragraph": 113,
+      "text": "@staticmethod def Process(request, target, options=(), channel_credentials=None, call_credentials=None, insecure=False, compression=None, wait_for_ready=None, timeout=None, metadata=None): return grpc.experimental.unary_unary( request, target, '/agent.AgentService/Process', agent__pb2.ProcessRequest.SerializeToString, agent__pb2.ProcessResponse.FromString, options, channel_credentials, insecure, call_credentials, compression, wait_for_ready, timeout, metadata, _registered_method=True)"
+    },
+    {
+      "id": "CHK-001-114",
+      "paragraph": 114,
+      "text": "@staticmethod def GetStatus(request, target, options=(), channel_credentials=None, call_credentials=None, insecure=False, compression=None, wait_for_ready=None, timeout=None, metadata=None): return grpc.experimental.unary_unary( request, target, '/agent.AgentService/GetStatus', agent__pb2.StatusRequest.SerializeToString, agent__pb2.StatusResponse.FromString, options, channel_credentials, insecure, call_credentials, compression, wait_for_ready, timeout, metadata, _registered_method=True)"
+    },
+    {
+      "id": "CHK-001-115",
+      "paragraph": 115,
+      "text": "// src/proto/__init__.py from . import agent_pb2 from . import agent_pb2_grpc"
+    },
+    {
+      "id": "CHK-001-116",
+      "paragraph": 116,
+      "text": "__all__ = ['agent_pb2', 'agent_pb2_grpc']"
+    },
+    {
+      "id": "CHK-001-117",
+      "paragraph": 117,
+      "text": "// src/proto/agent_pb2.py # -*- coding: utf-8 -*- # Generated by the protocol buffer compiler. DO NOT EDIT! # NO CHECKED-IN PROTOBUF GENCODE # source: agent.proto # Protobuf Python Version: 5.28.1 \"\"\"Generated protocol buffer code.\"\"\" from google.protobuf import descriptor as _descriptor from google.protobuf import descriptor_pool as _descriptor_pool from google.protobuf import runtime_version as _runtime_version from google.protobuf import symbol_database as _symbol_database from google.protobuf.internal import builder as _builder _runtime_version.ValidateProtobufRuntimeVersion( _runtime_version.Domain.PUBLIC, 5, 28, 1, '', 'agent.proto' ) # @@protoc_insertion_point(imports)"
+    },
+    {
+      "id": "CHK-001-118",
+      "paragraph": 118,
+      "text": "_sym_db = _symbol_database.Default()"
+    },
+    {
+      "id": "CHK-001-119",
+      "paragraph": 119,
+      "text": "DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\\n\\x0b\\x61gent.proto\\x12\\x05\\x61gent\\\"\\x86\\x01\\n\\x0eProcessRequest\\x12\\x12\\n\\ninput_text\\x18\\x01 \\x01(\\t\\x12\\x31\\n\\x06\\x63onfig\\x18\\x02 \\x03(\\x0b\\x32!.agent.ProcessRequest.ConfigEntry\\x1a-\\n\\x0b\\x43onfigEntry\\x12\\x0b\\n\\x03key\\x18\\x01 \\x01(\\t\\x12\\r\\n\\x05value\\x18\\x02 \\x01(\\t:\\x02\\x38\\x01\\\"N\\n\\x0fProcessResponse\\x12\\x0f\\n\\x07success\\x18\\x01 \\x01(\\x08\\x12\\x13\\n\\x0boutput_text\\x18\\x02 \\x01(\\t\\x12\\x15\\n\\rerror_message\\x18\\x03 \\x01(\\t\\\"#\\n\\rStatusRequest\\x12\\x12\\n\\nagent_name\\x18\\x01 \\x01(\\t\\\"\\xd7\\x01\\n\\x0eStatusResponse\\x12\\x12\\n\\nagent_name\\x18\\x01 \\x01(\\t\\x12\\x0e\\n\\x06status\\x18\\x02 \\x01(\\t\\x12\\x17\\n\\x0ftotal_processed\\x18\\x03 \\x01(\\x05\\x12\\x12\\n\\nlast_error\\x18\\x04 \\x01(\\t\\x12\\x12\\n\\ncreated_at\\x18\\x05 \\x01(\\t\\x12\\x31\\n\\x06\\x63onfig\\x18\\x06 \\x03(\\x0b\\x32!.agent.StatusResponse.ConfigEntry\\x1a-\\n\\x0b\\x43onfigEntry\\x12\\x0b\\n\\x03key\\x18\\x01 \\x01(\\t\\x12\\r\\n\\x05value\\x18\\x02 \\x01(\\t:\\x02\\x38\\x01\\x32\\x86\\x01\\n\\x0c\\x41gentService\\x12:\\n\\x07Process\\x12\\x15.agent.ProcessRequest\\x1a\\x16.agent.ProcessResponse\\\"\\x00\\x12:\\n\\tGetStatus\\x12\\x14.agent.StatusRequest\\x1a\\x15.agent.StatusResponse\\\"\\x00\\x62\\x06proto3')"
+    },
+    {
+      "id": "CHK-001-120",
+      "paragraph": 120,
+      "text": "_globals = globals() _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals) _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'agent_pb2', _globals) if not _descriptor._USE_C_DESCRIPTORS: DESCRIPTOR._loaded_options = None _globals['_PROCESSREQUEST_CONFIGENTRY']._loaded_options = None _globals['_PROCESSREQUEST_CONFIGENTRY']._serialized_options = b'8\\001' _globals['_STATUSRESPONSE_CONFIGENTRY']._loaded_options = None _globals['_STATUSRESPONSE_CONFIGENTRY']._serialized_options = b'8\\001' _globals['_PROCESSREQUEST']._serialized_start=23 _globals['_PROCESSREQUEST']._serialized_end=157 _globals['_PROCESSREQUEST_CONFIGENTRY']._serialized_start=112 _globals['_PROCESSREQUEST_CONFIGENTRY']._serialized_end=157 _globals['_PROCESSRESPONSE']._serialized_start=159 _globals['_PROCESSRESPONSE']._serialized_end=237 _globals['_STATUSREQUEST']._serialized_start=239 _globals['_STATUSREQUEST']._serialized_end=274 _globals['_STATUSRESPONSE']._serialized_start=277 _globals['_STATUSRESPONSE']._serialized_end=492 _globals['_STATUSRESPONSE_CONFIGENTRY']._serialized_start=112 _globals['_STATUSRESPONSE_CONFIGENTRY']._serialized_end=157 _globals['_AGENTSERVICE']._serialized_start=495 _globals['_AGENTSERVICE']._serialized_end=629 # @@protoc_insertion_point(module_scope)"
+    },
+    {
+      "id": "CHK-001-121",
+      "paragraph": 121,
+      "text": "// src/grpc/agent_client.py import grpc import traceback from typing import Optional from ..proto import agent_pb2, agent_pb2_grpc from ..config.agent_config import AgentConfig import asyncio"
+    },
+    {
+      "id": "CHK-001-122",
+      "paragraph": 122,
+      "text": "class AgentClient: def __init__(self, address: str): self.channel = grpc.aio.insecure_channel(address) self.stub = agent_pb2_grpc.AgentServiceStub(self.channel)"
+    },
+    {
+      "id": "CHK-001-123",
+      "paragraph": 123,
+      "text": "async def process(self, input_text: str, config: Optional[AgentConfig] = None) -> str: request = agent_pb2.ProcessRequest( input_text=input_text, config=config.dict() if config else None ) response = await self.stub.Process(request) if not response.success: raise Exception(response.error_message) return response.output_text"
+    },
+    {
+      "id": "CHK-001-124",
+      "paragraph": 124,
+      "text": "async def health_check(self) -> bool: \"\"\"Check if the service is available and responding\"\"\" try: # Add retry mechanism max_retries = 3 for attempt in range(max_retries): try: request = agent_pb2.StatusRequest(agent_name=\"health_check\") response = await self.stub.GetStatus(request) return response.status == \"SERVING\" except grpc.aio.AioRpcError as rpc_error: if attempt == max_retries - 1: print(f\"Health check failed: {rpc_error.details()}\") return False await asyncio.sleep(1) # Wait before retry except Exception as e: print(f\"Unexpected error in health check: {str(e)}\") traceback.print_exc() return False"
+    },
+    {
+      "id": "CHK-001-125",
+      "paragraph": 125,
+      "text": "async def get_status(self, agent_name: str) -> dict: request = agent_pb2.StatusRequest(agent_name=agent_name) response = await self.stub.GetStatus(request) return { \"name\": response.agent_name, \"status\": response.status, \"total_processed\": response.total_processed, \"last_error\": response.last_error, \"created_at\": response.created_at, \"config\": response.config }"
+    },
+    {
+      "id": "CHK-001-126",
+      "paragraph": 126,
+      "text": "async def close(self): await self.channel.close()"
+    },
+    {
+      "id": "CHK-001-127",
+      "paragraph": 127,
+      "text": "// src/grpc/agent_service.py from typing import Dict import grpc from concurrent import futures from ..proto import agent_pb2, agent_pb2_grpc from ..agents.base_agent import BaseAgent from ..config.agent_config import AgentConfig import logging"
+    },
+    {
+      "id": "CHK-001-128",
+      "paragraph": 128,
+      "text": "logger = logging.getLogger(__name__)"
+    },
+    {
+      "id": "CHK-001-129",
+      "paragraph": 129,
+      "text": "class AgentService(agent_pb2_grpc.AgentServiceServicer): def __init__(self, agent: BaseAgent): self.agent = agent"
+    },
+    {
+      "id": "CHK-001-130",
+      "paragraph": 130,
+      "text": "async def Process(self, request, context): try: result = await self.agent.process(request.input_text) return agent_pb2.ProcessResponse( success=True, output_text=result ) except Exception as e: logger.error(f\"Process error: {str(e)}\") return agent_pb2.ProcessResponse( success=False, error_message=str(e) )"
+    },
+    {
+      "id": "CHK-001-131",
+      "paragraph": 131,
+      "text": "async def GetStatus(self, request, context): try: return agent_pb2.StatusResponse( agent_name=self.agent.config.name, status=\"SERVING\", total_processed=0, # Implement counter if needed last_error=\"\", created_at=\"\", # Implement if needed config=self.agent.config.dict() ) except Exception as e: logger.error(f\"Status check error: {str(e)}\") context.set_code(grpc.StatusCode.INTERNAL) context.set_details(str(e)) return agent_pb2.StatusResponse()"
+    },
+    {
+      "id": "CHK-001-132",
+      "paragraph": 132,
+      "text": "async def serve_agent(agent: BaseAgent, port: int): server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10)) agent_pb2_grpc.add_AgentServiceServicer_to_server( AgentService(agent), server ) server.add_insecure_port(f'[::]:{port}') await server.start() await server.wait_for_termination()"
+    },
+    {
+      "id": "CHK-001-133",
+      "paragraph": 133,
+      "text": "// src/config/logging_config.py import re from typing import Any, Dict from logging import LogRecord, Formatter"
+    },
+    {
+      "id": "CHK-001-134",
+      "paragraph": 134,
+      "text": "class SensitiveDataFormatter(Formatter): \"\"\"Custom formatter that masks sensitive data\"\"\""
+    },
+    {
+      "id": "CHK-001-135",
+      "paragraph": 135,
+      "text": "SENSITIVE_PATTERNS = [ (r'sk-[a-zA-Z0-9-]{32,}', '[REDACTED_API_KEY]'), # API keys (r'Bearer\\s+[a-zA-Z0-9-_]+\\.[a-zA-Z0-9-_]+\\.[a-zA-Z0-9-_]+', '[REDACTED_TOKEN]'), # JWT tokens ]"
+    },
+    {
+      "id": "CHK-001-136",
+      "paragraph": 136,
+      "text": "def format(self, record: LogRecord) -> str: formatted_msg = super().format(record) for pattern, replacement in self.SENSITIVE_PATTERNS: formatted_msg = re.sub(pattern, replacement, formatted_msg) return formatted_msg"
+    },
+    {
+      "id": "CHK-001-137",
+      "paragraph": 137,
+      "text": "def configure_logging(service_name: str) -> Dict[str, Any]: \"\"\"Configure logging with sensitive data masking\"\"\" return { 'version': 1, 'formatters': { 'sensitive': { '()': SensitiveDataFormatter, 'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s' } }, 'handlers': { 'file': { 'class': 'logging.handlers.RotatingFileHandler', 'filename': f'logs/{service_name}.log', 'formatter': 'sensitive', 'maxBytes': 10485760, # 10MB 'backupCount': 5 }, 'console': { 'class': 'logging.StreamHandler', 'formatter': 'sensitive' } }, 'loggers': { '': { 'handlers': ['file', 'console'], 'level': 'INFO' } } }"
+    },
+    {
+      "id": "CHK-001-138",
+      "paragraph": 138,
+      "text": "// src/config/agent_config.py from typing import List, Optional, Any from pydantic import BaseModel, Field"
+    },
+    {
+      "id": "CHK-001-139",
+      "paragraph": 139,
+      "text": "class AgentConfig(BaseModel): \"\"\"Configuration class for all agents in the system\"\"\""
+    },
+    {
+      "id": "CHK-001-140",
+      "paragraph": 140,
+      "text": "name: str = Field(..., description=\"Name of the agent\") description: str = Field(..., description=\"Description of agent's purpose\") capabilities: List[str] = Field(..., description=\"List of agent capabilities\") model: str = Field(default=\"gpt-4o\", description=\"LLM model to use\") provider: str = Field(..., description=\"LLM provider to use (e.g., 'openai')\")"
+    },
+    {
+      "id": "CHK-001-141",
+      "paragraph": 141,
+      "text": "# LLM-specific settings max_retries: int = Field(default=3, ge=0, description=\"Maximum number of retry attempts\") timeout: float = Field(default=30.0, gt=0, description=\"Timeout in seconds\") temperature: float = Field(default=0.7, ge=0, le=1, description=\"Model temperature parameter\") max_tokens: Optional[int] = Field(default=None, ge=0, description=\"Maximum tokens to generate\") context_window: Optional[int] = Field(default=None, description=\"Context window size\")"
+    },
+    {
+      "id": "CHK-001-142",
+      "paragraph": 142,
+      "text": "# Logging settings log_level: int = Field(default=20, description=\"Logging level (20=INFO)\") log_file: Optional[str] = Field(default=None, description=\"Log file path\")"
+    },
+    {
+      "id": "CHK-001-143",
+      "paragraph": 143,
+      "text": "# Additional settings enable_final_summary: bool = Field(default=True, description=\"Enable final summary generation\") summarization_steps: int = Field(default=1, description=\"Number of summarization steps\") min_steps_for_summary: int = Field(default=2, description=\"Minimum steps required for summary\") max_tokens_per_step: int = Field(default=1000, description=\"Maximum tokens per step\")"
+    },
+    {
+      "id": "CHK-001-144",
+      "paragraph": 144,
+      "text": "class Config: \"\"\"Pydantic config\"\"\" arbitrary_types_allowed = True"
+    },
+    {
+      "id": "CHK-001-145",
+      "paragraph": 145,
+      "text": "def get(self, key: str, default: Any = None) -> Any: \"\"\"Get a configuration value by key with an optional default value\"\"\" return getattr(self, key, default)"
+    },
+    {
+      "id": "CHK-001-146",
+      "paragraph": 146,
+      "text": "def dict(self, *args, **kwargs) -> dict: \"\"\"Convert the config to a dictionary, including computed fields\"\"\" base_dict = super().dict(*args, **kwargs) return base_dict"
+    },
+    {
+      "id": "CHK-001-147",
+      "paragraph": 147,
+      "text": "// src/agents/summarization_agent.py from typing import List from .base_agent import BaseAgent"
+    },
+    {
+      "id": "CHK-001-148",
+      "paragraph": 148,
+      "text": "class SummarizationAgent(BaseAgent): \"\"\"Agent for generating comprehensive and well-structured summaries\"\"\""
+    },
+    {
+      "id": "CHK-001-149",
+      "paragraph": 149,
+      "text": "async def _process_implementation(self, processed_input: str) -> str: \"\"\" Implement text summarization logic"
+    },
+    {
+      "id": "CHK-001-150",
+      "paragraph": 150,
+      "text": "Args: processed_input: Text to be summarized"
+    },
+    {
+      "id": "CHK-001-151",
+      "paragraph": 151,
+      "text": "Returns: str: Comprehensive summary \"\"\" # First pass: Initial analysis analysis_prompt = f\"\"\" Analyze the following text for summarization: {processed_input} \"\"\""
+    },
+    {
+      "id": "CHK-001-152",
+      "paragraph": 152,
+      "text": "analysis_response = await self._call_llm(analysis_prompt)"
+    },
+    {
+      "id": "CHK-001-153",
+      "paragraph": 153,
+      "text": "# Second pass: Generate structured summary summary_prompt = f\"\"\" Based on the analysis: {analysis_response.text} Summarize and polish all the information, and generate a summarisation to answer the question or fulfill the requirement better. \"\"\""
+    },
+    {
+      "id": "CHK-001-154",
+      "paragraph": 154,
+      "text": "summary_response = await self._call_llm(summary_prompt)"
+    },
+    {
+      "id": "CHK-001-155",
+      "paragraph": 155,
+      "text": "return summary_response.text"
+    },
+    {
+      "id": "CHK-001-156",
+      "paragraph": 156,
+      "text": "// src/agents/math_agent.py import ast import math from typing import Any, Dict from .base_agent import BaseAgent"
+    },
+    {
+      "id": "CHK-001-157",
+      "paragraph": 157,
+      "text": "class MathAgent(BaseAgent): \"\"\"Agent for mathematical computations and code generation\"\"\""
+    },
+    {
+      "id": "CHK-001-158",
+      "paragraph": 158,
+      "text": "def _create_safe_dict(self) -> Dict[str, Any]: \"\"\"Create a dictionary of safe mathematical functions\"\"\" return { 'abs': abs, 'round': round, 'min': min, 'max': max, 'sum': sum, 'len': len, 'math': math, # Add other safe math functions as needed }"
+    },
+    {
+      "id": "CHK-001-159",
+      "paragraph": 159,
+      "text": "async def _evaluate_math_code(self, code: str) -> Any: \"\"\" Safely evaluate mathematical code"
+    },
+    {
+      "id": "CHK-001-160",
+      "paragraph": 160,
+      "text": "Args: code: Python code string containing math operations"
+    },
+    {
+      "id": "CHK-001-161",
+      "paragraph": 161,
+      "text": "Returns: Any: Result of the computation \"\"\" try: tree = ast.parse(code, mode='exec') # Basic security check for node in ast.walk(tree): if isinstance(node, (ast.Import, ast.ImportFrom)): raise ValueError(\"Import statements are not allowed\")"
+    },
+    {
+      "id": "CHK-001-162",
+      "paragraph": 162,
+      "text": "# Create a safe environment for execution local_dict = {} global_dict = self._create_safe_dict()"
+    },
+    {
+      "id": "CHK-001-163",
+      "paragraph": 163,
+      "text": "# Execute the code exec(code, global_dict, local_dict)"
+    },
+    {
+      "id": "CHK-001-164",
+      "paragraph": 164,
+      "text": "# Return the result if it exists if 'result' in local_dict: return local_dict['result'] return None"
+    },
+    {
+      "id": "CHK-001-165",
+      "paragraph": 165,
+      "text": "except Exception as e: self.logger.error(f\"Error in math evaluation: {str(e)}\") raise"
+    },
+    {
+      "id": "CHK-001-166",
+      "paragraph": 166,
+      "text": "async def _process_implementation(self, processed_input: str) -> str: \"\"\" Implement mathematical problem solving logic"
+    },
+    {
+      "id": "CHK-001-167",
+      "paragraph": 167,
+      "text": "Args: processed_input: Mathematical problem description"
+    },
+    {
+      "id": "CHK-001-168",
+      "paragraph": 168,
+      "text": "Returns: str: Solution with explanation and code \"\"\" # Generate solution approach solution_prompt = f\"\"\" For the mathematical problem: {processed_input}"
+    },
+    {
+      "id": "CHK-001-169",
+      "paragraph": 169,
+      "text": "Please provide: 1. Problem analysis 2. Solution approach 3. Python code implementation 4. Step-by-step explanation"
+    },
+    {
+      "id": "CHK-001-170",
+      "paragraph": 170,
+      "text": "Format the response as: ANALYSIS: <problem analysis> CODE: <python code> EXPLANATION: <step-by-step explanation> \"\"\""
+    },
+    {
+      "id": "CHK-001-171",
+      "paragraph": 171,
+      "text": "solution_response = await self._call_llm(solution_prompt)"
+    },
+    {
+      "id": "CHK-001-172",
+      "paragraph": 172,
+      "text": "# Parse the response response_parts = solution_response.text.split('\\n') code_section = \"\" for i, line in enumerate(response_parts): if line.startswith('CODE:'): code_section = '\\n'.join(response_parts[i+1:]) break"
+    },
+    {
+      "id": "CHK-001-173",
+      "paragraph": 173,
+      "text": "# Execute the code if present if code_section: try: result = await self._evaluate_math_code(code_section) return f\"{solution_response.text}\\n\\nCOMPUTED RESULT: {result}\" except Exception as e: return f\"{solution_response.text}\\n\\nERROR IN COMPUTATION: {str(e)}\""
+    },
+    {
+      "id": "CHK-001-174",
+      "paragraph": 174,
+      "text": "return solution_response.text"
+    },
+    {
+      "id": "CHK-001-175",
+      "paragraph": 175,
+      "text": "// src/agents/base_agent.py from enum import Enum from typing import List, Optional, Dict, Any from pydantic import BaseModel, Field from datetime import datetime from ..utils.logger import get_agent_logger from ..llm.service import LLMService from ..llm.provider import LLMRequest, LLMResponse from ..config.agent_config import AgentConfig"
+    },
+    {
+      "id": "CHK-001-176",
+      "paragraph": 176,
+      "text": "class AgentStatus(Enum): \"\"\"Enum class to track agent status\"\"\" IDLE = \"idle\" PROCESSING = \"processing\" ERROR = \"error\""
+    },
+    {
+      "id": "CHK-001-177",
+      "paragraph": 177,
+      "text": "class AgentConfig(BaseModel): \"\"\"Configuration class for agents\"\"\" name: str description: str capabilities: List[str] model: str = \"gpt-4o\" max_retries: int = Field(default=3, ge=0, description=\"Maximum number of retry attempts\") timeout: float = Field(default=30.0, gt=0, description=\"Timeout in seconds\") temperature: float = Field(default=0.7, ge=0, le=1, description=\"Model temperature parameter\") max_tokens: Optional[int] = Field(default=None, ge=0, description=\"Maximum tokens to generate\") context_window: Optional[int] = Field(default=None, description=\"Context window size\") log_level: int = Field(default=20, description=\"Logging level (20=INFO)\") log_file: Optional[str] = Field(default=None, description=\"Log file path\") provider: str"
+    },
+    {
+      "id": "CHK-001-178",
+      "paragraph": 178,
+      "text": "class BaseAgent: \"\"\"Base class for all agents in the system\"\"\""
+    },
+    {
+      "id": "CHK-001-179",
+      "paragraph": 179,
+      "text": "def __init__(self, config: AgentConfig, llm_service: LLMService): \"\"\" Initialize the base agent"
+    },
+    {
+      "id": "CHK-001-180",
+      "paragraph": 180,
+      "text": "Args: config: Agent configuration object llm_service: LLM service instance \"\"\" self.config = config self.llm_service = llm_service self.status = AgentStatus.IDLE self.last_error: Optional[str] = None self.created_at = datetime.utcnow() self.total_processed = 0 self.logger = get_agent_logger( agent_name=config.name, log_level=config.log_level, log_file=config.log_file )"
+    },
+    {
+      "id": "CHK-001-181",
+      "paragraph": 181,
+      "text": "async def validate_input(self, input_text: str) -> bool: \"\"\" Validate the input text"
+    },
+    {
+      "id": "CHK-001-182",
+      "paragraph": 182,
+      "text": "Args: input_text: Input text to validate"
+    },
+    {
+      "id": "CHK-001-183",
+      "paragraph": 183,
+      "text": "Returns: bool: True if input is valid"
+    },
+    {
+      "id": "CHK-001-184",
+      "paragraph": 184,
+      "text": "Raises: ValueError: If input is invalid \"\"\" if not input_text or not isinstance(input_text, str): raise ValueError(\"Input text must be a non-empty string\") return True"
+    },
+    {
+      "id": "CHK-001-185",
+      "paragraph": 185,
+      "text": "async def pre_process(self, input_text: str) -> str: \"\"\" Pre-process the input text before processing"
+    },
+    {
+      "id": "CHK-001-186",
+      "paragraph": 186,
+      "text": "Args: input_text: Raw input text"
+    },
+    {
+      "id": "CHK-001-187",
+      "paragraph": 187,
+      "text": "Returns: str: Processed input text \"\"\" return input_text.strip()"
+    },
+    {
+      "id": "CHK-001-188",
+      "paragraph": 188,
+      "text": "async def post_process(self, response: str) -> str: \"\"\" Post-process the response after processing"
+    },
+    {
+      "id": "CHK-001-189",
+      "paragraph": 189,
+      "text": "Args: response: Raw response text"
+    },
+    {
+      "id": "CHK-001-190",
+      "paragraph": 190,
+      "text": "Returns: str: Processed response text \"\"\" return response.strip()"
+    },
+    {
+      "id": "CHK-001-191",
+      "paragraph": 191,
+      "text": "async def process(self, input_text: str) -> str: \"\"\" Main processing method for handling input text"
+    },
+    {
+      "id": "CHK-001-192",
+      "paragraph": 192,
+      "text": "Args: input_text: Input text to process"
+    },
+    {
+      "id": "CHK-001-193",
+      "paragraph": 193,
+      "text": "Returns: str: Processed response"
+    },
+    {
+      "id": "CHK-001-194",
+      "paragraph": 194,
+      "text": "Raises: Exception: Any error during processing \"\"\" try: self.status = AgentStatus.PROCESSING self.logger.info(f\"Processing input: {input_text}\")"
+    },
+    {
+      "id": "CHK-001-195",
+      "paragraph": 195,
+      "text": "# Input validation await self.validate_input(input_text)"
+    },
+    {
+      "id": "CHK-001-196",
+      "paragraph": 196,
+      "text": "# Pre-processing processed_input = await self.pre_process(input_text)"
+    },
+    {
+      "id": "CHK-001-197",
+      "paragraph": 197,
+      "text": "# Core processing logic (must be implemented by subclasses) response = await self._process_implementation(processed_input)"
+    },
+    {
+      "id": "CHK-001-198",
+      "paragraph": 198,
+      "text": "# Post-processing final_response = await self.post_process(response)"
+    },
+    {
+      "id": "CHK-001-199",
+      "paragraph": 199,
+      "text": "self.total_processed += 1 self.status = AgentStatus.IDLE return final_response"
+    },
+    {
+      "id": "CHK-001-200",
+      "paragraph": 200,
+      "text": "except Exception as e: self.status = AgentStatus.ERROR self.last_error = str(e) self.logger.error(f\"Error processing input: {str(e)}\") raise"
+    },
+    {
+      "id": "CHK-001-201",
+      "paragraph": 201,
+      "text": "async def _process_implementation(self, processed_input: str) -> str: \"\"\" Core processing implementation (must be implemented by subclasses)"
+    },
+    {
+      "id": "CHK-001-202",
+      "paragraph": 202,
+      "text": "Args: processed_input: Pre-processed input text"
+    },
+    {
+      "id": "CHK-001-203",
+      "paragraph": 203,
+      "text": "Returns: str: Raw response text"
+    },
+    {
+      "id": "CHK-001-204",
+      "paragraph": 204,
+      "text": "Raises: NotImplementedError: If not implemented by subclass \"\"\" raise NotImplementedError(\"Subclasses must implement _process_implementation method\")"
+    },
+    {
+      "id": "CHK-001-205",
+      "paragraph": 205,
+      "text": "async def _call_llm(self, prompt: str) -> LLMResponse: \"\"\" Call LLM service with the given prompt"
+    },
+    {
+      "id": "CHK-001-206",
+      "paragraph": 206,
+      "text": "Args: prompt: Input prompt for LLM"
+    },
+    {
+      "id": "CHK-001-207",
+      "paragraph": 207,
+      "text": "Returns: LLMResponse: Structured response from LLM \"\"\" request = LLMRequest( prompt=prompt, temperature=self.config.temperature, max_tokens=self.config.max_tokens, model=self.config.model )"
+    },
+    {
+      "id": "CHK-001-208",
+      "paragraph": 208,
+      "text": "return await self.llm_service.generate( provider_name=self.config.provider, request=request )"
+    },
+    {
+      "id": "CHK-001-209",
+      "paragraph": 209,
+      "text": "def get_status(self) -> Dict[str, Any]: \"\"\" Get current status of the agent"
+    },
+    {
+      "id": "CHK-001-210",
+      "paragraph": 210,
+      "text": "Returns: Dict[str, Any]: Status information including: - name: Agent name - status: Current status - total_processed: Total number of processed requests - last_error: Last error message (if any) - created_at: Agent creation timestamp - config: Agent configuration \"\"\" return { \"name\": self.config.name, \"status\": self.status.value, \"total_processed\": self.total_processed, \"last_error\": self.last_error, \"created_at\": self.created_at.isoformat(), \"config\": self.config.dict() }"
+    },
+    {
+      "id": "CHK-001-211",
+      "paragraph": 211,
+      "text": "// src/agents/manager_agent.py from typing import List, Dict, Any from enum import Enum from .base_agent import BaseAgent from ..config.agent_config import AgentConfig from ..llm.service import LLMService from ..grpc.agent_client import AgentClient import asyncio import datetime"
+    },
+    {
+      "id": "CHK-001-212",
+      "paragraph": 212,
+      "text": "class TaskType(Enum): \"\"\"Enum for different types of tasks\"\"\" RESEARCH = \"research\" COMPUTATION = \"computation\" SUMMARIZATION = \"summarization\" COMPOUND = \"compound\""
+    },
+    {
+      "id": "CHK-001-213",
+      "paragraph": 213,
+      "text": "class WorkflowStep: \"\"\"Represents a step in the workflow\"\"\" def __init__(self, agent_type: str, input_text: str, depends_on: List[int] = None): self.agent_type = agent_type self.input_text = input_text self.depends_on = depends_on or [] self.output: str = \"\" self.completed = False"
+    },
+    {
+      "id": "CHK-001-214",
+      "paragraph": 214,
+      "text": "class ManagerAgent(BaseAgent): \"\"\"Agent responsible for managing and orchestrating other agents\"\"\""
+    },
+    {
+      "id": "CHK-001-215",
+      "paragraph": 215,
+      "text": "def __init__(self, config: AgentConfig, llm_service: LLMService): super().__init__(config, llm_service) self.agent_clients: Dict[str, AgentClient] = {}"
+    },
+    {
+      "id": "CHK-001-216",
+      "paragraph": 216,
+      "text": "async def connect_agent(self, agent_type: str, address: str): \"\"\"Connect to a remote agent service\"\"\" try: self.agent_clients[agent_type] = AgentClient(address) self.logger.info(f\"Successfully connected to {agent_type} at {address}\") except Exception as e: self.logger.error(f\"Failed to connect to {agent_type}: {str(e)}\") raise"
+    },
+    {
+      "id": "CHK-001-217",
+      "paragraph": 217,
+      "text": "async def _execute_workflow(self, workflow_steps: List[WorkflowStep]) -> str: \"\"\"Execute the workflow steps in the correct order\"\"\" step_outputs = {} step_times = {} # Record execution time for each step parallel_groups = [] # Record groups of steps for parallel execution"
+    },
+    {
+      "id": "CHK-001-218",
+      "paragraph": 218,
+      "text": "# Create all clients at the start clients = {} for step in workflow_steps: if step.agent_type not in clients: clients[step.agent_type] = self.agent_clients.get(step.agent_type) if not clients[step.agent_type]: raise ValueError(f\"Agent {step.agent_type} not connected\")"
+    },
+    {
+      "id": "CHK-001-219",
+      "paragraph": 219,
+      "text": "max_iterations = len(workflow_steps) * 2 iteration = 0"
+    },
+    {
+      "id": "CHK-001-220",
+      "paragraph": 220,
+      "text": "workflow_start_time = datetime.datetime.now() self.logger.info(\"\\n\" + \"=\"*50) self.logger.info(\"Starting workflow execution\") self.logger.info(\"=\"*50)"
+    },
+    {
+      "id": "CHK-001-221",
+      "paragraph": 221,
+      "text": "while not all(step.completed for step in workflow_steps): iteration += 1 if iteration > max_iterations: raise ValueError(\"Workflow execution exceeded maximum iterations\")"
+    },
+    {
+      "id": "CHK-001-222",
+      "paragraph": 222,
+      "text": "pending_steps = [] executed_something = False current_parallel_group = [] # Steps to be executed in parallel in this round"
+    },
+    {
+      "id": "CHK-001-223",
+      "paragraph": 223,
+      "text": "# Collect executable steps for i, step in enumerate(workflow_steps): if step.completed: continue"
+    },
+    {
+      "id": "CHK-001-224",
+      "paragraph": 224,
+      "text": "dependencies_met = True for dep in step.depends_on: if dep >= len(workflow_steps): raise ValueError(f\"Invalid dependency index {dep} for step {i}\") if not workflow_steps[dep].completed: dependencies_met = False break"
+    },
+    {
+      "id": "CHK-001-225",
+      "paragraph": 225,
+      "text": "if dependencies_met: executed_something = True input_text = step.input_text for dep in step.depends_on: input_text = input_text.replace( f\"{{STEP_{dep}}}\", workflow_steps[dep].output )"
+    },
+    {
+      "id": "CHK-001-226",
+      "paragraph": 226,
+      "text": "client = clients[step.agent_type] pending_steps.append((i, step, client, input_text)) current_parallel_group.append(i)"
+    },
+    {
+      "id": "CHK-001-227",
+      "paragraph": 227,
+      "text": "if current_parallel_group: parallel_groups.append(current_parallel_group)"
+    },
+    {
+      "id": "CHK-001-228",
+      "paragraph": 228,
+      "text": "if not executed_something and not all(step.completed for step in workflow_steps): incomplete_steps = [(i, step) for i, step in enumerate(workflow_steps) if not step.completed] status = \"\\n\".join([f\"Step {i}: {step.agent_type} (depends on {step.depends_on})\" for i, step in incomplete_steps]) raise ValueError(f\"Workflow deadlock detected. Incomplete steps:\\n{status}\")"
+    },
+    {
+      "id": "CHK-001-229",
+      "paragraph": 229,
+      "text": "if pending_steps: group_start_time = datetime.datetime.now()"
+    },
+    {
+      "id": "CHK-001-230",
+      "paragraph": 230,
+      "text": "# Execute steps that can run in parallel tasks = [ client.process(input_text) for _, step, client, input_text in pending_steps ]"
+    },
+    {
+      "id": "CHK-001-231",
+      "paragraph": 231,
+      "text": "try: results = await asyncio.gather(*tasks, return_exceptions=True) group_end_time = datetime.datetime.now()"
+    },
+    {
+      "id": "CHK-001-232",
+      "paragraph": 232,
+      "text": "# Process results and record times for (i, step, _, _), result in zip(pending_steps, results): if isinstance(result, Exception): raise result step.output = result step.completed = True step_outputs[i] = step.output step_times[i] = { 'start': group_start_time, 'end': group_end_time, 'duration': (group_end_time - group_start_time).total_seconds() }"
+    },
+    {
+      "id": "CHK-001-233",
+      "paragraph": 233,
+      "text": "except Exception as e: self.logger.error(f\"Error executing workflow steps: {str(e)}\") raise"
+    },
+    {
+      "id": "CHK-001-234",
+      "paragraph": 234,
+      "text": "workflow_end_time = datetime.datetime.now() total_duration = (workflow_end_time - workflow_start_time).total_seconds()"
+    },
+    {
+      "id": "CHK-001-235",
+      "paragraph": 235,
+      "text": "self._log_workflow_execution(workflow_steps, step_times, parallel_groups, total_duration)"
+    },
+    {
+      "id": "CHK-001-236",
+      "paragraph": 236,
+      "text": "if len(workflow_steps) > 1 and self.config.get('enable_final_summary', True): summarization_config = { 'max_steps': self.config.get('summarization_steps', 1), 'min_steps_for_summary': self.config.get('min_steps_for_summary', 2), 'max_tokens_per_step': self.config.get('max_tokens_per_step', 1000), }"
+    },
+    {
+      "id": "CHK-001-237",
+      "paragraph": 237,
+      "text": "if len(workflow_steps) >= summarization_config['min_steps_for_summary']: final_summary_prompt = self._create_summary_prompt(workflow_steps, step_outputs)"
+    },
+    {
+      "id": "CHK-001-238",
+      "paragraph": 238,
+      "text": "try: return await clients[\"summarization\"].process(final_summary_prompt) except Exception as e: self.logger.error(f\"Final summarization failed: {str(e)}\") return workflow_steps[-1].output"
+    },
+    {
+      "id": "CHK-001-239",
+      "paragraph": 239,
+      "text": "return workflow_steps[-1].output"
+    },
+    {
+      "id": "CHK-001-240",
+      "paragraph": 240,
+      "text": "def _log_workflow_execution(self, workflow_steps, step_times, parallel_groups, total_duration): \"\"\"Generate and log a detailed visual representation of the workflow execution\"\"\""
+    },
+    {
+      "id": "CHK-001-241",
+      "paragraph": 241,
+      "text": "# Define some styling constants HEADER_LINE = \"=\" * 80 SECTION_LINE = \"-\" * 80 GROUP_LINE = \"~\" * 80"
+    },
+    {
+      "id": "CHK-001-242",
+      "paragraph": 242,
+      "text": "report = [ f\"\\n{HEADER_LINE}\", \"🚀 Workflow Execution Report\", HEADER_LINE, f\"📊 Total Duration: {total_duration:.2f}s\", f\"📝 Total Steps: {len(workflow_steps)}\", HEADER_LINE, ]"
+    },
+    {
+      "id": "CHK-001-243",
+      "paragraph": 243,
+      "text": "# Create visualization for each parallel group for group_idx, group in enumerate(parallel_groups): report.extend([ f\"\\n🔄 Parallel Group {group_idx + 1}:\", GROUP_LINE ])"
+    },
+    {
+      "id": "CHK-001-244",
+      "paragraph": 244,
+      "text": "# Find the longest execution time in the group group_duration = max(step_times[step_idx]['duration'] for step_idx in group)"
+    },
+    {
+      "id": "CHK-001-245",
+      "paragraph": 245,
+      "text": "# Process each step in the group for step_idx in group: step = workflow_steps[step_idx] time_info = step_times[step_idx]"
+    },
+    {
+      "id": "CHK-001-246",
+      "paragraph": 246,
+      "text": "# Create detailed step section report.extend([ f\"\\n📌 Step {step_idx + 1}: {step.agent_type.upper()}\", SECTION_LINE, \"⏱️ Execution Time:\", f\" Duration: {time_info['duration']:.2f}s\", f\" Start: {time_info['start'].strftime('%H:%M:%S.%f')[:-3]}\", f\" End: {time_info['end'].strftime('%H:%M:%S.%f')[:-3]}\", \"\", \"🔗 Dependencies:\", f\" {step.depends_on if step.depends_on else 'None'}\", \"\", \"📥 Input:\", \" \" + \"\\n \".join(step.input_text.split('\\n')), \"\", \"📤 Output:\", \" \" + \"\\n \".join(step.output.split('\\n')), f\" (Total length: {len(step.output)} chars)\", \"\" ])"
+    },
+    {
+      "id": "CHK-001-247",
+      "paragraph": 247,
+      "text": "# Add timeline visualization timeline_width = 40 # Fixed width for timeline scale = timeline_width / group_duration if group_duration > 0 else 1 timeline = \"│\" + \"─\" * int(group_duration * scale) report.append(f\"⏳ Group Timeline: {timeline}> {group_duration:.2f}s\\n\") report.append(GROUP_LINE)"
+    },
+    {
+      "id": "CHK-001-248",
+      "paragraph": 248,
+      "text": "# Add final summary report.extend([ f\"\\n{HEADER_LINE}\", \"📋 Execution Summary:\", f\" Total Groups: {len(parallel_groups)}\", f\" Total Steps: {len(workflow_steps)}\", f\" Total Time: {total_duration:.2f}s\", HEADER_LINE, \"\" ])"
+    },
+    {
+      "id": "CHK-001-249",
+      "paragraph": 249,
+      "text": "# Log the report self.logger.info(\"\\n\".join(report))"
+    },
+    {
+      "id": "CHK-001-250",
+      "paragraph": 250,
+      "text": "async def cleanup(self): \"\"\"Close all client connections\"\"\" for client in self.agent_clients.values(): await client.close()"
+    },
+    {
+      "id": "CHK-001-251",
+      "paragraph": 251,
+      "text": "async def _process_implementation(self, processed_input: str) -> str: \"\"\" Implement the manager's task processing logic \"\"\" # Modify analysis prompt to ensure correct dependency relationships analysis_prompt = f\"\"\" Analyze the following task and break it down into steps: {processed_input}"
+    },
+    {
+      "id": "CHK-001-252",
+      "paragraph": 252,
+      "text": "Consider these agent capabilities: 1. Perplexity Agent: Web research and information gathering 2. Math Agent: Mathematical computations and analysis 3. Summarization Agent: Creating comprehensive summaries"
+    },
+    {
+      "id": "CHK-001-253",
+      "paragraph": 253,
+      "text": "Important rules for dependencies: - A step cannot depend on itself - A step can only depend on previous steps (lower numbers) - Dependencies must be valid step indices (starting from 0)"
+    },
+    {
+      "id": "CHK-001-254",
+      "paragraph": 254,
+      "text": "Return a pure JSON String (not in markdown format) with the following structure: {{ \"task_type\": \"RESEARCH|COMPUTATION|SUMMARIZATION|COMPOUND\", \"steps\": [ {{ \"agent\": \"perplexity|math|summarization\", \"input\": \"specific instruction for this step\", \"depends_on\": [] # Empty for first step, or list of previous step indices }} ], }}"
+    },
+    {
+      "id": "CHK-001-255",
+      "paragraph": 255,
+      "text": "Example of valid dependencies: - Step 0: depends_on: [] - Step 1: depends_on: [0] - Step 2: depends_on: [0, 1]"
+    },
+    {
+      "id": "CHK-001-256",
+      "paragraph": 256,
+      "text": "Important: Return only the JSON object without any markdown formatting or additional text. \"\"\""
+    },
+    {
+      "id": "CHK-001-257",
+      "paragraph": 257,
+      "text": "response = await self._call_llm(analysis_prompt)"
+    },
+    {
+      "id": "CHK-001-258",
+      "paragraph": 258,
+      "text": "try: # Parse the response as JSON import json analysis = json.loads(response.text)"
+    },
+    {
+      "id": "CHK-001-259",
+      "paragraph": 259,
+      "text": "# Validate dependencies before creating workflow steps for i, step in enumerate(analysis[\"steps\"]): # make sure the list of dependencies are available if \"depends_on\" not in step or not isinstance(step[\"depends_on\"], list): step[\"depends_on\"] = []"
+    },
+    {
+      "id": "CHK-001-260",
+      "paragraph": 260,
+      "text": "# verify the dependencies invalid_deps = [ dep for dep in step[\"depends_on\"] if not isinstance(dep, int) or dep >= i or dep < 0 ] if invalid_deps: self.logger.warning(f\"Found invalid dependencies in step {i}: {invalid_deps}\") # remove useless dependencies step[\"depends_on\"] = [ dep for dep in step[\"depends_on\"] if isinstance(dep, int) and dep < i and dep >= 0 ]"
+    },
+    {
+      "id": "CHK-001-261",
+      "paragraph": 261,
+      "text": "# Create workflow steps workflow_steps = [] for step in analysis[\"steps\"]: workflow_steps.append(WorkflowStep( agent_type=step[\"agent\"], input_text=step[\"input\"], depends_on=step[\"depends_on\"] ))"
+    },
+    {
+      "id": "CHK-001-262",
+      "paragraph": 262,
+      "text": "# Log the workflow plan self.logger.info(f\"Task type: {analysis['task_type']}\") self.logger.info(f\"Workflow steps: {len(workflow_steps)}\") self.logger.info(f\"Workflow steps: {analysis['steps']}\")"
+    },
+    {
+      "id": "CHK-001-263",
+      "paragraph": 263,
+      "text": "# Execute the workflow return await self._execute_workflow(workflow_steps)"
+    },
+    {
+      "id": "CHK-001-264",
+      "paragraph": 264,
+      "text": "except json.JSONDecodeError as e: raise ValueError(f\"Failed to parse LLM response as JSON: {str(e)}\") except Exception as e: self.logger.error(f\"Error in workflow creation: {str(e)}\") raise"
+    },
+    {
+      "id": "CHK-001-265",
+      "paragraph": 265,
+      "text": "async def _check_services(self) -> bool: \"\"\"Check if all required services are available\"\"\" await asyncio.sleep(10) # Add initial wait time"
+    },
+    {
+      "id": "CHK-001-266",
+      "paragraph": 266,
+      "text": "retries = 10 # Increase retry count for _ in range(retries): all_available = True for agent_type, client in self.agent_clients.items(): try: if not await client.health_check(): self.logger.warning(f\"Service {agent_type} not responding, retrying...\") all_available = False break except Exception as e: self.logger.error(f\"Error checking {agent_type} service: {str(e)}\") all_available = False break"
+    },
+    {
+      "id": "CHK-001-267",
+      "paragraph": 267,
+      "text": "if all_available: return True"
+    },
+    {
+      "id": "CHK-001-268",
+      "paragraph": 268,
+      "text": "await asyncio.sleep(5) # Increase retry interval"
+    },
+    {
+      "id": "CHK-001-269",
+      "paragraph": 269,
+      "text": "self.logger.error(\"Failed to connect to all required services after retries\") return False"
+    },
+    {
+      "id": "CHK-001-270",
+      "paragraph": 270,
+      "text": "async def process(self, input_text: str) -> str: \"\"\"Override process to include service check\"\"\" if not await self._check_services(): raise RuntimeError(\"Required services are not available\") return await super().process(input_text)"
+    },
+    {
+      "id": "CHK-001-271",
+      "paragraph": 271,
+      "text": "def _create_summary_prompt(self, workflow_steps: List[WorkflowStep], step_outputs: Dict[int, str]) -> str: summary_sections = []"
+    },
+    {
+      "id": "CHK-001-272",
+      "paragraph": 272,
+      "text": "for i, step in enumerate(workflow_steps): output = step_outputs.get(i, \"\")"
+    },
+    {
+      "id": "CHK-001-273",
+      "paragraph": 273,
+      "text": "summary_sections.append( f\"Step {i+1} ({step.agent_type}):\\n\" f\"Purpose: {step.input_text}\\n\" f\"Output: {output}\\n\" )"
+    },
+    {
+      "id": "CHK-001-274",
+      "paragraph": 274,
+      "text": "return ( \"Create a concise, well-structured summary of the following workflow results. \" \"Focus on key insights and maintain logical flow.\\n\\n\" \"Workflow Results:\\n\" f\"{'-' * 40}\\n\" + \"\\n\".join(summary_sections) )"
+    },
+    {
+      "id": "CHK-001-275",
+      "paragraph": 275,
+      "text": "// src/agents/perplexity_agent.py from typing import List, Optional import logfire import time import os from ..config.agent_config import AgentConfig from ..llm.service import LLMService, LLMResponse from .base_agent import BaseAgent from ..llm.provider import LLMResponse"
+    },
+    {
+      "id": "CHK-001-276",
+      "paragraph": 276,
+      "text": "class PerplexityAgent(BaseAgent): \"\"\"Agent for web information retrieval and integration using Perplexity AI\"\"\""
+    },
+    {
+      "id": "CHK-001-277",
+      "paragraph": 277,
+      "text": "def __init__(self, config: AgentConfig, llm_service: LLMService): super().__init__(config, llm_service)"
+    },
+    {
+      "id": "CHK-001-278",
+      "paragraph": 278,
+      "text": "# initialization Logfire logfire.configure( service_name=\"perplexity_agent\", environment=os.getenv(\"ENVIRONMENT\", \"development\"),"
+    },
+    {
+      "id": "CHK-001-279",
+      "paragraph": 279,
+      "text": "# Configure code sources for tracking code_source=logfire.CodeSource( repository=\"https://github.com/yourusername/ai-agent-service\", revision=os.getenv(\"GIT_REVISION\", \"main\"), root_path=os.path.dirname(os.path.dirname(os.path.abspath(__file__))) ),"
+    },
+    {
+      "id": "CHK-001-280",
+      "paragraph": 280,
+      "text": "# Configuration sampling -logs all errors and long-running operations sampling=logfire.SamplingOptions.level_or_duration( level_threshold=\"error\", # Log all errors duration_threshold=2.0, # Record operations that take more than 2 seconds to execute background_rate=0.1 # Record 10% of routine operations ) )"
+    },
+    {
+      "id": "CHK-001-281",
+      "paragraph": 281,
+      "text": "# Add system indicator monitoring logfire.instrument_system_metrics({ 'process.runtime.cpu.utilization': None, 'system.memory.utilization': ['used', 'available'], 'process.runtime.memory': ['rss', 'vms'], })"
+    },
+    {
+      "id": "CHK-001-282",
+      "paragraph": 282,
+      "text": "# Initialize performance indicators self.request_counter = logfire.metric_counter( 'perplexity_requests_total', description='Total number of Perplexity agent requests' )"
+    },
+    {
+      "id": "CHK-001-283",
+      "paragraph": 283,
+      "text": "self.processing_time = logfire.metric_histogram( 'perplexity_processing_duration', unit='seconds', description='Duration of Perplexity agent request processing' )"
+    },
+    {
+      "id": "CHK-001-284",
+      "paragraph": 284,
+      "text": "self.error_counter = logfire.metric_counter( 'perplexity_errors_total', description='Total number of Perplexity agent errors' )"
+    },
+    {
+      "id": "CHK-001-285",
+      "paragraph": 285,
+      "text": "self.active_requests = logfire.metric_up_down_counter( 'perplexity_active_requests', description='Number of currently active Perplexity agent requests' )"
+    },
+    {
+      "id": "CHK-001-286",
+      "paragraph": 286,
+      "text": "async def _process_implementation(self, processed_input: str) -> str: # Create a top-level processing span with logfire.span('perplexity_processing', input_length=len(processed_input)) as processing_span: try: # Logging request starts self.request_counter.add(1) self.active_requests.add(1) start_time = time.time()"
+    },
+    {
+      "id": "CHK-001-287",
+      "paragraph": 287,
+      "text": "# Log request information logfire.info(\"Starting request processing\", input_preview=processed_input[:100], config_name=self.config.name)"
+    },
+    {
+      "id": "CHK-001-288",
+      "paragraph": 288,
+      "text": "try: # Generate search strategy strategy_result = await self._generate_search_strategy(processed_input) processing_span.set_attribute('strategy_length', len(strategy_result))"
+    },
+    {
+      "id": "CHK-001-289",
+      "paragraph": 289,
+      "text": "# Perform a search search_result = await self._execute_search(processed_input, strategy_result) processing_span.set_attribute('search_result_length', len(search_result))"
+    },
+    {
+      "id": "CHK-001-290",
+      "paragraph": 290,
+      "text": "# Return results return search_result"
+    },
+    {
+      "id": "CHK-001-291",
+      "paragraph": 291,
+      "text": "finally: # Record processing time duration = time.time() - start_time self.processing_time.record(duration) self.active_requests.add(-1)"
+    },
+    {
+      "id": "CHK-001-292",
+      "paragraph": 292,
+      "text": "# Record completion information logfire.info(\"Request completed\", duration=duration, output_length=len(search_result))"
+    },
+    {
+      "id": "CHK-001-293",
+      "paragraph": 293,
+      "text": "except Exception as e: # Log errors self.error_counter.add(1) logfire.error(\"Error in perplexity processing\", error_type=type(e).__name__, error_message=str(e)) processing_span.record_exception(e) raise"
+    },
+    {
+      "id": "CHK-001-294",
+      "paragraph": 294,
+      "text": "async def _generate_search_strategy(self, query: str) -> str: \"\"\"Generate search strategy\"\"\" with logfire.span('generate_search_strategy') as strategy_span: try: search_prompt = f\"\"\" Given the query: {query} 1. Identify key search terms 2. Plan multiple search angles 3. Consider potential information sources"
+    },
+    {
+      "id": "CHK-001-295",
+      "paragraph": 295,
+      "text": "Generate a comprehensive search strategy. \"\"\""
+    },
+    {
+      "id": "CHK-001-296",
+      "paragraph": 296,
+      "text": "response = await self._call_llm(search_prompt) strategy_span.set_attribute('prompt_tokens', response.usage.get('prompt_tokens', 0)) strategy_span.set_attribute('completion_tokens', response.usage.get('completion_tokens', 0))"
+    },
+    {
+      "id": "CHK-001-297",
+      "paragraph": 297,
+      "text": "except Exception as e: strategy_span.record_exception(e) raise"
+    },
+    {
+      "id": "CHK-001-298",
+      "paragraph": 298,
+      "text": "async def _execute_search(self, query: str, strategy: str) -> str: \"\"\"Perform searches and consolidate results\"\"\" with logfire.span('execute_search') as search_span: try: search_prompt = f\"\"\" Based on the query: {query}"
+    },
+    {
+      "id": "CHK-001-299",
+      "paragraph": 299,
+      "text": "Search strategy: {strategy}"
+    },
+    {
+      "id": "CHK-001-300",
+      "paragraph": 300,
+      "text": "Please: 1. Search and collect relevant information 2. Verify information from multiple sources 3. Cross-reference and fact-check 4. Integrate the findings"
+    },
+    {
+      "id": "CHK-001-301",
+      "paragraph": 301,
+      "text": "Provide a comprehensive answer with citations. \"\"\""
+    },
+    {
+      "id": "CHK-001-302",
+      "paragraph": 302,
+      "text": "response = await self._call_llm(search_prompt) search_span.set_attribute('prompt_tokens', response.usage.get('prompt_tokens', 0)) search_span.set_attribute('completion_tokens', response.usage.get('completion_tokens', 0))"
+    },
+    {
+      "id": "CHK-001-303",
+      "paragraph": 303,
+      "text": "except Exception as e: search_span.record_exception(e) raise"
+    },
+    {
+      "id": "CHK-001-304",
+      "paragraph": 304,
+      "text": "async def health_check(self) -> bool: \"\"\"health check\"\"\" with logfire.span('health_check') as health_span: try: test_prompt = \"Test health check\" await self._call_llm(test_prompt) logfire.info(\"Health check passed\") return True except Exception as e: logfire.error(f\"Health check failed: {str(e)}\") health_span.record_exception(e) return False"
+    },
+    {
+      "id": "CHK-001-305",
+      "paragraph": 305,
+      "text": "// src/utils/logger.py import logging import sys from datetime import datetime from pathlib import Path from typing import Optional"
+    },
+    {
+      "id": "CHK-001-306",
+      "paragraph": 306,
+      "text": "class AgentLogger: \"\"\"Logger management class for Agent Service\"\"\""
+    },
+    {
+      "id": "CHK-001-307",
+      "paragraph": 307,
+      "text": "def __init__(self, name: str, log_level: int = logging.INFO, log_file: Optional[str] = None): self.logger = logging.getLogger(f\"agent.{name}\") self.logger.setLevel(log_level)"
+    },
+    {
+      "id": "CHK-001-308",
+      "paragraph": 308,
+      "text": "# Create formatter formatter = logging.Formatter( '%(asctime)s - %(name)s - %(levelname)s - %(message)s' )"
+    },
+    {
+      "id": "CHK-001-309",
+      "paragraph": 309,
+      "text": "# Add console handler console_handler = logging.StreamHandler(sys.stdout) console_handler.setFormatter(formatter) self.logger.addHandler(console_handler)"
+    },
+    {
+      "id": "CHK-001-310",
+      "paragraph": 310,
+      "text": "# Add file handler if log file is specified if log_file: # Ensure log directory exists log_path = Path(log_file).parent log_path.mkdir(parents=True, exist_ok=True)"
+    },
+    {
+      "id": "CHK-001-311",
+      "paragraph": 311,
+      "text": "file_handler = logging.FileHandler(log_file) file_handler.setFormatter(formatter) self.logger.addHandler(file_handler)"
+    },
+    {
+      "id": "CHK-001-312",
+      "paragraph": 312,
+      "text": "def info(self, message: str) -> None: \"\"\"Log a message with INFO level\"\"\" self.logger.info(message)"
+    },
+    {
+      "id": "CHK-001-313",
+      "paragraph": 313,
+      "text": "def error(self, message: str) -> None: \"\"\"Log a message with ERROR level\"\"\" self.logger.error(message)"
+    },
+    {
+      "id": "CHK-001-314",
+      "paragraph": 314,
+      "text": "def warning(self, message: str) -> None: \"\"\"Log a message with WARNING level\"\"\" self.logger.warning(message)"
+    },
+    {
+      "id": "CHK-001-315",
+      "paragraph": 315,
+      "text": "def debug(self, message: str) -> None: \"\"\"Log a message with DEBUG level\"\"\" self.logger.debug(message)"
+    },
+    {
+      "id": "CHK-001-316",
+      "paragraph": 316,
+      "text": "def critical(self, message: str) -> None: \"\"\"Log a message with CRITICAL level\"\"\" self.logger.critical(message)"
+    },
+    {
+      "id": "CHK-001-317",
+      "paragraph": 317,
+      "text": "def get_agent_logger( agent_name: str, log_level: int = logging.INFO, log_file: Optional[str] = None ) -> AgentLogger: \"\"\" Factory function to get an Agent Logger instance"
+    },
+    {
+      "id": "CHK-001-318",
+      "paragraph": 318,
+      "text": "Args: agent_name: Name of the agent log_level: Logging level log_file: Path to log file (optional)"
+    },
+    {
+      "id": "CHK-001-319",
+      "paragraph": 319,
+      "text": "Returns: An instance of AgentLogger \"\"\" return AgentLogger( name=agent_name, log_level=log_level, log_file=log_file )"
+    },
+    {
+      "id": "CHK-001-320",
+      "paragraph": 320,
+      "text": "// src/registry/agent_registry.py from typing import Dict, Type, Optional from ..agents.base_agent import BaseAgent from ..config.agent_config import AgentConfig from ..llm.service import LLMService"
+    },
+    {
+      "id": "CHK-001-321",
+      "paragraph": 321,
+      "text": "class AgentRegistry: \"\"\"Registry for managing all available agents in the system\"\"\""
+    },
+    {
+      "id": "CHK-001-322",
+      "paragraph": 322,
+      "text": "def __init__(self, llm_service: LLMService): self._agents: Dict[str, BaseAgent] = {} self._agent_types: Dict[str, Type[BaseAgent]] = {} self.llm_service = llm_service"
+    },
+    {
+      "id": "CHK-001-323",
+      "paragraph": 323,
+      "text": "def register_agent_type(self, name: str, agent_class: Type[BaseAgent]) -> None: \"\"\" Register a new agent type"
+    },
+    {
+      "id": "CHK-001-324",
+      "paragraph": 324,
+      "text": "Args: name: Unique identifier for the agent type agent_class: Agent class to register \"\"\" if name in self._agent_types: raise ValueError(f\"Agent type {name} already registered\") self._agent_types[name] = agent_class"
+    },
+    {
+      "id": "CHK-001-325",
+      "paragraph": 325,
+      "text": "def create_agent(self, agent_type: str, config: AgentConfig) -> BaseAgent: \"\"\" Create a new agent instance"
+    },
+    {
+      "id": "CHK-001-326",
+      "paragraph": 326,
+      "text": "Args: agent_type: Type of agent to create config: Configuration for the agent"
+    },
+    {
+      "id": "CHK-001-327",
+      "paragraph": 327,
+      "text": "Returns: BaseAgent: Created agent instance \"\"\" if agent_type not in self._agent_types: raise ValueError(f\"Unknown agent type: {agent_type}\")"
+    },
+    {
+      "id": "CHK-001-328",
+      "paragraph": 328,
+      "text": "agent_class = self._agent_types[agent_type] agent = agent_class(config, self.llm_service) self._agents[config.name] = agent return agent"
+    },
+    {
+      "id": "CHK-001-329",
+      "paragraph": 329,
+      "text": "def get_agent(self, name: str) -> Optional[BaseAgent]: \"\"\"Get an agent instance by name\"\"\" return self._agents.get(name)"
+    },
+    {
+      "id": "CHK-001-330",
+      "paragraph": 330,
+      "text": "def get_all_agents(self) -> Dict[str, BaseAgent]: \"\"\"Get all registered agent instances\"\"\" return self._agents.copy()"
+    },
+    {
+      "id": "CHK-001-331",
+      "paragraph": 331,
+      "text": "def get_available_agent_types(self) -> Dict[str, Type[BaseAgent]]: \"\"\"Get all registered agent types\"\"\" return self._agent_types.copy()"
+    },
+    {
+      "id": "CHK-001-332",
+      "paragraph": 332,
+      "text": "// src/services/perplexity_service.py import asyncio import grpc from src.agents.perplexity_agent import PerplexityAgent from src.config.agent_config import AgentConfig from src.llm.service import LLMService from src.llm.providers.openai_provider import OpenAIProvider from src.proto import agent_pb2, agent_pb2_grpc from grpc_health.v1 import health_pb2, health_pb2_grpc import logging.config from ..config.logging_config import configure_logging import os import datetime"
+    },
+    {
+      "id": "CHK-001-333",
+      "paragraph": 333,
+      "text": "# Configure logging logging.config.dictConfig(configure_logging('perplexity_agent')) logger = logging.getLogger(__name__)"
+    },
+    {
+      "id": "CHK-001-334",
+      "paragraph": 334,
+      "text": "# Add at the top of the file os.environ['GRPC_ENABLE_FORK_SUPPORT'] = '0'"
+    },
+    {
+      "id": "CHK-001-335",
+      "paragraph": 335,
+      "text": "class HealthServicer(health_pb2_grpc.HealthServicer): async def Check(self, request, context): return health_pb2.HealthCheckResponse( status=health_pb2.HealthCheckResponse.SERVING)"
+    },
+    {
+      "id": "CHK-001-336",
+      "paragraph": 336,
+      "text": "async def Watch(self, request, context): await context.write(health_pb2.HealthCheckResponse( status=health_pb2.HealthCheckResponse.SERVING))"
+    },
+    {
+      "id": "CHK-001-337",
+      "paragraph": 337,
+      "text": "async def setup_llm_service() -> LLMService: \"\"\"Setup and configure LLM service\"\"\" service = LLMService() openai_provider = OpenAIProvider(api_key=os.getenv(\"OPENAI_API_KEY\")) service.register_provider(\"openai\", openai_provider) return service"
+    },
+    {
+      "id": "CHK-001-338",
+      "paragraph": 338,
+      "text": "class AgentService(agent_pb2_grpc.AgentServiceServicer): def __init__(self, agent): self.agent = agent self.start_time = datetime.datetime.now().isoformat() self.total_processed = 0 self.last_error = \"\""
+    },
+    {
+      "id": "CHK-001-339",
+      "paragraph": 339,
+      "text": "async def GetStatus(self, request, context): try: # Convert configuration to simple string key-value pairs config_dict = {} agent_config = self.agent.config config_dict[\"name\"] = agent_config.name config_dict[\"description\"] = agent_config.description config_dict[\"capabilities\"] = \",\".join(agent_config.capabilities) config_dict[\"model\"] = agent_config.model config_dict[\"provider\"] = agent_config.provider config_dict[\"temperature\"] = str(agent_config.temperature)"
+    },
+    {
+      "id": "CHK-001-340",
+      "paragraph": 340,
+      "text": "return agent_pb2.StatusResponse( agent_name=self.agent.config.name, status=\"SERVING\", total_processed=self.total_processed, last_error=self.last_error, created_at=self.start_time, config=config_dict ) except Exception as e: logger.error(f\"Status check error: {str(e)}\") return agent_pb2.StatusResponse( agent_name=self.agent.config.name, status=\"ERROR\", last_error=str(e) )"
+    },
+    {
+      "id": "CHK-001-341",
+      "paragraph": 341,
+      "text": "async def Process(self, request, context): try: logger.info(f\"Starting processing request with input length: {len(request.input_text)}\") result = await self.agent.process(request.input_text) self.total_processed += 1 logger.info(f\"Successfully processed request. Output length: {len(result)}\") return agent_pb2.ProcessResponse( success=True, output_text=result ) except Exception as e: self.last_error = str(e) logger.error(f\"Process error: {str(e)}\", exc_info=True) return agent_pb2.ProcessResponse( success=False, error_message=str(e) )"
+    },
+    {
+      "id": "CHK-001-342",
+      "paragraph": 342,
+      "text": "async def serve(): try: # Setup llm_service = await setup_llm_service() config = AgentConfig( name=\"perplexity_agent\", description=\"Web information retrieval and integration agent\", capabilities=[\"web_search\", \"information_integration\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.7 )"
+    },
+    {
+      "id": "CHK-001-343",
+      "paragraph": 343,
+      "text": "# Create agent agent = PerplexityAgent(config, llm_service)"
+    },
+    {
+      "id": "CHK-001-344",
+      "paragraph": 344,
+      "text": "# Create gRPC server server = grpc.aio.server()"
+    },
+    {
+      "id": "CHK-001-345",
+      "paragraph": 345,
+      "text": "# Add services service = AgentService(agent) agent_pb2_grpc.add_AgentServiceServicer_to_server(service, server) health_servicer = HealthServicer() health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)"
+    },
+    {
+      "id": "CHK-001-346",
+      "paragraph": 346,
+      "text": "# Start server port = 50051 server.add_insecure_port(f'[::]:{port}')"
+    },
+    {
+      "id": "CHK-001-347",
+      "paragraph": 347,
+      "text": "logger.info(f\"Starting Perplexity service on port {port}\") await server.start() logger.info(f\"Perplexity service started successfully on port {port}\")"
+    },
+    {
+      "id": "CHK-001-348",
+      "paragraph": 348,
+      "text": "await server.wait_for_termination()"
+    },
+    {
+      "id": "CHK-001-349",
+      "paragraph": 349,
+      "text": "except Exception as e: logger.error(f\"Service startup error: {str(e)}\") if 'server' in locals(): await server.stop(0) raise"
+    },
+    {
+      "id": "CHK-001-350",
+      "paragraph": 350,
+      "text": "if __name__ == \"__main__\": asyncio.run(serve())"
+    },
+    {
+      "id": "CHK-001-351",
+      "paragraph": 351,
+      "text": "// src/services/summarization_service.py import asyncio import grpc from src.agents.summarization_agent import SummarizationAgent from src.config.agent_config import AgentConfig from src.llm.service import LLMService from src.llm.providers.openai_provider import OpenAIProvider from src.proto import agent_pb2, agent_pb2_grpc from grpc_health.v1 import health_pb2, health_pb2_grpc import logging import os import datetime"
+    },
+    {
+      "id": "CHK-001-352",
+      "paragraph": 352,
+      "text": "# Configure logging logging.basicConfig( level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', handlers=[ logging.FileHandler('logs/summarization_agent.log'), logging.StreamHandler() ] ) logger = logging.getLogger(__name__)"
+    },
+    {
+      "id": "CHK-001-353",
+      "paragraph": 353,
+      "text": "class HealthServicer(health_pb2_grpc.HealthServicer): async def Check(self, request, context): return health_pb2.HealthCheckResponse( status=health_pb2.HealthCheckResponse.SERVING)"
+    },
+    {
+      "id": "CHK-001-354",
+      "paragraph": 354,
+      "text": "async def Watch(self, request, context): await context.write(health_pb2.HealthCheckResponse( status=health_pb2.HealthCheckResponse.SERVING))"
+    },
+    {
+      "id": "CHK-001-355",
+      "paragraph": 355,
+      "text": "class AgentService(agent_pb2_grpc.AgentServiceServicer): def __init__(self, agent): self.agent = agent self.start_time = datetime.datetime.now().isoformat() self.total_processed = 0 self.last_error = \"\""
+    },
+    {
+      "id": "CHK-001-356",
+      "paragraph": 356,
+      "text": "async def GetStatus(self, request, context): try: # 将配置转换为 protobuf 消息格式 config_dict = { \"name\": str(self.agent.config.name), \"description\": str(self.agent.config.description), \"capabilities\": str(\",\".join(self.agent.config.capabilities)), \"model\": str(self.agent.config.model), \"provider\": str(self.agent.config.provider), \"temperature\": str(self.agent.config.temperature) }"
+    },
+    {
+      "id": "CHK-001-357",
+      "paragraph": 357,
+      "text": "return agent_pb2.StatusResponse( agent_name=str(self.agent.config.name), status=\"SERVING\", total_processed=int(self.total_processed), last_error=str(self.last_error), created_at=str(self.start_time), config=config_dict ) except Exception as e: logger.error(f\"Status check error: {str(e)}\") return agent_pb2.StatusResponse( agent_name=str(self.agent.config.name), status=\"ERROR\", last_error=str(e) )"
+    },
+    {
+      "id": "CHK-001-358",
+      "paragraph": 358,
+      "text": "async def Process(self, request, context): try: result = await self.agent.process(request.input_text) self.total_processed += 1 return agent_pb2.ProcessResponse( success=True, output_text=result ) except Exception as e: self.last_error = str(e) logger.error(f\"Process error: {str(e)}\") return agent_pb2.ProcessResponse( success=False, error_message=str(e) )"
+    },
+    {
+      "id": "CHK-001-359",
+      "paragraph": 359,
+      "text": "async def serve(): try: # Setup service = LLMService() openai_provider = OpenAIProvider(api_key=os.getenv(\"OPENAI_API_KEY\")) service.register_provider(\"openai\", openai_provider)"
+    },
+    {
+      "id": "CHK-001-360",
+      "paragraph": 360,
+      "text": "config = AgentConfig( name=\"summary_agent\", description=\"Comprehensive summarization agent\", capabilities=[\"summarization\", \"analysis\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.5 )"
+    },
+    {
+      "id": "CHK-001-361",
+      "paragraph": 361,
+      "text": "# Create agent agent = SummarizationAgent(config, service)"
+    },
+    {
+      "id": "CHK-001-362",
+      "paragraph": 362,
+      "text": "# Create gRPC server server = grpc.aio.server()"
+    },
+    {
+      "id": "CHK-001-363",
+      "paragraph": 363,
+      "text": "# Add services service = AgentService(agent) agent_pb2_grpc.add_AgentServiceServicer_to_server(service, server) health_servicer = HealthServicer() health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)"
+    },
+    {
+      "id": "CHK-001-364",
+      "paragraph": 364,
+      "text": "# Start server port = 50053 server.add_insecure_port(f'[::]:{port}')"
+    },
+    {
+      "id": "CHK-001-365",
+      "paragraph": 365,
+      "text": "logger.info(f\"Starting Summarization service on port {port}\") await server.start() logger.info(f\"Summarization service started successfully on port {port}\")"
+    },
+    {
+      "id": "CHK-001-366",
+      "paragraph": 366,
+      "text": "await server.wait_for_termination()"
+    },
+    {
+      "id": "CHK-001-367",
+      "paragraph": 367,
+      "text": "except Exception as e: logger.error(f\"Service startup error: {str(e)}\") if 'server' in locals(): await server.stop(0) raise"
+    },
+    {
+      "id": "CHK-001-368",
+      "paragraph": 368,
+      "text": "if __name__ == \"__main__\": asyncio.run(serve())"
+    },
+    {
+      "id": "CHK-001-369",
+      "paragraph": 369,
+      "text": "// src/services/math_service.py import asyncio import grpc from src.agents.math_agent import MathAgent from src.config.agent_config import AgentConfig from src.llm.service import LLMService from src.llm.providers.openai_provider import OpenAIProvider from src.proto import agent_pb2, agent_pb2_grpc from grpc_health.v1 import health_pb2, health_pb2_grpc import logging import os import datetime"
+    },
+    {
+      "id": "CHK-001-370",
+      "paragraph": 370,
+      "text": "# Configure logging logging.basicConfig( level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', handlers=[ logging.FileHandler('logs/math_agent.log'), logging.StreamHandler() ] ) logger = logging.getLogger(__name__)"
+    },
+    {
+      "id": "CHK-001-371",
+      "paragraph": 371,
+      "text": "class HealthServicer(health_pb2_grpc.HealthServicer): async def Check(self, request, context): return health_pb2.HealthCheckResponse( status=health_pb2.HealthCheckResponse.SERVING)"
+    },
+    {
+      "id": "CHK-001-372",
+      "paragraph": 372,
+      "text": "async def Watch(self, request, context): await context.write(health_pb2.HealthCheckResponse( status=health_pb2.HealthCheckResponse.SERVING))"
+    },
+    {
+      "id": "CHK-001-373",
+      "paragraph": 373,
+      "text": "class AgentService(agent_pb2_grpc.AgentServiceServicer): def __init__(self, agent): self.agent = agent self.start_time = datetime.datetime.now().isoformat() self.total_processed = 0 self.last_error = \"\""
+    },
+    {
+      "id": "CHK-001-374",
+      "paragraph": 374,
+      "text": "async def GetStatus(self, request, context): try: # 将配置转换为 protobuf 消息格式 config_dict = { \"name\": str(self.agent.config.name), \"description\": str(self.agent.config.description), \"capabilities\": str(\",\".join(self.agent.config.capabilities)), \"model\": str(self.agent.config.model), \"provider\": str(self.agent.config.provider), \"temperature\": str(self.agent.config.temperature) }"
+    },
+    {
+      "id": "CHK-001-375",
+      "paragraph": 375,
+      "text": "return agent_pb2.StatusResponse( agent_name=str(self.agent.config.name), status=\"SERVING\", total_processed=int(self.total_processed), last_error=str(self.last_error), created_at=str(self.start_time), config=config_dict ) except Exception as e: logger.error(f\"Status check error: {str(e)}\") return agent_pb2.StatusResponse( agent_name=str(self.agent.config.name), status=\"ERROR\", last_error=str(e) )"
+    },
+    {
+      "id": "CHK-001-376",
+      "paragraph": 376,
+      "text": "async def Process(self, request, context): try: result = await self.agent.process(request.input_text) self.total_processed += 1 return agent_pb2.ProcessResponse( success=True, output_text=result ) except Exception as e: self.last_error = str(e) logger.error(f\"Process error: {str(e)}\") return agent_pb2.ProcessResponse( success=False, error_message=str(e) )"
+    },
+    {
+      "id": "CHK-001-377",
+      "paragraph": 377,
+      "text": "async def serve(): try: # Setup service = LLMService() openai_provider = OpenAIProvider(api_key=os.getenv(\"OPENAI_API_KEY\")) service.register_provider(\"openai\", openai_provider)"
+    },
+    {
+      "id": "CHK-001-378",
+      "paragraph": 378,
+      "text": "config = AgentConfig( name=\"math_agent\", description=\"Mathematical computation and code generation agent\", capabilities=[\"math\", \"code_generation\"], model=\"gpt-4o\", provider=\"openai\", temperature=0.2 )"
+    },
+    {
+      "id": "CHK-001-379",
+      "paragraph": 379,
+      "text": "# Create agent agent = MathAgent(config, service)"
+    },
+    {
+      "id": "CHK-001-380",
+      "paragraph": 380,
+      "text": "# Create gRPC server server = grpc.aio.server()"
+    },
+    {
+      "id": "CHK-001-381",
+      "paragraph": 381,
+      "text": "# Add services service = AgentService(agent) agent_pb2_grpc.add_AgentServiceServicer_to_server(service, server) health_servicer = HealthServicer() health_pb2_grpc.add_HealthServicer_to_server(health_servicer, server)"
+    },
+    {
+      "id": "CHK-001-382",
+      "paragraph": 382,
+      "text": "# Start server port = 50052 server.add_insecure_port(f'[::]:{port}')"
+    },
+    {
+      "id": "CHK-001-383",
+      "paragraph": 383,
+      "text": "logger.info(f\"Starting Math service on port {port}\") await server.start() logger.info(f\"Math service started successfully on port {port}\")"
+    },
+    {
+      "id": "CHK-001-384",
+      "paragraph": 384,
+      "text": "await server.wait_for_termination()"
+    },
+    {
+      "id": "CHK-001-385",
+      "paragraph": 385,
+      "text": "except Exception as e: logger.error(f\"Service startup error: {str(e)}\") if 'server' in locals(): await server.stop(0) raise"
+    },
+    {
+      "id": "CHK-001-386",
+      "paragraph": 386,
+      "text": "if __name__ == \"__main__\": asyncio.run(serve())"
+    }
+  ],
+  "images": [],
+  "validationWarnings": [],
+  "fidelityReport": {
+    "generatedAt": "2026-05-02T16:01:42.582Z",
+    "overallGrade": "high",
+    "summary": "The deck faithfully represents the source's central thesis, key architectural components, implementation details, communication protocols, extensibility pattern, and security features. All major sections from the README and code are covered with accurate evidence references. The few minor gaps (Logfire observability in PerplexityAgent, AgentRegistry, cache service test, and the LLM provider abstraction layer) are secondary details that don't undermine the core narrative. No material unsupported claims were found — the single 'Five services' framing is slightly imprecise (the source counts API Gateway + Manager + 3 specialized = 5, which is correct) and all code snippets on slides match the source closely.",
+    "coverage": [
+      {
+        "sectionId": "SEC-OPENING",
+        "sectionName": "Opening",
+        "capturedKeyPoints": [
+          {
+            "text": "Microservices-based AI agent system orchestrating multiple specialized agents through gRPC communication",
+            "evidenceChunkIds": [
+              "CHK-001-001",
+              "CHK-001-002"
+            ]
+          },
+          {
+            "text": "Three key topics previewed: architecture, gRPC communication, extensibility",
+            "evidenceChunkIds": [
+              "CHK-001-002"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      },
+      {
+        "sectionId": "SEC-ARCHITECTURE",
+        "sectionName": "System Architecture",
+        "capturedKeyPoints": [
+          {
+            "text": "API Gateway on port 8000 (FastAPI), forwards to Manager Agent",
+            "evidenceChunkIds": [
+              "CHK-001-006"
+            ]
+          },
+          {
+            "text": "Manager Agent orchestrates workflow, analyzes tasks, creates execution plans, manages dependencies",
+            "evidenceChunkIds": [
+              "CHK-001-007"
+            ]
+          },
+          {
+            "text": "Three specialized agents: Perplexity :50051, Math :50052, Summarization :50053",
+            "evidenceChunkIds": [
+              "CHK-001-008"
+            ]
+          },
+          {
+            "text": "Two communication layers: internal gRPC/Protobuf and external REST/JSON with OpenAPI docs",
+            "evidenceChunkIds": [
+              "CHK-001-011",
+              "CHK-001-012",
+              "CHK-001-013",
+              "CHK-001-014"
+            ]
+          },
+          {
+            "text": "Request workflow: Client → API Gateway → Manager → LLM analysis → per-step gRPC → final response",
+            "evidenceChunkIds": [
+              "CHK-001-009"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "All agents (including Manager) share the same LLM service — explicit in the architecture diagram showing Manager → LLM and all specialized agents → LLM",
+            "sourceChunkIds": [
+              "CHK-001-004"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CORE-AGENTS",
+        "sectionName": "Agent Internals",
+        "capturedKeyPoints": [
+          {
+            "text": "BaseAgent lifecycle: validate → pre_process → _process_implementation → post_process, with AgentStatus enum (IDLE/PROCESSING/ERROR)",
+            "evidenceChunkIds": [
+              "CHK-001-175",
+              "CHK-001-176",
+              "CHK-001-191",
+              "CHK-001-197"
+            ]
+          },
+          {
+            "text": "_call_llm centralises LLM invocation using config-driven temperature and model",
+            "evidenceChunkIds": [
+              "CHK-001-205",
+              "CHK-001-207"
+            ]
+          },
+          {
+            "text": "Manager Agent: LLM-driven workflow planning returning pure JSON with task_type, steps, depends_on",
+            "evidenceChunkIds": [
+              "CHK-001-251",
+              "CHK-001-254"
+            ]
+          },
+          {
+            "text": "Dependency validation strips self-referential or out-of-range indices",
+            "evidenceChunkIds": [
+              "CHK-001-259",
+              "CHK-001-260"
+            ]
+          },
+          {
+            "text": "Parallel execution via asyncio.gather for steps whose dependencies are satisfied",
+            "evidenceChunkIds": [
+              "CHK-001-230",
+              "CHK-001-231"
+            ]
+          },
+          {
+            "text": "Auto-triggered final summarization when workflow has >= min_steps_for_summary steps",
+            "evidenceChunkIds": [
+              "CHK-001-236",
+              "CHK-001-237"
+            ]
+          },
+          {
+            "text": "Perplexity agent: two-pass — search strategy then execute search with citations",
+            "evidenceChunkIds": [
+              "CHK-001-294",
+              "CHK-001-298"
+            ]
+          },
+          {
+            "text": "Math agent: two-pass — solution approach then safe exec of generated Python code in restricted namespace",
+            "evidenceChunkIds": [
+              "CHK-001-159",
+              "CHK-001-161",
+              "CHK-001-166"
+            ]
+          },
+          {
+            "text": "Summarization agent: two-pass — analysis then structured summary polish",
+            "evidenceChunkIds": [
+              "CHK-001-149",
+              "CHK-001-151",
+              "CHK-001-153"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Logfire observability integrated into PerplexityAgent: metrics (request counter, processing histogram, error counter, active requests gauge) and system metrics instrumentation",
+            "sourceChunkIds": [
+              "CHK-001-278",
+              "CHK-001-280",
+              "CHK-001-281",
+              "CHK-001-282",
+              "CHK-001-283",
+              "CHK-001-284",
+              "CHK-001-285"
+            ]
+          },
+          {
+            "text": "AgentRegistry pattern for registering and creating agent instances by type",
+            "sourceChunkIds": [
+              "CHK-001-320",
+              "CHK-001-321",
+              "CHK-001-323",
+              "CHK-001-325"
+            ]
+          },
+          {
+            "text": "Workflow execution generates a detailed visual report logged per parallel group (timelines, durations, inputs/outputs)",
+            "sourceChunkIds": [
+              "CHK-001-240",
+              "CHK-001-242",
+              "CHK-001-246",
+              "CHK-001-248"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-GRPC-COMMS",
+        "sectionName": "gRPC Communication Layer",
+        "capturedKeyPoints": [
+          {
+            "text": "Protobuf service contract: two RPCs — Process (ProcessRequest→ProcessResponse) and GetStatus (StatusRequest→StatusResponse)",
+            "evidenceChunkIds": [
+              "CHK-001-100",
+              "CHK-001-105",
+              "CHK-001-107"
+            ]
+          },
+          {
+            "text": "AgentClient opens async channel, calls stub.Process, checks success flag",
+            "evidenceChunkIds": [
+              "CHK-001-121",
+              "CHK-001-122",
+              "CHK-001-123"
+            ]
+          },
+          {
+            "text": "Health check retries 3× with 1s backoff before returning False",
+            "evidenceChunkIds": [
+              "CHK-001-124"
+            ]
+          },
+          {
+            "text": "AgentService server-side wraps BaseAgent, delegates process() call, returns ProcessResponse",
+            "evidenceChunkIds": [
+              "CHK-001-127",
+              "CHK-001-129",
+              "CHK-001-130"
+            ]
+          },
+          {
+            "text": "Manager connects to remote agents via connect_agent(agent_type, address), stores AgentClients keyed by type",
+            "evidenceChunkIds": [
+              "CHK-001-216"
+            ]
+          },
+          {
+            "text": "serve_agent uses ThreadPoolExecutor(max_workers=10) backing the async gRPC server",
+            "evidenceChunkIds": [
+              "CHK-001-132"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Each service (perplexity, math, summarization) also registers a gRPC Health servicer alongside the AgentService — supporting standard gRPC health protocol",
+            "sourceChunkIds": [
+              "CHK-001-335",
+              "CHK-001-345",
+              "CHK-001-353",
+              "CHK-001-363",
+              "CHK-001-371",
+              "CHK-001-381"
+            ]
+          },
+          {
+            "text": "Manager._check_services retries up to 10 times with 5-second intervals (not 3×), with an initial 10-second sleep",
+            "sourceChunkIds": [
+              "CHK-001-265",
+              "CHK-001-266",
+              "CHK-001-268"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-EXTENSIBILITY",
+        "sectionName": "Extensibility & Security",
+        "capturedKeyPoints": [
+          {
+            "text": "Three-step pattern to add a new agent: create servicer, update proto, register in run_services.sh",
+            "evidenceChunkIds": [
+              "CHK-001-021",
+              "CHK-001-022",
+              "CHK-001-023",
+              "CHK-001-024",
+              "CHK-001-025",
+              "CHK-001-026",
+              "CHK-001-027",
+              "CHK-001-028"
+            ]
+          },
+          {
+            "text": "ClerkAuthMiddleware validates Bearer tokens on every request, raises 401 for missing/invalid tokens",
+            "evidenceChunkIds": [
+              "CHK-001-034",
+              "CHK-001-036"
+            ]
+          },
+          {
+            "text": "SensitiveDataFormatter uses regex to redact API keys (sk-...) and JWT Bearer tokens from all log records",
+            "evidenceChunkIds": [
+              "CHK-001-133",
+              "CHK-001-134",
+              "CHK-001-135",
+              "CHK-001-136"
+            ]
+          },
+          {
+            "text": "Security best practices: service auth via API keys, health checks, graceful shutdown, logging, error handling and retries",
+            "evidenceChunkIds": [
+              "CHK-001-030",
+              "CHK-001-031"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "LRU cache on token verification (maxsize=1000, ttl=300) to improve auth performance",
+            "sourceChunkIds": [
+              "CHK-001-038"
+            ]
+          },
+          {
+            "text": "Logfire instrumentation on the FastAPI app (api_requests_total, api_errors_total metrics, spans on /process and /health)",
+            "sourceChunkIds": [
+              "CHK-001-046",
+              "CHK-001-048",
+              "CHK-001-049",
+              "CHK-001-055",
+              "CHK-001-056"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CLOSING",
+        "sectionName": "Closing",
+        "capturedKeyPoints": [
+          {
+            "text": "Key architectural decisions recapped: gRPC internal, LLM-driven orchestration, FastAPI gateway",
+            "evidenceChunkIds": [
+              "CHK-001-013",
+              "CHK-001-007",
+              "CHK-001-006"
+            ]
+          },
+          {
+            "text": "Quick start: set OPENAI_API_KEY and PERPLEXITY_API_KEY, run sh run_services.sh, hit localhost:8000/docs",
+            "evidenceChunkIds": [
+              "CHK-001-016",
+              "CHK-001-017",
+              "CHK-001-018",
+              "CHK-001-019",
+              "CHK-001-020"
+            ]
+          },
+          {
+            "text": "API usage: POST /process with JSON body",
+            "evidenceChunkIds": [
+              "CHK-001-029"
+            ]
+          },
+          {
+            "text": "Next steps for contributors: subclass BaseAgent, implement _process_implementation, register in run_services.sh",
+            "evidenceChunkIds": [
+              "CHK-001-021",
+              "CHK-001-022"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      }
+    ],
+    "unsupportedClaims": [
+      {
+        "slideIndex": 10,
+        "claim": "Health check retries 3× with 1 s backoff before failing",
+        "closestSourceSpan": "max_retries = 3 ... await asyncio.sleep(1)",
+        "sourceChunkIds": [
+          "CHK-001-124"
+        ]
+      },
+      {
+        "slideIndex": 12,
+        "claim": "manager retries up to 10×",
+        "closestSourceSpan": "retries = 10 ... await asyncio.sleep(5)",
+        "sourceChunkIds": [
+          "CHK-001-266",
+          "CHK-001-268"
+        ]
+      }
+    ],
+    "recommendations": [
+      "Add a note or slide element clarifying that Manager._check_services retries 10× (5s intervals, 10s initial delay) — the deck currently only mentions this on slide 12 in passing and slide 10 mentions only the AgentClient's 3-retry health check, which could confuse.",
+      "Add a brief mention of Logfire observability (metrics, tracing spans, system metrics) as it is a significant cross-cutting concern implemented in both the API gateway and PerplexityAgent.",
+      "Mention the standard gRPC HealthServicer registered alongside AgentService in each service — it supports the health-check pattern described but is currently omitted from the gRPC section.",
+      "Add a brief callout to AgentRegistry as the factory for instantiating agents — it is part of the extensibility story and its omission leaves the 'register in run_services.sh' step slightly incomplete."
+    ],
+    "deterministic": {
+      "totalSlides": 13,
+      "factualSlides": 10,
+      "factualSlidesWithEvidence": 10,
+      "evidenceUsageRatio": 1,
+      "imageSlides": 0,
+      "imageUsageRatio": 0,
+      "slideTypeMix": {
+        "title": 1,
+        "goals": 1,
+        "statement": 1,
+        "framework": 1,
+        "split-visual": 7,
+        "code": 1,
+        "recap": 1
+      },
+      "uniqueChunkIdsCited": 61,
+      "totalChunkIds": 386,
+      "chunkCoverageRatio": 0.15803108808290156
+    }
+  }
+}

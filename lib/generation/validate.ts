@@ -354,7 +354,15 @@ export function validateSlides(slides: GeneratedSlide[], options: ValidateSlides
           if (s.mockupKind !== "browser" && s.mockupKind !== "terminal" && s.mockupKind !== "file-tree" && s.mockupKind !== "card") {
             warnings.push(issue(i, "mockupKind", "ui-mockup variant requires mockupKind ('browser' | 'terminal' | 'file-tree' | 'card').", "critical"));
           }
-          if (!isString(s.mockupContent)) pushMissing(warnings, i, "mockupContent", s.type);
+          if (s.mockupKind === "file-tree") {
+            const hasTree = Array.isArray(s.mockupTree) && s.mockupTree.length > 0
+              && s.mockupTree.every((n) => n && typeof n === "object" && typeof n.name === "string" && n.name.trim().length > 0);
+            if (!hasTree && !isString(s.mockupContent)) {
+              warnings.push(issue(i, "mockupTree", "file-tree mockup requires either a non-empty mockupTree array of { name, comment?, children? } or a non-empty mockupContent fallback.", "critical"));
+            }
+          } else if (!isString(s.mockupContent)) {
+            pushMissing(warnings, i, "mockupContent", s.type);
+          }
         } else {
           if (!isString(s.leftContent)) pushMissing(warnings, i, "leftContent", s.type);
           if (!isString(s.rightContent)) pushMissing(warnings, i, "rightContent", s.type);

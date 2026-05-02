@@ -241,17 +241,57 @@ export async function POST(req: NextRequest) {
           });
           const raw = sectionMsg.content[0].type === "text" ? sectionMsg.content[0].text : "";
           let sectionSlides: GeneratedSlide[];
-          try {
-            const parsed = JSON.parse(stripFences(raw));
-            if (!Array.isArray(parsed)) throw new Error("not an array");
-            sectionSlides = parsed as GeneratedSlide[];
-          } catch {
-            const truncated = sectionMsg.stop_reason === "max_tokens";
+
+          const tryParse = (text: string): GeneratedSlide[] | null => {
+            try {
+              const parsed = JSON.parse(stripFences(text));
+              return Array.isArray(parsed) ? (parsed as GeneratedSlide[]) : null;
+            } catch {
+              return null;
+            }
+          };
+
+          const firstParse = tryParse(raw);
+          if (firstParse) {
+            sectionSlides = firstParse;
+          } else if (sectionMsg.stop_reason === "max_tokens") {
+            // Truncated output is unrecoverable via repair — fail fast with a clear hint.
             const head = raw.slice(0, 200);
             const tail = raw.length > 400 ? ` … ${raw.slice(-200)}` : "";
             throw new Error(
-              `Section "${section.id}" JSON parse failed${truncated ? " (response truncated at max_tokens — increase max_tokens or shrink slideCount)" : ""}: ${head}${tail}`,
+              `Section "${section.id}" JSON parse failed (response truncated at max_tokens — increase max_tokens or shrink slideCount): ${head}${tail}`,
             );
+          } else {
+            // One-shot LLM repair pass: hand the broken text back to the model and
+            // ask only for the corrected JSON array. Common cause is an unescaped
+            // double-quote inside a long string field.
+            send("section-repair", { sectionId: section.id, message: "Section JSON malformed; attempting one-shot repair." });
+            let repaired: GeneratedSlide[] | null = null;
+            try {
+              const repairMsg = await client.messages.create({
+                model: MODEL,
+                max_tokens: 16384,
+                system: "You are a JSON repair tool. The user will give you a string that was supposed to be a JSON array of slide objects but failed to parse. Return ONLY the corrected JSON array — no markdown fences, no commentary, no explanation. Preserve all field values verbatim; only fix syntax (unescaped quotes inside strings, missing commas, trailing commas, mismatched brackets). Output starts with [ and ends with ].",
+                messages: [
+                  {
+                    role: "user",
+                    content: [
+                      { type: "text", text: `Fix this broken JSON. Output starts with [ and ends with ].\n\n${raw}` },
+                    ],
+                  },
+                ],
+              });
+              const repairedRaw = repairMsg.content[0]?.type === "text" ? repairMsg.content[0].text : "";
+              repaired = tryParse(repairedRaw);
+            } catch {
+              // network or model error — fall through to fail
+            }
+            if (!repaired) {
+              const head = raw.slice(0, 200);
+              const tail = raw.length > 400 ? ` … ${raw.slice(-200)}` : "";
+              throw new Error(`Section "${section.id}" JSON parse failed (repair attempt also failed): ${head}${tail}`);
+            }
+            sectionSlides = repaired;
           }
 
           const sectionRepair = repairSectionSlides(sectionSlides, {
