@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import {
   PdfLoader,
@@ -79,6 +79,8 @@ export default function PdfPreview({ pdfUrl, highlights, scrollToId, onScrolled,
   // ref so we can call it imperatively whenever scrollToId changes.
   const scrollToFnRef = useRef<((highlight: IHighlight) => void) | null>(null);
   const scrolledToIdRef = useRef<string | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [layoutReady, setLayoutReady] = useState(false);
 
   const transformed: IHighlight[] = useMemo(() => highlights.map((h) => ({
     id: h.id,
@@ -101,6 +103,21 @@ export default function PdfPreview({ pdfUrl, highlights, scrollToId, onScrolled,
     [highlights],
   );
 
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node) return;
+
+    const check = () => {
+      const rect = node.getBoundingClientRect();
+      setLayoutReady(node.offsetParent !== null && rect.width > 0 && rect.height > 0);
+    };
+
+    check();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(check);
+    observer?.observe(node);
+    return () => observer?.disconnect();
+  }, []);
+
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg border border-border bg-white">
       <style>{`
@@ -111,8 +128,13 @@ export default function PdfPreview({ pdfUrl, highlights, scrollToId, onScrolled,
         .k2s-pdf-wrapper .k2s-hl-unsupported .Highlight__part { background: rgba(239, 68, 68, 0.30); }
         .k2s-pdf-wrapper .Highlight--scrolledTo .Highlight__part { background: rgba(59, 130, 246, 0.45); outline: 2px solid #2563EB; outline-offset: -2px; }
       `}</style>
-      <div className="k2s-pdf-wrapper h-full w-full">
-        <PdfLoader
+      <div ref={wrapperRef} className="k2s-pdf-wrapper h-full w-full">
+        {!layoutReady ? (
+          <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+            Loading PDF…
+          </div>
+        ) : (
+          <PdfLoader
           url={pdfUrl}
           workerSrc={WORKER_SRC}
           beforeLoad={
@@ -141,7 +163,8 @@ export default function PdfPreview({ pdfUrl, highlights, scrollToId, onScrolled,
               scrolledToIdRef={scrolledToIdRef}
             />
           )}
-        </PdfLoader>
+          </PdfLoader>
+        )}
       </div>
     </div>
   );

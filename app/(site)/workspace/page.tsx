@@ -1513,9 +1513,9 @@ export default function Workspace() {
         <div className={activeTab !== "slides" ? "hidden" : ""}>
           <SlidesTab presentation={presentation} onSaved={handleSaved} onSwitchToSources={() => setActiveTab("sources")} />
         </div>
-        <div className={activeTab !== "fidelity" ? "hidden" : ""}>
+        {activeTab === "fidelity" && (
           <FidelityTab presentation={presentation} onDeleteSlide={handleDeleteSlide} />
-        </div>
+        )}
       </div>
     </div>
   );
