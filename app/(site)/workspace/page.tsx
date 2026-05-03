@@ -1141,6 +1141,18 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
       </div>
     );
   }
+  return <FidelityReportView presentation={presentation} report={report} onDeleteSlide={onDeleteSlide} />;
+}
+
+function FidelityReportView({
+  presentation,
+  report,
+  onDeleteSlide,
+}: {
+  presentation: FullPresentation;
+  report: FidelityReport;
+  onDeleteSlide: (idx: number) => Promise<void> | void;
+}) {
   const det = report.deterministic;
   const grade = GRADE_STYLES[report.overallGrade];
   const chunkById = useMemo(
