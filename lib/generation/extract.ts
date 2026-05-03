@@ -12,11 +12,36 @@ import { findFocusedCropBounds } from "@/lib/generation/image-crop";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
+export interface ChunkRect {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface ChunkBBox {
+  pageNumber: number;
+  // Coordinates are normalised against the captured viewport (width/height);
+  // the PDF viewer rescales when rendering. y origin is the top of the page.
+  width: number;
+  height: number;
+  // boundingRect — union of all line rects, used for scroll-to and layout.
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  // Per-line rectangles. The PDF viewer renders one highlight box per rect,
+  // so this avoids painting one giant block over blank space and unrelated
+  // text when a chunk spans multiple lines.
+  rects?: ChunkRect[];
+}
+
 export interface ExtractedChunk {
   id: string;            // CHK-001-p1-2  (sourceIdx-page-paragraph)
   page?: number;
   paragraph?: number;
   text: string;
+  bbox?: ChunkBBox;
 }
 
 export interface ExtractedImage {
@@ -32,6 +57,9 @@ export interface Extracted {
   fullText: string;
   chunks: ExtractedChunk[];
   images: ExtractedImage[];
+  // Web-served path of the original source file when we keep it around for
+  // preview (PDFs only today). Undefined for URL/code/text sources.
+  sourceUrl?: string;
 }
 
 export function stripFences(raw: string): string {
@@ -137,43 +165,159 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
 
   const outDir = path.join(PUBLIC_EXTRACTED, presentationId);
   let outDirCreated = false;
+  const ensureOutDir = async () => {
+    if (!outDirCreated) {
+      await fs.mkdir(outDir, { recursive: true });
+      outDirCreated = true;
+    }
+  };
+
+  // Persist the original PDF so the workspace can render an inline preview
+  // with highlight overlays on cited chunks.
+  await ensureOutDir();
+  await fs.writeFile(path.join(outDir, "source.pdf"), buf);
+  const sourceUrl = `/extracted/${presentationId}/source.pdf`;
 
   for (let p = 1; p <= pdf.numPages; p++) {
     const page = await pdf.getPage(p);
+    const viewport = page.getViewport({ scale: 1 });
+    const pageWidth = viewport.width;
+    const pageHeight = viewport.height;
 
-    // ---- text ----
+    // ---- text + per-line bboxes ----
+    type LineEntry = { text: string; x1: number; y1: number; x2: number; y2: number };
+    const lineEntries: LineEntry[] = [];
+
     const textContent = await page.getTextContent();
-    const lines: string[] = [];
-    let currentLine: string[] = [];
+    let currentText: string[] = [];
+    let curX1 = Infinity, curY1 = Infinity, curX2 = -Infinity, curY2 = -Infinity;
     let lastY: number | null = null;
 
-    for (const item of textContent.items) {
-      const it = item as { str: string; transform?: number[]; hasEOL?: boolean };
-      if (!it.str) continue;
-      const y = it.transform?.[5];
-      if (lastY !== null && y !== undefined && Math.abs(y - lastY) > 2) {
-        if (currentLine.length) lines.push(currentLine.join(" "));
-        currentLine = [];
-      }
-      currentLine.push(it.str);
-      if (y !== undefined) lastY = y;
-      if (it.hasEOL) {
-        if (currentLine.length) lines.push(currentLine.join(" "));
-        currentLine = [];
-      }
-    }
-    if (currentLine.length) lines.push(currentLine.join(" "));
-
-    const pageText = lines.join("\n").replace(/\s+\n/g, "\n").trim();
-    fullText += `\n\n[Page ${p}]\n${pageText}`;
-    paragraphs(pageText).forEach((para, idx) => {
-      chunks.push({
-        id: `CHK-p${p}-${String(idx + 1).padStart(2, "0")}`,
-        page: p,
-        paragraph: idx + 1,
-        text: para,
+    const flush = () => {
+      if (!currentText.length) return;
+      // Convert PDF user-space (origin bottom-left) → top-left origin used by
+      // react-pdf-highlighter. curY1 currently holds the top of the line in
+      // PDF coords, curY2 the bottom; flip both.
+      const topY = pageHeight - curY1;
+      const bottomY = pageHeight - curY2;
+      lineEntries.push({
+        text: currentText.join(" "),
+        x1: curX1,
+        y1: Math.min(topY, bottomY),
+        x2: curX2,
+        y2: Math.max(topY, bottomY),
       });
-    });
+      currentText = [];
+      curX1 = Infinity; curY1 = Infinity; curX2 = -Infinity; curY2 = -Infinity;
+    };
+
+    for (const item of textContent.items) {
+      const it = item as { str: string; transform?: number[]; width?: number; height?: number; hasEOL?: boolean };
+      if (!it.str) continue;
+      const x = it.transform?.[4] ?? 0;
+      const y = it.transform?.[5] ?? 0;
+      const w = it.width ?? 0;
+      const h = it.height ?? 0;
+
+      if (lastY !== null && Math.abs(y - lastY) > 2) flush();
+
+      currentText.push(it.str);
+      // PDF item bbox in PDF user-space: top y is `y + h`, bottom is `y`.
+      curX1 = Math.min(curX1, x);
+      curX2 = Math.max(curX2, x + w);
+      curY1 = Math.max(curY1 === Infinity ? -Infinity : curY1, y + h); // top in PDF coords
+      curY2 = Math.min(curY2 === -Infinity ? Infinity : curY2, y);     // bottom in PDF coords
+
+      lastY = y;
+      if (it.hasEOL) flush();
+    }
+    flush();
+
+    // ---- group lines into paragraphs by y-gap ----
+    // pdfjs typically reports lines top-to-bottom in top-left coords (after our
+    // flip), so consecutive lines with a larger-than-typical y-gap mark a
+    // paragraph boundary.
+    type ParaAcc = {
+      texts: string[];
+      lines: ChunkRect[];
+      bbox: { x1: number; y1: number; x2: number; y2: number };
+    };
+    const paras: ParaAcc[] = [];
+    let prev: LineEntry | null = null;
+    let cur: ParaAcc | null = null;
+    const lineHeights = lineEntries.map((l) => l.y2 - l.y1).filter((h) => h > 0);
+    const medianLineHeight = lineHeights.length
+      ? lineHeights.slice().sort((a, b) => a - b)[Math.floor(lineHeights.length / 2)]
+      : 12;
+    for (const line of lineEntries) {
+      const gap = prev && cur ? line.y1 - prev.y2 : 0;
+      // Threshold ~0.6× median line height — paragraph spacing in most PDFs is
+      // larger than the inter-line leading, so this catches real paragraph
+      // breaks without splitting on the small gap between consecutive lines.
+      if (!cur || gap > medianLineHeight * 0.6) {
+        cur = {
+          texts: [],
+          lines: [],
+          bbox: { x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 },
+        };
+        paras.push(cur);
+      } else {
+        cur.bbox.x1 = Math.min(cur.bbox.x1, line.x1);
+        cur.bbox.y1 = Math.min(cur.bbox.y1, line.y1);
+        cur.bbox.x2 = Math.max(cur.bbox.x2, line.x2);
+        cur.bbox.y2 = Math.max(cur.bbox.y2, line.y2);
+      }
+      cur.texts.push(line.text);
+      cur.lines.push({ x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 });
+      prev = line;
+    }
+
+    const pageText = lineEntries.map((l) => l.text).join("\n").replace(/\s+\n/g, "\n").trim();
+    fullText += `\n\n[Page ${p}]\n${pageText}`;
+
+    let paraIdx = 0;
+    for (const pp of paras) {
+      const text = pp.texts.join(" ").replace(/\s+/g, " ").trim();
+      if (text.length < 20) continue;
+      paraIdx += 1;
+      const isFiniteRect = (r: ChunkRect) =>
+        Number.isFinite(r.x1) && Number.isFinite(r.y1)
+        && Number.isFinite(r.x2) && Number.isFinite(r.y2)
+        && r.x2 > r.x1 && r.y2 > r.y1;
+      const cleanRects = pp.lines.filter(isFiniteRect);
+      const bbox = pp.bbox;
+      if (
+        !Number.isFinite(bbox.x1) || !Number.isFinite(bbox.y1)
+        || !Number.isFinite(bbox.x2) || !Number.isFinite(bbox.y2)
+        || bbox.x2 <= bbox.x1 || bbox.y2 <= bbox.y1
+      ) {
+        // Degenerate bbox (no real text dimensions) — store the chunk without
+        // bbox metadata so the preview falls back to the text-excerpt UI.
+        chunks.push({
+          id: `CHK-p${p}-${String(paraIdx).padStart(2, "0")}`,
+          page: p,
+          paragraph: paraIdx,
+          text,
+        });
+        continue;
+      }
+      chunks.push({
+        id: `CHK-p${p}-${String(paraIdx).padStart(2, "0")}`,
+        page: p,
+        paragraph: paraIdx,
+        text,
+        bbox: {
+          pageNumber: p,
+          width: pageWidth,
+          height: pageHeight,
+          x1: bbox.x1,
+          y1: bbox.y1,
+          x2: bbox.x2,
+          y2: bbox.y2,
+          rects: cleanRects.length > 0 ? cleanRects : undefined,
+        },
+      });
+    }
 
     // ---- images: render the page to PNG only if it has image XObjects ----
     let hasImage = false;
@@ -217,10 +361,7 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
             cropBounds.height,
           );
         }
-        if (!outDirCreated) {
-          await fs.mkdir(outDir, { recursive: true });
-          outDirCreated = true;
-        }
+        await ensureOutDir();
         const filename = cropBounds ? `page-${p}-focus.png` : `page-${p}.png`;
         const buffer = await outputCanvas.encode("png");
         await fs.writeFile(path.join(outDir, filename), buffer);
@@ -238,7 +379,7 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
     }
   }
 
-  return { fullText: fullText.trim(), chunks, images };
+  return { fullText: fullText.trim(), chunks, images, sourceUrl };
 }
 
 // =============================

@@ -388,6 +388,7 @@ export async function POST(req: NextRequest) {
           title: outline.title || extracted.sourceName,
           sourceName: extracted.sourceName,
           sourceType: extracted.sourceType,
+          sourceUrl: extracted.sourceUrl,
           audienceType,
           audienceProfile: audienceProfile.id,
           audienceProfileLabel: audienceProfile.label,

@@ -37,3 +37,6 @@ next-env.d.ts
 
 # auto-generated from .agents/skills/*/SKILL.md (see scripts/inline-skills.mjs)
 /lib/generation/skills.generated.ts
+
+# auto-copied from node_modules/pdfjs-dist (see scripts/copy-pdfjs-worker.mjs)
+/public/pdfjs

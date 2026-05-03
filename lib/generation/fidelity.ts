@@ -50,7 +50,6 @@ export interface FidelityReport {
   deterministic: FidelityDeterministic;
   coverage: FidelitySectionCoverage[];
   unsupportedClaims: FidelityUnsupportedClaim[];
-  recommendations: string[];
 }
 
 interface OutlineSectionLike {
@@ -133,8 +132,6 @@ For unsupportedClaims[]:
   Slides whose text makes a factual claim you cannot trace to the source.
   Quote the slide text in "claim". Provide the closest source phrase you found in "closestSourceSpan" (or omit if you found nothing). sourceChunkIds is the closest chunk(s).
 
-For recommendations[]: 1–4 short, actionable strings (e.g. "Add a slide for X", "Drop unsupported claim on slide 7").
-
 Constraints:
 - Every chunk id you emit MUST appear in the chunk index.
 - Do not output markdown fences. JSON only.
@@ -154,8 +151,7 @@ Schema:
   ],
   "unsupportedClaims": [
     { "slideIndex": number, "claim": string, "closestSourceSpan"?: string, "sourceChunkIds": [string] }
-  ],
-  "recommendations": [string]
+  ]
 }`;
 
 function summariseChunks(chunks: ExtractedChunk[]): string {
@@ -177,6 +173,41 @@ function summariseSlides(slides: Slide[]): string {
       return `#${i + 1} ${s.type}${s.variant ? `/${s.variant}` : ""}${head}${refs}`;
     })
     .join("\n");
+}
+
+interface AnthropicTextMessage {
+  content?: unknown;
+  stop_reason?: unknown;
+}
+
+function extractTextContent(msg: AnthropicTextMessage): string {
+  const content = Array.isArray(msg.content) ? msg.content : [];
+  return content
+    .filter((block): block is { type: "text"; text: string } => {
+      if (!block || typeof block !== "object") return false;
+      const candidate = block as Record<string, unknown>;
+      return candidate.type === "text" && typeof candidate.text === "string";
+    })
+    .map((block) => block.text)
+    .join("\n")
+    .trim();
+}
+
+function parseFidelityJson(raw: string): unknown {
+  const cleaned = stripFences(raw).trim();
+  if (!cleaned) {
+    throw new Error("empty fidelity response");
+  }
+  return JSON.parse(cleaned);
+}
+
+function formatJsonFailure(err: unknown, raw: string, stopReason: unknown): string {
+  const message = err instanceof Error ? err.message : "invalid JSON";
+  const suffix = raw.trimEnd().slice(-160).replace(/\s+/g, " ").trim();
+  const parts = [message];
+  if (stopReason === "max_tokens") parts.push("response was truncated at max_tokens");
+  if (suffix) parts.push(`response ended with: ${suffix}`);
+  return parts.join("; ");
 }
 
 function summariseOutline(outline: OutlineLike): string {
@@ -209,7 +240,6 @@ function coerceLLM(parsed: unknown, validChunkIds: Set<string>, slidesLen: numbe
   summary: string;
   coverage: FidelitySectionCoverage[];
   unsupportedClaims: FidelityUnsupportedClaim[];
-  recommendations: string[];
 } {
   const obj = (parsed && typeof parsed === "object" ? parsed : {}) as Record<string, unknown>;
   const grade = obj.overallGrade === "high" || obj.overallGrade === "medium" || obj.overallGrade === "low"
@@ -258,11 +288,7 @@ function coerceLLM(parsed: unknown, validChunkIds: Set<string>, slidesLen: numbe
       };
     })
     .filter((c): c is FidelityUnsupportedClaim => c !== null);
-  const recommendations = Array.isArray(obj.recommendations)
-    ? (obj.recommendations as unknown[]).filter((r): r is string => typeof r === "string" && r.trim().length > 0)
-    : [];
-
-  return { overallGrade: grade, summary, coverage, unsupportedClaims, recommendations };
+  return { overallGrade: grade, summary, coverage, unsupportedClaims };
 }
 
 export interface GenerateFidelityArgs {
@@ -291,7 +317,6 @@ export async function generateFidelityReport(args: GenerateFidelityArgs): Promis
       deterministic,
       coverage: [],
       unsupportedClaims: [],
-      recommendations: [],
     };
   }
 
@@ -309,33 +334,56 @@ export async function generateFidelityReport(args: GenerateFidelityArgs): Promis
     "Produce the fidelity report JSON.",
   ].join("\n");
 
-  let parsed: unknown;
-  try {
-    const msg = await client.messages.create({
-      model,
-      max_tokens: 4096,
-      system: FIDELITY_SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: userText, cache_control: { type: "ephemeral" } },
-          ],
-        },
-      ],
-    });
-    const raw = msg.content[0]?.type === "text" ? msg.content[0].text : "";
-    parsed = JSON.parse(stripFences(raw));
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "fidelity call failed";
+  const compactUserText = [
+    userText,
+    "",
+    "IMPORTANT: Keep the response compact enough to fit in the token budget.",
+    "For each coverage entry, emit at most 2 capturedKeyPoints and at most 2 missedKeyPoints.",
+    "Emit at most 5 unsupportedClaims.",
+    "Keep summary under 40 words and each point under 25 words.",
+  ].join("\n");
+
+  let parsed: unknown | undefined;
+  let lastFailure = "fidelity call failed";
+  for (const attempt of [
+    { text: userText, maxTokens: 4096 },
+    { text: compactUserText, maxTokens: 8192 },
+  ]) {
+    let raw = "";
+    let stopReason: unknown;
+    try {
+      const msg = await client.messages.create({
+        model,
+        max_tokens: attempt.maxTokens,
+        system: FIDELITY_SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: attempt.text, cache_control: { type: "ephemeral" } },
+            ],
+          },
+        ],
+      });
+      const textMessage = msg as AnthropicTextMessage;
+      raw = extractTextContent(textMessage);
+      stopReason = textMessage.stop_reason;
+      parsed = parseFidelityJson(raw);
+      break;
+    } catch (err) {
+      lastFailure = formatJsonFailure(err, raw, stopReason);
+      continue;
+    }
+  }
+
+  if (parsed === undefined) {
     return {
       generatedAt: new Date().toISOString(),
       overallGrade: "medium",
-      summary: `Fidelity grading failed: ${message}`,
+      summary: `Fidelity grading used deterministic checks only because the narrative grader returned ${lastFailure}.`,
       deterministic,
       coverage: [],
       unsupportedClaims: [],
-      recommendations: [],
     };
   }
 

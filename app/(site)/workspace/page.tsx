@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Play, Upload, Link as LinkIcon, Sparkles, Check, AlertCircle, ChevronDown } from "lucide-react";
 import { THEME_PRESETS, SEMANTIC_COLOR_LABELS } from "@/core/theming/presets";
@@ -66,14 +67,26 @@ interface FidelityReport {
   deterministic: FidelityDeterministic;
   coverage: FidelitySectionCoverage[];
   unsupportedClaims: FidelityUnsupportedClaim[];
-  recommendations: string[];
+}
+
+interface ChunkRectJson { x1: number; y1: number; x2: number; y2: number }
+interface ChunkBBoxJson {
+  pageNumber: number;
+  width: number;
+  height: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  rects?: ChunkRectJson[];
 }
 
 interface FullPresentation extends PresentationMeta {
   slides: Slide[];
   brand?: Brand;
   fidelityReport?: FidelityReport;
-  chunks?: { id: string; page?: number; paragraph?: number; text: string }[];
+  chunks?: { id: string; page?: number; paragraph?: number; text: string; bbox?: ChunkBBoxJson }[];
+  sourceUrl?: string;
 }
 
 const DEFAULT_BRAND: Brand = { text: "SYNOGIZE LAB", gradientFrom: "#f59e0b", gradientTo: "#3b82f6" };
@@ -1057,21 +1070,47 @@ const GRADE_STYLES: Record<FidelityReport["overallGrade"], { label: string; bg: 
 
 function pct(n: number) { return `${Math.round(n * 100)}%`; }
 
-type DeckChunk = { id: string; page?: number; paragraph?: number; text: string };
+type DeckChunk = { id: string; page?: number; paragraph?: number; text: string; bbox?: ChunkBBoxJson };
 
-function ChunkExcerpts({ ids, chunks }: { ids: string[]; chunks: Map<string, DeckChunk> }) {
+const PdfPreview = dynamic(() => import("@/components/fidelity/pdf-preview"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
+      Loading PDF…
+    </div>
+  ),
+});
+
+function ChunkExcerpts({ ids, chunks, onPick, activeId }: {
+  ids: string[];
+  chunks: Map<string, DeckChunk>;
+  onPick?: (id: string) => void;
+  activeId?: string | null;
+}) {
   if (!ids.length) return null;
   return (
     <div className="mt-1.5 space-y-1.5">
       {ids.map((id) => {
         const chunk = chunks.get(id);
+        const clickable = !!onPick && !!chunk?.bbox;
+        const active = activeId === id;
         return (
-          <div key={id} className="rounded border border-border/50 bg-muted/40 px-2.5 py-1.5">
+          <div
+            key={id}
+            data-chunk-id={id}
+            onClick={clickable ? () => onPick!(id) : undefined}
+            className={cn(
+              "rounded border px-2.5 py-1.5 transition-colors",
+              active ? "border-blue-500/60 bg-blue-500/10" : "border-border/50 bg-muted/40",
+              clickable && "cursor-pointer hover:border-blue-500/40 hover:bg-blue-500/5",
+            )}
+          >
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[10px] font-mono text-muted-foreground/70">{id}</span>
               {chunk?.page !== undefined && (
                 <span className="text-[10px] text-muted-foreground/60">p{chunk.page}{chunk.paragraph !== undefined ? `¶${chunk.paragraph}` : ""}</span>
               )}
+              {clickable && <span className="ml-auto text-[10px] text-blue-500/70">View in PDF →</span>}
             </div>
             {chunk ? (
               <p className="text-[11px] leading-relaxed text-muted-foreground/90 italic line-clamp-3">{chunk.text}</p>
@@ -1104,10 +1143,56 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
   }
   const det = report.deterministic;
   const grade = GRADE_STYLES[report.overallGrade];
-  const chunkById = new Map((presentation.chunks ?? []).map((c) => [c.id, c]));
+  const chunkById = useMemo(
+    () => new Map((presentation.chunks ?? []).map((c) => [c.id, c])),
+    [presentation.chunks],
+  );
+
+  // Build highlight set for the PDF preview from the report. Each chunk gets
+  // a single colour priority: unsupported > missed > captured.
+  const pdfAvailable = presentation.sourceType === "pdf" && !!presentation.sourceUrl;
+  const highlights = useMemo(() => {
+    if (!pdfAvailable) return [];
+    type Color = "captured" | "missed" | "unsupported";
+    const PRIORITY: Record<Color, number> = { unsupported: 3, missed: 2, captured: 1 };
+    const map = new Map<string, { color: Color; text: string; comment: string }>();
+    const addRef = (id: string, color: Color, comment: string) => {
+      const chunk = chunkById.get(id);
+      if (!chunk?.bbox) return;
+      const existing = map.get(id);
+      if (existing && PRIORITY[existing.color] >= PRIORITY[color]) return;
+      map.set(id, { color, text: chunk.text, comment });
+    };
+    for (const sec of report.coverage) {
+      for (const p of sec.capturedKeyPoints) for (const id of p.evidenceChunkIds ?? []) addRef(id, "captured", `Captured: ${p.text}`);
+      for (const p of sec.missedKeyPoints) for (const id of p.sourceChunkIds ?? []) addRef(id, "missed", `Missed: ${p.text}`);
+    }
+    for (const c of report.unsupportedClaims) for (const id of c.sourceChunkIds ?? []) addRef(id, "unsupported", `Unsupported claim — ${c.claim.slice(0, 80)}`);
+    return Array.from(map.entries()).map(([id, v]) => {
+      const chunk = chunkById.get(id)!;
+      return { id, bbox: chunk.bbox!, text: v.text, comment: v.comment, color: v.color };
+    });
+  }, [pdfAvailable, report, chunkById]);
+
+  const leftPanelRef = useRef<HTMLDivElement | null>(null);
+  const [selectedChunkId, setSelectedChunkId] = useState<string | null>(null);
+  const [scrollToId, setScrollToId] = useState<string | null>(null);
+  const handlePick = useCallback((id: string) => {
+    setSelectedChunkId(id);
+    setScrollToId(id);
+  }, []);
+  const handlePdfHighlightClick = useCallback((id: string) => {
+    setSelectedChunkId(id);
+    setScrollToId(null);
+    requestAnimationFrame(() => {
+      const target = leftPanelRef.current?.querySelector<HTMLElement>(`[data-chunk-id="${CSS.escape(id)}"]`);
+      target?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+  }, []);
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", pdfAvailable && "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-6 lg:space-y-0 lg:items-start")}>
+      <div ref={leftPanelRef} className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-stretch">
         <div className={cn("rounded-xl border p-6 flex flex-col items-center justify-center min-w-[160px]", grade.bg, grade.border)}>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-2">Overall</p>
@@ -1127,22 +1212,6 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
         <StatCard label="Image usage" value={det.totalChunkIds === 0 || det.imageSlides + det.imageUsageRatio === 0 ? "—" : pct(det.imageUsageRatio)} sub={`${det.imageSlides} image slides`} />
         <StatCard label="Total slides" value={det.totalSlides} sub={Object.entries(det.slideTypeMix).slice(0, 3).map(([t, n]) => `${t} ${n}`).join(" · ")} />
       </div>
-
-      {report.recommendations.length > 0 && (
-        <Card>
-          <CardContent className="p-5 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Recommendations</p>
-            <ul className="space-y-1.5">
-              {report.recommendations.map((r, i) => (
-                <li key={i} className="text-sm leading-relaxed flex gap-2">
-                  <span className="text-muted-foreground/60">→</span>
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
 
       {report.coverage.length > 0 && (
         <div className="space-y-3">
@@ -1165,7 +1234,7 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
                           <li key={i} className="text-xs leading-relaxed">
                             <p>{p.text}</p>
                             {p.evidenceChunkIds && p.evidenceChunkIds.length > 0 && (
-                              <ChunkExcerpts ids={p.evidenceChunkIds} chunks={chunkById} />
+                              <ChunkExcerpts ids={p.evidenceChunkIds} chunks={chunkById} onPick={pdfAvailable ? handlePick : undefined} activeId={selectedChunkId} />
                             )}
                           </li>
                         ))}
@@ -1182,7 +1251,7 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
                           <li key={i} className="text-xs leading-relaxed">
                             <p>{p.text}</p>
                             {p.sourceChunkIds && p.sourceChunkIds.length > 0 && (
-                              <ChunkExcerpts ids={p.sourceChunkIds} chunks={chunkById} />
+                              <ChunkExcerpts ids={p.sourceChunkIds} chunks={chunkById} onPick={pdfAvailable ? handlePick : undefined} activeId={selectedChunkId} />
                             )}
                           </li>
                         ))}
@@ -1211,7 +1280,7 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
                 {c.closestSourceSpan && (
                   <p className="text-xs leading-relaxed text-muted-foreground italic">closest source: &ldquo;{c.closestSourceSpan}&rdquo;</p>
                 )}
-                {c.sourceChunkIds.length > 0 && <ChunkExcerpts ids={c.sourceChunkIds} chunks={chunkById} />}
+                {c.sourceChunkIds.length > 0 && <ChunkExcerpts ids={c.sourceChunkIds} chunks={chunkById} onPick={pdfAvailable ? handlePick : undefined} activeId={selectedChunkId} />}
                 {c.slideIndex >= 0 && c.slideIndex < (presentation.slides?.length ?? 0) && (
                   <div className="pt-1">
                     <Button
@@ -1235,6 +1304,28 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
       )}
 
       <p className="text-[10px] text-muted-foreground/50 text-right">Generated {new Date(report.generatedAt).toLocaleString()}</p>
+      </div>
+      {pdfAvailable && presentation.sourceUrl && (
+        <div className="lg:sticky lg:top-4 lg:h-[calc(100vh-7rem)] h-[600px] mt-6 lg:mt-0 flex flex-col min-h-0">
+          <div className="mb-2 flex items-center justify-between flex-shrink-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">Source PDF</p>
+            <div className="flex items-center gap-3 text-[10px] text-muted-foreground/80">
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "rgba(34,197,94,0.5)" }} /> Captured</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "rgba(245,158,11,0.5)" }} /> Missed</span>
+              <span className="flex items-center gap-1"><span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "rgba(239,68,68,0.5)" }} /> Unsupported</span>
+            </div>
+          </div>
+          <div className="flex-1 min-h-0">
+            <PdfPreview
+              pdfUrl={presentation.sourceUrl}
+              highlights={highlights}
+              scrollToId={scrollToId}
+              onScrolled={() => setScrollToId(null)}
+              onHighlightClick={handlePdfHighlightClick}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
