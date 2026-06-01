@@ -1,0 +1,204 @@
+
+> ai-nextjs-slides@0.1.0 pretest
+> node scripts/inline-skills.mjs
+
+[inline-skills] wrote lib/generation/skills.generated.ts (27697 chars)
+
+> ai-nextjs-slides@0.1.0 test
+> node scripts/run-unit-tests.cjs
+
+TAP version 13
+# Subtest: inline DOCX equation yields $...$
+ok 1 - inline DOCX equation yields $...$
+  ---
+  duration_ms: 79.088137
+  ...
+# Subtest: m:oMathPara yields $$...$$
+ok 2 - m:oMathPara yields $$...$$
+  ---
+  duration_ms: 14.308135
+  ...
+# Subtest: math-free XML is unchanged by preprocessMathXml
+ok 3 - math-free XML is unchanged by preprocessMathXml
+  ---
+  duration_ms: 0.328004
+  ...
+# Subtest: stripXmlTags extracts plain text with paragraph breaks
+ok 4 - stripXmlTags extracts plain text with paragraph breaks
+  ---
+  duration_ms: 0.455888
+  ...
+# Subtest: math LaTeX survives stripXmlTags
+ok 5 - math LaTeX survives stripXmlTags
+  ---
+  duration_ms: 0.39818
+  ...
+# Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
+ok 6 - preprocessMathXml + stripXmlTags: inline equation at correct position
+  ---
+  duration_ms: 8.357415
+  ...
+# Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
+ok 7 - retries fidelity grading with compact instructions when the first JSON response is truncated
+  ---
+  duration_ms: 3.879527
+  ...
+# Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
+ok 8 - falls back to deterministic fidelity when both narrative JSON responses are invalid
+  ---
+  duration_ms: 0.903415
+  ...
+# Subtest: finds a focused visual region instead of returning the whole page
+ok 9 - finds a focused visual region instead of returning the whole page
+  ---
+  duration_ms: 6.11941
+  ...
+# Subtest: prefers a dense screenshot-like area over sparse page marks
+ok 10 - prefers a dense screenshot-like area over sparse page marks
+  ---
+  duration_ms: 1.739619
+  ...
+# Subtest: returns null for blank pages
+ok 11 - returns null for blank pages
+  ---
+  duration_ms: 1.892975
+  ...
+# Subtest: convert fraction → \\frac{a}{b}
+ok 12 - convert fraction → \\frac{a}{b}
+  ---
+  duration_ms: 62.583796
+  ...
+# Subtest: convert radical with degree → \\sqrt[3]{x}
+ok 13 - convert radical with degree → \\sqrt[3]{x}
+  ---
+  duration_ms: 9.405569
+  ...
+# Subtest: convert radical with hidden degree → \\sqrt{x}
+ok 14 - convert radical with hidden degree → \\sqrt{x}
+  ---
+  duration_ms: 7.962549
+  ...
+# Subtest: convert n-ary summation with limits
+ok 15 - convert n-ary summation with limits
+  ---
+  duration_ms: 12.560672
+  ...
+# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
+ok 16 - convert matrix → \\begin{matrix}...\\end{matrix}
+  ---
+  duration_ms: 9.247094
+  ...
+# Subtest: convert accent → \\hat{v}
+ok 17 - convert accent → \\hat{v}
+  ---
+  duration_ms: 19.197582
+  ...
+# Subtest: convert delimiter → \\left(x+y\\right)
+ok 18 - convert delimiter → \\left(x+y\\right)
+  ---
+  duration_ms: 10.817255
+  ...
+# Subtest: degrade unknown element without throwing
+ok 19 - degrade unknown element without throwing
+  ---
+  duration_ms: 9.634726
+  ...
+# Subtest: oMathPara wrapper is handled
+ok 20 - oMathPara wrapper is handled
+  ---
+  duration_ms: 24.957112
+  ...
+# Subtest: normalizes model outline total/section-count mismatch before validation
+ok 21 - normalizes model outline total/section-count mismatch before validation
+  ---
+  duration_ms: 3.19127
+  ...
+# Subtest: repairs missing first title while preserving target slide count
+ok 22 - repairs missing first title while preserving target slide count
+  ---
+  duration_ms: 2.63952
+  ...
+# Subtest: moves an existing title to the front instead of failing deck validation
+ok 23 - moves an existing title to the front instead of failing deck validation
+  ---
+  duration_ms: 0.489363
+  ...
+# Subtest: inserts fallback image slide for academic decks when source images exist
+ok 24 - inserts fallback image slide for academic decks when source images exist
+  ---
+  duration_ms: 0.851881
+  ...
+# Subtest: synthesizes quiz section slides when the model returns the wrong type
+ok 25 - synthesizes quiz section slides when the model returns the wrong type
+  ---
+  duration_ms: 0.778081
+  ...
+# Subtest: adds fallback evidence refs to academic factual slides in a bounded section
+ok 26 - adds fallback evidence refs to academic factual slides in a bounded section
+  ---
+  duration_ms: 0.346265
+  ...
+# Subtest: selects explicit candidate chunks before scoring by section text
+ok 27 - selects explicit candidate chunks before scoring by section text
+  ---
+  duration_ms: 4.642051
+  ...
+# Subtest: normalizes free-form audience labels with technical fallback
+ok 28 - normalizes free-form audience labels with technical fallback
+  ---
+  duration_ms: 1.384305
+  ...
+# Subtest: rejects unknown evidence refs
+ok 29 - rejects unknown evidence refs
+  ---
+  duration_ms: 1.474556
+  ...
+# Subtest: rejects quiz sections for non-quiz audience profiles
+ok 30 - rejects quiz sections for non-quiz audience profiles
+  ---
+  duration_ms: 1.031845
+  ...
+# Subtest: requires academic quiz sections to be final
+ok 31 - requires academic quiz sections to be final
+  ---
+  duration_ms: 0.267434
+  ...
+# Subtest: rejects academic factual slides without evidence refs
+ok 32 - rejects academic factual slides without evidence refs
+  ---
+  duration_ms: 0.339126
+  ...
+# Subtest: maps only Anthropic-supported image extensions to media types
+ok 33 - maps only Anthropic-supported image extensions to media types
+  ---
+  duration_ms: 1.708505
+  ...
+# Subtest: resolves public image paths without allowing traversal outside public
+ok 34 - resolves public image paths without allowing traversal outside public
+  ---
+  duration_ms: 0.645601
+  ...
+# Subtest: orders candidate images first for section-specific vision context
+ok 35 - orders candidate images first for section-specific vision context
+  ---
+  duration_ms: 1.474081
+  ...
+# Subtest: builds text plus base64 image blocks from saved focused crops
+ok 36 - builds text plus base64 image blocks from saved focused crops
+  ---
+  duration_ms: 14.404573
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9453.981697
+
+=== BUILD OUTPUT ===
+✓ Compiled successfully in 58s
+✓ Type checking passed
+✓ 10 static pages generated
