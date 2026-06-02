@@ -168,6 +168,7 @@ export interface ContentBlock {
   emphasis?: boolean;
   codeLanguage?: string;
   imageRef?: string;
+  animKey?: string;
 }
 
 export interface SlideRenderProps {
@@ -252,6 +253,7 @@ export interface PresentationSpec {
   status: PresentationStatus;
   createdAt: string;
   updatedAt: string;
+  autoAnimate?: boolean;
 }
 
 // ========================
