@@ -1,0 +1,9 @@
+slug: 2026-06-01-idea-render-embedded-docx-pptx-math-as-latex-slides-using-markitd-5ns
+kind: feature
+project_id: slides
+idea: 2026-05-31-render-embedded-docx-pptx-math-as-latex-slides-using-markitd-5nsee
+capability: docx-math
+novelty: 4
+effort: 3
+source_trending:
+  - microsoft/markitdown

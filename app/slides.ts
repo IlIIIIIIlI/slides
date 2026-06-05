@@ -113,6 +113,8 @@ export interface Slide {
   variant?: string;
   // Chunk ids backing this slide's claims (resolved via deck.chunks)
   evidenceRefs?: string[];
+  // animKeys for GSAP Flip morphing (e.g. ["title", "code:0"])
+  animKeys?: string[];
 }
 
 export const slides: Slide[] = [

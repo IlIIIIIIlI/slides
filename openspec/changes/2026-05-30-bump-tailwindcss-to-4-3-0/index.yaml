@@ -1,0 +1,25 @@
+slug: 2026-05-30-bump-tailwindcss-to-4-3-0
+kind: dep-upgrade
+project_id: slides
+package: npm:tailwindcss
+from_version: 3.4.1
+to_version: 4.3.0
+counts:
+  removed: 1
+  signature_changed: 0
+  added_informational: 0
+  total_usage_sites: 2
+affected_symbols:
+  - name: Config
+    severity: removed
+    kind: type
+    usage_count: 2
+    usages:
+      - file: tailwind.config.ts
+        line: 1
+        column: 0
+        context: import type { Config } from "tailwindcss";
+      - file: tailwind.config.ts
+        line: 73
+        column: 13
+        context: "} satisfies Config;"
