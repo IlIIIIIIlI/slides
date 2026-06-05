@@ -9,6 +9,8 @@ import fs from "fs/promises";
 import path from "path";
 import { JSDOM } from "jsdom";
 import { findFocusedCropBounds } from "@/lib/generation/image-crop";
+import { preprocessMathXml } from "@/lib/generation/omml/omml";
+import { readZipEntries } from "@/lib/generation/omml/zip";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
@@ -494,6 +496,65 @@ async function extractImageFile(file: File, presentationId: string): Promise<Omi
 }
 
 // =============================
+// DOCX / PPTX: XML extraction + math preprocessing
+// =============================
+
+/** Strip XML tags and decode common entities, adding paragraph breaks. */
+export function stripXmlTags(
+  xml: string,
+  paraTags: string[] = [],
+): string {
+  let result = xml;
+  for (const tag of paraTags) {
+    result = result.replace(new RegExp(`</${tag}>`, "g"), "\n\n");
+  }
+  return result
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function extractDocx(
+  buf: Buffer,
+  _presentationId: string,
+): Promise<Omit<Extracted, "sourceName" | "sourceType">> {
+  const entries = await readZipEntries(
+    buf,
+    (name) => name === "word/document.xml",
+  );
+  const docXml = entries.get("word/document.xml")?.toString("utf8") ?? "";
+  const processed = preprocessMathXml(docXml);
+  const text = stripXmlTags(processed, ["w:p", "w:tr"]);
+  return { fullText: text, chunks: chunkPlainText(text), images: [] };
+}
+
+async function extractPptx(
+  buf: Buffer,
+  _presentationId: string,
+): Promise<Omit<Extracted, "sourceName" | "sourceType">> {
+  const entries = await readZipEntries(
+    buf,
+    (name) => /^ppt\/slides\/slide\d+\.xml$/.test(name),
+  );
+  const slideNames = Array.from(entries.keys()).sort((a, b) => {
+    const n = (s: string) => parseInt(s.match(/\d+/)?.[0] ?? "0", 10);
+    return n(a) - n(b);
+  });
+  const parts = slideNames.map((name) => {
+    const xml = entries.get(name)!.toString("utf8");
+    return stripXmlTags(preprocessMathXml(xml), ["a:p"]);
+  });
+  const fullText = parts.filter(Boolean).join("\n\n---\n\n");
+  return { fullText, chunks: chunkPlainText(fullText), images: [] };
+}
+
+// =============================
 // Public entry
 // =============================
 
@@ -521,6 +582,18 @@ export async function extractText(
     const buf = Buffer.from(await file.arrayBuffer());
     const body = await extractPdf(buf, presentationId);
     return { ...body, sourceName: file.name, sourceType: "pdf" };
+  }
+
+  if (ext === "docx") {
+    const buf = Buffer.from(await file.arrayBuffer());
+    const body = await extractDocx(buf, presentationId);
+    return { ...body, sourceName: file.name, sourceType: "docx" };
+  }
+
+  if (ext === "pptx") {
+    const buf = Buffer.from(await file.arrayBuffer());
+    const body = await extractPptx(buf, presentationId);
+    return { ...body, sourceName: file.name, sourceType: "pptx" };
   }
 
   // txt / md / code fallback

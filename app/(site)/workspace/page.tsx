@@ -162,7 +162,7 @@ function OverviewTab({ presentation, onSwitchToSources }: { presentation: FullPr
 
 // Free-form text. The list below is just autocomplete suggestions, not a closed enum.
 // Anything the user types that isn't recognized falls back to Technical on the server.
-const AUDIENCE_SUGGESTIONS = ["Technical", "Academic"];
+const AUDIENCE_SUGGESTIONS = ["Technical", "Academic", "Winston"];
 
 function AudienceCombobox({
   value,
