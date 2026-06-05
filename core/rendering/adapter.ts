@@ -1,5 +1,6 @@
 import type { SlideSpec, PresentationSpec } from '@/core/schemas/types';
 import type { Slide } from '@/app/slides';
+import { resolveAnimKey } from '@/core/rendering/morph';
 
 type SlideType = Slide['type'];
 
@@ -53,8 +54,22 @@ function extractPoints(spec: SlideSpec): string[] | undefined {
     .filter(Boolean);
 }
 
+function computeAnimKeys(spec: SlideSpec): string[] {
+  const seen = new Map<string, number>();
+  const keys: string[] = [];
+  for (const block of spec.contentBlocks) {
+    const kind = block.type === 'code-block' ? 'code-block' : block.type;
+    const idx = seen.get(kind) ?? 0;
+    seen.set(kind, idx + 1);
+    const key = resolveAnimKey(block, idx);
+    if (key) keys.push(key);
+  }
+  return keys;
+}
+
 export function specToSlide(spec: SlideSpec): Slide {
   const rp = spec.renderProps ?? {};
+  const animKeys = computeAnimKeys(spec);
 
   return {
     type: intentToType(spec),
@@ -82,6 +97,7 @@ export function specToSlide(spec: SlideSpec): Slide {
     options: rp.options,
     answer: rp.answer,
     explanation: rp.explanation,
+    animKeys: animKeys.length > 0 ? animKeys : undefined,
   };
 }
 

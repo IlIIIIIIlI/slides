@@ -170,6 +170,7 @@ export interface ContentBlock {
   emphasis?: boolean;
   codeLanguage?: string;
   imageRef?: string;
+  animKey?: string;
   // Hint for renderers: true when content contains KaTeX-renderable math.
   hasMath?: boolean;
 }
@@ -256,6 +257,7 @@ export interface PresentationSpec {
   status: PresentationStatus;
   createdAt: string;
   updatedAt: string;
+  autoAnimate?: boolean;
 }
 
 // ========================
