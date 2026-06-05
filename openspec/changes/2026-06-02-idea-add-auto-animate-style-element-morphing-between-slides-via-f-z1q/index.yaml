@@ -1,0 +1,10 @@
+slug: 2026-06-02-idea-add-auto-animate-style-element-morphing-between-slides-via-f-z1q
+kind: feature
+project_id: slides
+idea: 2026-06-02-add-auto-animate-style-element-morphing-between-slides-via-f-z1qe5
+capability: slide-morph-animation
+novelty: 3
+effort: 2
+source_trending:
+  - greensock/GSAP
+  - hakimel/reveal.js

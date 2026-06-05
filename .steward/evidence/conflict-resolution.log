@@ -1,0 +1,10 @@
+Merge conflict resolution — 2026-06-05
+
+Conflicts resolved:
+  README.md         — integrated both HEAD (auto-animate docs) and origin/main (math support docs)
+  core/schemas/types.ts — kept both `animKey?: string` (this branch) and `hasMath?: boolean` (main)
+
+Build: PASS (next build, 24.9 s, all 10 routes compiled successfully)
+Tests: PASS (50/50, 0 failures, 0 skipped)
+
+Changelog entry added to README.md under "## Changelog".

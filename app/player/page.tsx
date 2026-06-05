@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useAutoAnimate } from "@/hooks/use-auto-animate";
+import { flipIdFor } from "@/core/rendering/morph";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -114,6 +116,13 @@ function PresentationView({ id }: { id: string }) {
   const [showEvidence, setShowEvidence] = useState(false);
   const [slideDirection, setSlideDirection] = useState<"forward" | "backward">("forward");
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
+  const [autoAnimateEnabled, setAutoAnimateEnabled] = useState(true);
+  const slideContainerRef = useRef<HTMLDivElement>(null);
+  const { captureFlipState } = useAutoAnimate({
+    containerRef: slideContainerRef,
+    currentIndex: currentSlide,
+    enabled: autoAnimateEnabled,
+  });
 
   useEffect(() => {
     fetch(`/api/presentations/${id}`)
@@ -126,6 +135,7 @@ function PresentationView({ id }: { id: string }) {
           gradientFrom: d.brand.gradientFrom ?? DEFAULT_BRAND.gradientFrom,
           gradientTo: d.brand.gradientTo ?? DEFAULT_BRAND.gradientTo,
         });
+        if (d.autoAnimate === false) setAutoAnimateEnabled(false);
       })
       .catch(() => setFetchError("Presentation not found"))
       .finally(() => setLoadingSlides(false));
@@ -141,16 +151,18 @@ function PresentationView({ id }: { id: string }) {
       if (isInteractiveTarget && (e.key === " " || e.key === "Enter")) return;
       if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
+        captureFlipState();
         setSlideDirection("forward");
         setCurrentSlide((prev) => Math.min(prev + 1, slides.length - 1));
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
+        captureFlipState();
         setSlideDirection("backward");
         setCurrentSlide((prev) => Math.max(prev - 1, 0));
       } else if (e.key === "Home") {
-        e.preventDefault(); setSlideDirection("backward"); setCurrentSlide(0);
+        e.preventDefault(); captureFlipState(); setSlideDirection("backward"); setCurrentSlide(0);
       } else if (e.key === "End") {
-        e.preventDefault(); setSlideDirection("forward"); setCurrentSlide(slides.length - 1);
+        e.preventDefault(); captureFlipState(); setSlideDirection("forward"); setCurrentSlide(slides.length - 1);
       } else if (e.key === "Escape") {
         e.preventDefault();
         if (showEvidence) setShowEvidence(false);
@@ -163,7 +175,7 @@ function PresentationView({ id }: { id: string }) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isIframeExpanded, showEvidence, slides.length, router]);
+  }, [isIframeExpanded, showEvidence, slides.length, router, captureFlipState]);
 
   if (loadingSlides) {
     return (
@@ -185,6 +197,16 @@ function PresentationView({ id }: { id: string }) {
   const slide = slides[currentSlide];
   const v = resolveVariant(slide);
   const progress = ((currentSlide + 1) / slides.length) * 100;
+
+  // Derive the set of animKeys for this slide: prefer adapter-computed, else auto-derive from content
+  const slideAnimKeys = new Set<string>(
+    slide.animKeys ?? [
+      ...(slide.headline ? ['title'] : []),
+      ...(slide.code ? ['code:0'] : []),
+    ]
+  );
+  const headlineFlipId = slideAnimKeys.has('title') ? flipIdFor('title') : undefined;
+  const codeFlipId = slideAnimKeys.has('code:0') ? flipIdFor('code:0') : undefined;
 
   // Resolve evidence refs → chunks for the current slide
   const chunksById = new Map(chunks.map((c) => [c.id, c]));
@@ -251,6 +273,7 @@ function PresentationView({ id }: { id: string }) {
 
       {/* Slide content */}
       <div
+        ref={slideContainerRef}
         key={currentSlide}
         className={`h-full flex items-center p-16 relative ${slideDirection === "forward" ? "animate-slide-in-down" : "animate-slide-in-up"}`}
       >
@@ -275,7 +298,7 @@ function PresentationView({ id }: { id: string }) {
           {slide.type === "title" && v === "centered" && (
             <div className="text-center relative">
               <div className="absolute inset-0 opacity-10 blur-3xl" style={{ background: `radial-gradient(circle at 30% 50%, ${brand.gradientFrom} 0%, transparent 50%), radial-gradient(circle at 70% 50%, ${brand.gradientTo} 0%, transparent 50%)` }} />
-              <h1 className="type-display text-9xl font-bold mb-8 tracking-[-0.035em] leading-none relative z-10" style={{ background: brandGradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stripMd(slide.headline)}</h1>
+              <h1 data-flip-id={headlineFlipId} className="type-display text-9xl font-bold mb-8 tracking-[-0.035em] leading-none relative z-10" style={{ background: brandGradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stripMd(slide.headline)}</h1>
               {slide.subtitle && <p className="text-3xl font-light relative z-10" style={{ color: "var(--slide-text-muted)" }}>{stripMd(slide.subtitle)}</p>}
               <div className="mt-12 flex justify-center relative z-10">
                 <div className="h-1 w-32 rounded-full" style={{ background: `linear-gradient(90deg, ${brand.gradientFrom} 0%, ${brand.gradientTo} 100%)` }} />
@@ -287,14 +310,14 @@ function PresentationView({ id }: { id: string }) {
             <div className="relative w-full">
               <div className="absolute inset-0 opacity-10 blur-3xl" style={{ background: `radial-gradient(circle at 20% 50%, ${brand.gradientFrom} 0%, transparent 60%)` }} />
               <div className="h-1 w-24 rounded-full mb-10 relative z-10" style={{ background: `linear-gradient(90deg, ${brand.gradientFrom} 0%, ${brand.gradientTo} 100%)` }} />
-              <h1 className="type-display text-8xl font-bold mb-6 tracking-[-0.035em] leading-none relative z-10" style={{ background: brandGradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stripMd(slide.headline)}</h1>
+              <h1 data-flip-id={headlineFlipId} className="type-display text-8xl font-bold mb-6 tracking-[-0.035em] leading-none relative z-10" style={{ background: brandGradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stripMd(slide.headline)}</h1>
               {slide.subtitle && <p className="text-2xl font-light relative z-10 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{stripMd(slide.subtitle)}</p>}
             </div>
           )}
 
           {slide.type === "goals" && v === "list" && (
             <div className="mt-20">
-              <h2 className="type-display text-7xl font-bold mb-16 tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-7xl font-bold mb-16 tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="space-y-6">
                 {slide.points?.map((point, idx) => (
                   <div key={idx} className="text-2xl leading-relaxed" style={{ color: "var(--slide-text-secondary)" }}>• {inlineMd(point)}</div>
@@ -305,7 +328,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "goals" && v === "grid" && (
             <div className="mt-20">
-              <h2 className="type-display text-6xl font-bold mb-12 tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-12 tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-2 gap-6">
                 {slide.points?.map((point, idx) => (
                   <div key={idx} className="rounded-xl border border-gray-200/70 p-6">
@@ -319,7 +342,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "goals" && v === "numbered" && (
             <div className="mt-20">
-              <h2 className="type-display text-7xl font-bold mb-16 tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-7xl font-bold mb-16 tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="space-y-5">
                 {slide.points?.map((point, idx) => (
                   <div key={idx} className="flex items-baseline gap-5">
@@ -334,20 +357,20 @@ function PresentationView({ id }: { id: string }) {
           {slide.type === "section-divider" && v === "huge" && (
             <div className="text-center relative">
               <div className="absolute inset-0 opacity-5" style={{ background: `radial-gradient(circle at center, ${slide.color} 0%, transparent 70%)` }} />
-              <h2 className="type-display text-9xl font-bold tracking-[-0.035em] leading-none relative z-10" style={{ color: slide.color }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-9xl font-bold tracking-[-0.035em] leading-none relative z-10" style={{ color: slide.color }}>{stripMd(slide.headline)}</h2>
             </div>
           )}
 
           {slide.type === "section-divider" && v === "minimal" && (
             <div className="relative w-full">
               <div className="h-px w-32 mb-8" style={{ background: slide.color || "var(--slide-text-faint)" }} />
-              <h2 className="type-display text-7xl font-bold tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-7xl font-bold tracking-[-0.035em] leading-none" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
             </div>
           )}
 
           {slide.type === "statement" && v === "large" && (
             <div className="mt-20">
-              <h2 className="type-display text-7xl font-bold mb-10 leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-7xl font-bold mb-10 leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               {slide.supporting && <p className="text-2xl leading-relaxed max-w-4xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
             </div>
           )}
@@ -355,7 +378,7 @@ function PresentationView({ id }: { id: string }) {
           {slide.type === "statement" && v === "tight" && (
             <div className="max-w-4xl">
               <div className="h-1 w-12 mb-8 rounded-full" style={{ background: slide.color || "var(--slide-text-primary)" }} />
-              <h2 className="type-display text-5xl font-bold mb-6 leading-tight tracking-[-0.025em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold mb-6 leading-tight tracking-[-0.025em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               {slide.supporting && <p className="text-xl leading-relaxed font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
             </div>
           )}
@@ -363,10 +386,10 @@ function PresentationView({ id }: { id: string }) {
           {slide.type === "code" && v === "split" && (
             <div className="flex gap-16 items-start mt-20">
               <div className="flex-1">
-                <h2 className="type-display text-5xl font-bold leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               </div>
               <div className="flex-1">
-                <div className="rounded-lg overflow-hidden shadow-lg border border-gray-200/50">
+                <div data-flip-id={codeFlipId} className="rounded-lg overflow-hidden shadow-lg border border-gray-200/50">
                   <div className="flex items-center gap-2 px-4 py-2.5 bg-[#f6f6f6] border-b border-gray-200/50">
                     <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-[#ff5f57]" /><div className="w-3 h-3 rounded-full bg-[#febc2e]" /><div className="w-3 h-3 rounded-full bg-[#28c840]" /></div>
                     <div className="flex-1 text-center text-[11px] font-medium" style={{ color: "var(--slide-text-muted)" }}>code</div>
@@ -381,8 +404,8 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "code" && v === "full" && (
             <div className="mt-12 w-full">
-              <h2 className="type-display text-4xl font-bold leading-tight tracking-[-0.025em] mb-6" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
-              <div className="rounded-lg overflow-hidden shadow-lg border border-gray-200/50">
+              <h2 data-flip-id={headlineFlipId} className="type-display text-4xl font-bold leading-tight tracking-[-0.025em] mb-6" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <div data-flip-id={codeFlipId} className="rounded-lg overflow-hidden shadow-lg border border-gray-200/50">
                 <div className="flex items-center gap-2 px-4 py-2.5 bg-[#f6f6f6] border-b border-gray-200/50">
                   <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-[#ff5f57]" /><div className="w-3 h-3 rounded-full bg-[#febc2e]" /><div className="w-3 h-3 rounded-full bg-[#28c840]" /></div>
                   <div className="flex-1 text-center text-[11px] font-medium" style={{ color: "var(--slide-text-muted)" }}>code</div>
@@ -396,7 +419,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "code" && v === "terminal" && (
             <div className="mt-10 w-full">
-              <h2 className="type-display text-5xl font-bold leading-tight tracking-[-0.035em] mb-3" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold leading-tight tracking-[-0.035em] mb-3" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               {slide.supporting && <p className="text-lg font-light mb-8 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
               <div className="rounded-xl overflow-hidden border border-gray-200 bg-white">
                 <div className="px-5 py-3 bg-[#f6f6f7] border-b border-gray-200 text-[11px] font-semibold tracking-[0.2em] uppercase text-gray-500">{slide.terminalTitle ?? "TERMINAL"}</div>
@@ -412,7 +435,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "framework" && v === "lead-in" && (
             <div className="mt-20">
-              <h2 className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="space-y-7">
                 {slide.points?.map((point, idx) => {
                   const [leadRaw, ...restParts] = point.split("—");
@@ -432,7 +455,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "framework" && v === "cards" && (
             <div className="mt-16">
-              <h2 className="type-display text-5xl font-bold mb-10 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold mb-10 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-2 gap-5">
                 {slide.points?.map((point, idx) => {
                   const [leadRaw, ...restParts] = point.split("—");
@@ -452,7 +475,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "recap" && v !== "resources" && (
             <div className="mt-20">
-              <h2 className="type-display text-7xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-7xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="space-y-6">
                 {slide.points?.map((point, idx) => (
                   <div key={idx} className="text-2xl leading-relaxed flex items-start">
@@ -466,7 +489,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "recap" && v === "resources" && (
             <div className="mt-12 w-full">
-              <h2 className="type-display text-6xl font-bold mb-12 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-12 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,0.45fr)] gap-12">
                 <div className="space-y-8">
                   {(slide.resources ?? []).map((group, gi) => (
@@ -510,7 +533,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "split-visual" && v !== "ui-mockup" && (
             <div className="mt-20">
-              <h2 className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-2 gap-16">
                 <div className="relative">
                   <div className="absolute -left-8 top-0 w-1 h-full rounded-full" style={{ backgroundColor: slide.color }} />
@@ -531,7 +554,7 @@ function PresentationView({ id }: { id: string }) {
             <div className="mt-16 w-full">
               <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-12 items-start">
                 <div>
-                  <h2 className="type-display text-6xl font-bold mb-6 leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                  <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-6 leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
                   {recovered.lead && (
                     <p className="text-2xl font-light leading-relaxed whitespace-pre-line" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(recovered.lead)}</p>
                   )}
@@ -590,7 +613,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "comparison" && v !== "stats" && (
             <div className="mt-20">
-              <h2 className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-16 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className="grid grid-cols-2 gap-16">
                 <div>
                   <div className="mb-8"><span className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#ef4444" }}>Before</span></div>
@@ -620,7 +643,7 @@ function PresentationView({ id }: { id: string }) {
 
           {slide.type === "comparison" && v === "stats" && (
             <div className="mt-12 w-full">
-              <h2 className="type-display text-6xl font-bold mb-4 tracking-[-0.035em] leading-tight" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-4 tracking-[-0.035em] leading-tight" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               {slide.supporting && <p className="text-xl font-light mb-12 max-w-3xl" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
               <div className="grid grid-cols-2 gap-8">
                 {([
@@ -658,14 +681,14 @@ function PresentationView({ id }: { id: string }) {
             <div className="mt-20 text-center">
               <div className="type-display text-[12rem] font-bold leading-none mb-8" style={{ background: `linear-gradient(135deg, ${slide.color} 0%, ${slide.color}99 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{stripMd(slide.bigNumber)}</div>
               {slide.numberLabel && <p className="text-3xl font-light mb-12" style={{ color: "var(--slide-text-muted)" }}>{stripMd(slide.numberLabel)}</p>}
-              <h2 className="type-display text-5xl font-bold tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               {slide.supporting && <p className="text-2xl font-light mt-6 max-w-3xl mx-auto" style={{ color: "var(--slide-text-secondary)" }}>{inlineMd(slide.supporting)}</p>}
             </div>
           )}
 
           {slide.type === "big-number" && v === "metrics-row" && (
             <div className="mt-16 w-full">
-              <h2 className="type-display text-5xl font-bold mb-12 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+              <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold mb-12 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               <div className={`grid gap-8`} style={{ gridTemplateColumns: `repeat(${Math.min(slide.metrics?.length ?? 1, 4)}, minmax(0, 1fr))` }}>
                 {(slide.metrics ?? []).map((m, i) => (
                   <div key={i} className="rounded-2xl bg-white border border-gray-200 p-8">
@@ -685,7 +708,7 @@ function PresentationView({ id }: { id: string }) {
                 {slide.numberLabel && <p className="text-xs font-medium uppercase tracking-wider mt-3 max-w-[180px]" style={{ color: slide.color }}>{stripMd(slide.numberLabel)}</p>}
               </div>
               <div className="flex-1">
-                <h2 className="type-display text-5xl font-bold tracking-[-0.025em] leading-tight" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold tracking-[-0.025em] leading-tight" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
                 {slide.supporting && <p className="text-xl font-light mt-4" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
               </div>
             </div>
@@ -694,7 +717,7 @@ function PresentationView({ id }: { id: string }) {
           {slide.type === "iframe" && (
             <div className="flex gap-12 items-start mt-20">
               <div className="flex-[0.8]">
-                <h2 className="type-display text-5xl font-bold leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
               </div>
               <div className="flex-[1.5]">
                 <div className="h-[600px] rounded-xl shadow-2xl overflow-hidden border border-gray-200/50">
@@ -747,7 +770,7 @@ function PresentationView({ id }: { id: string }) {
                 {layout === "side" ? (
                   <div className="flex gap-16 items-center">
                     <div className="flex-1">
-                      <h2 className="type-display text-6xl font-bold mb-6 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{cleanHeadline}</h2>
+                      <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-6 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{cleanHeadline}</h2>
                       {slide.supporting && <p className="text-2xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
                     </div>
                     {slide.imageUrl && <div className="flex-shrink-0 w-80"><div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200/50"><Image src={slide.imageUrl} alt={cleanHeadline} width={640} height={480} className="w-full h-auto object-contain" unoptimized /></div></div>}
@@ -755,7 +778,7 @@ function PresentationView({ id }: { id: string }) {
                 ) : (
                   <>
                     <div className="mb-12">
-                      <h2 className="type-display text-6xl font-bold mb-6 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{cleanHeadline}</h2>
+                      <h2 data-flip-id={headlineFlipId} className="type-display text-6xl font-bold mb-6 tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{cleanHeadline}</h2>
                       {slide.supporting && <p className="text-2xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
                     </div>
                     {slide.imageUrl && <div className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/50 max-w-5xl mx-auto"><Image src={slide.imageUrl} alt={cleanHeadline} width={1200} height={800} className="w-full h-auto object-contain" style={{ maxHeight: "600px" }} unoptimized /></div>}
@@ -851,7 +874,7 @@ function PresentationView({ id }: { id: string }) {
             const ticks = 5;
             return (
               <div className="mt-10 w-full">
-                <h2 className="type-display text-5xl font-bold mb-3 tracking-[-0.035em] text-center" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold mb-3 tracking-[-0.035em] text-center" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
                 {slide.supporting && <p className="text-lg font-light mb-8 max-w-3xl mx-auto text-center" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
                 <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-5xl mx-auto" role="img" aria-label={stripMd(slide.headline)}>
                   {Array.from({ length: ticks + 1 }).map((_, i) => {
@@ -898,7 +921,7 @@ function PresentationView({ id }: { id: string }) {
           {slide.type === "agent-tree" && (
             <div className="flex gap-12 items-start mt-20">
               <div className="flex-1">
-                <h2 className="type-display text-5xl font-bold leading-tight tracking-[-0.035em] mb-4" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold leading-tight tracking-[-0.035em] mb-4" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
                 {slide.supporting && <p className="text-xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>}
               </div>
               <div className="flex-1">
