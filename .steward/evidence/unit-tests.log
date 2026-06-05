@@ -10,195 +10,115 @@
 TAP version 13
 # Subtest: inline DOCX equation yields $...$
 ok 1 - inline DOCX equation yields $...$
-  ---
-  duration_ms: 79.088137
-  ...
 # Subtest: m:oMathPara yields $$...$$
 ok 2 - m:oMathPara yields $$...$$
-  ---
-  duration_ms: 14.308135
-  ...
 # Subtest: math-free XML is unchanged by preprocessMathXml
 ok 3 - math-free XML is unchanged by preprocessMathXml
-  ---
-  duration_ms: 0.328004
-  ...
 # Subtest: stripXmlTags extracts plain text with paragraph breaks
 ok 4 - stripXmlTags extracts plain text with paragraph breaks
-  ---
-  duration_ms: 0.455888
-  ...
 # Subtest: math LaTeX survives stripXmlTags
 ok 5 - math LaTeX survives stripXmlTags
-  ---
-  duration_ms: 0.39818
-  ...
 # Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
 ok 6 - preprocessMathXml + stripXmlTags: inline equation at correct position
-  ---
-  duration_ms: 8.357415
-  ...
 # Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
 ok 7 - retries fidelity grading with compact instructions when the first JSON response is truncated
-  ---
-  duration_ms: 3.879527
-  ...
 # Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
 ok 8 - falls back to deterministic fidelity when both narrative JSON responses are invalid
-  ---
-  duration_ms: 0.903415
-  ...
 # Subtest: finds a focused visual region instead of returning the whole page
 ok 9 - finds a focused visual region instead of returning the whole page
-  ---
-  duration_ms: 6.11941
-  ...
 # Subtest: prefers a dense screenshot-like area over sparse page marks
 ok 10 - prefers a dense screenshot-like area over sparse page marks
-  ---
-  duration_ms: 1.739619
-  ...
 # Subtest: returns null for blank pages
 ok 11 - returns null for blank pages
-  ---
-  duration_ms: 1.892975
-  ...
-# Subtest: convert fraction → \\frac{a}{b}
-ok 12 - convert fraction → \\frac{a}{b}
-  ---
-  duration_ms: 62.583796
-  ...
-# Subtest: convert radical with degree → \\sqrt[3]{x}
-ok 13 - convert radical with degree → \\sqrt[3]{x}
-  ---
-  duration_ms: 9.405569
-  ...
-# Subtest: convert radical with hidden degree → \\sqrt{x}
-ok 14 - convert radical with hidden degree → \\sqrt{x}
-  ---
-  duration_ms: 7.962549
-  ...
+# Subtest: nary: summation with sub and sup
+ok 12 - nary: summation with sub and sup
+# Subtest: nary: default operator is integral when chr absent
+ok 13 - nary: default operator is integral when chr absent
+# Subtest: nary: product with undOvr emits \limits
+ok 14 - nary: product with undOvr emits \limits
+# Subtest: nary: unknown glyph falls back to raw glyph without throwing
+ok 15 - nary: unknown glyph falls back to raw glyph without throwing
+# Subtest: limLow: lim operator gets subscript limit
+ok 16 - limLow: lim operator gets subscript limit
+# Subtest: limLow: max operator gets subscript limit
+ok 17 - limLow: max operator gets subscript limit
+# Subtest: limLow: inf operator gets subscript limit
+ok 18 - limLow: inf operator gets subscript limit
+# Subtest: limLow: non-operator base uses \underset
+ok 19 - limLow: non-operator base uses \underset
+# Subtest: limUpp: non-operator base uses \overset
+ok 20 - limUpp: non-operator base uses \overset
+# Subtest: limUpp: operator base gets superscript limit
+ok 21 - limUpp: operator base gets superscript limit
+# Subtest: groupChr: overbrace ⏞ emits \overbrace{...}
+ok 22 - groupChr: overbrace ⏞ emits \overbrace{...}
+# Subtest: groupChr: underbrace ⏟ emits \underbrace{...}
+ok 23 - groupChr: underbrace ⏟ emits \underbrace{...}
+# Subtest: groupChr: non-brace chr at bot emits \underset
+ok 24 - groupChr: non-brace chr at bot emits \underset
+# Subtest: dispatch: nary nested inside fraction is reached
+ok 25 - dispatch: nary nested inside fraction is reached
+# Subtest: convert fraction → \frac{a}{b}
+ok 26 - convert fraction → \frac{a}{b}
+# Subtest: convert radical with degree → \sqrt[3]{x}
+ok 27 - convert radical with degree → \sqrt[3]{x}
+# Subtest: convert radical with hidden degree → \sqrt{x}
+ok 28 - convert radical with hidden degree → \sqrt{x}
 # Subtest: convert n-ary summation with limits
-ok 15 - convert n-ary summation with limits
-  ---
-  duration_ms: 12.560672
-  ...
-# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
-ok 16 - convert matrix → \\begin{matrix}...\\end{matrix}
-  ---
-  duration_ms: 9.247094
-  ...
-# Subtest: convert accent → \\hat{v}
-ok 17 - convert accent → \\hat{v}
-  ---
-  duration_ms: 19.197582
-  ...
-# Subtest: convert delimiter → \\left(x+y\\right)
-ok 18 - convert delimiter → \\left(x+y\\right)
-  ---
-  duration_ms: 10.817255
-  ...
+ok 29 - convert n-ary summation with limits
+# Subtest: convert matrix → \begin{matrix}...\end{matrix}
+ok 30 - convert matrix → \begin{matrix}...\end{matrix}
+# Subtest: convert accent → \hat{v}
+ok 31 - convert accent → \hat{v}
+# Subtest: convert delimiter → \left(x+y\right)
+ok 32 - convert delimiter → \left(x+y\right)
 # Subtest: degrade unknown element without throwing
-ok 19 - degrade unknown element without throwing
-  ---
-  duration_ms: 9.634726
-  ...
+ok 33 - degrade unknown element without throwing
 # Subtest: oMathPara wrapper is handled
-ok 20 - oMathPara wrapper is handled
-  ---
-  duration_ms: 24.957112
-  ...
+ok 34 - oMathPara wrapper is handled
 # Subtest: normalizes model outline total/section-count mismatch before validation
-ok 21 - normalizes model outline total/section-count mismatch before validation
-  ---
-  duration_ms: 3.19127
-  ...
+ok 35 - normalizes model outline total/section-count mismatch before validation
 # Subtest: repairs missing first title while preserving target slide count
-ok 22 - repairs missing first title while preserving target slide count
-  ---
-  duration_ms: 2.63952
-  ...
+ok 36 - repairs missing first title while preserving target slide count
 # Subtest: moves an existing title to the front instead of failing deck validation
-ok 23 - moves an existing title to the front instead of failing deck validation
-  ---
-  duration_ms: 0.489363
-  ...
+ok 37 - moves an existing title to the front instead of failing deck validation
 # Subtest: inserts fallback image slide for academic decks when source images exist
-ok 24 - inserts fallback image slide for academic decks when source images exist
-  ---
-  duration_ms: 0.851881
-  ...
+ok 38 - inserts fallback image slide for academic decks when source images exist
 # Subtest: synthesizes quiz section slides when the model returns the wrong type
-ok 25 - synthesizes quiz section slides when the model returns the wrong type
-  ---
-  duration_ms: 0.778081
-  ...
+ok 39 - synthesizes quiz section slides when the model returns the wrong type
 # Subtest: adds fallback evidence refs to academic factual slides in a bounded section
-ok 26 - adds fallback evidence refs to academic factual slides in a bounded section
-  ---
-  duration_ms: 0.346265
-  ...
+ok 40 - adds fallback evidence refs to academic factual slides in a bounded section
 # Subtest: selects explicit candidate chunks before scoring by section text
-ok 27 - selects explicit candidate chunks before scoring by section text
-  ---
-  duration_ms: 4.642051
-  ...
+ok 41 - selects explicit candidate chunks before scoring by section text
 # Subtest: normalizes free-form audience labels with technical fallback
-ok 28 - normalizes free-form audience labels with technical fallback
-  ---
-  duration_ms: 1.384305
-  ...
+ok 42 - normalizes free-form audience labels with technical fallback
 # Subtest: rejects unknown evidence refs
-ok 29 - rejects unknown evidence refs
-  ---
-  duration_ms: 1.474556
-  ...
+ok 43 - rejects unknown evidence refs
 # Subtest: rejects quiz sections for non-quiz audience profiles
-ok 30 - rejects quiz sections for non-quiz audience profiles
-  ---
-  duration_ms: 1.031845
-  ...
+ok 44 - rejects quiz sections for non-quiz audience profiles
 # Subtest: requires academic quiz sections to be final
-ok 31 - requires academic quiz sections to be final
-  ---
-  duration_ms: 0.267434
-  ...
+ok 45 - requires academic quiz sections to be final
 # Subtest: rejects academic factual slides without evidence refs
-ok 32 - rejects academic factual slides without evidence refs
-  ---
-  duration_ms: 0.339126
-  ...
+ok 46 - rejects academic factual slides without evidence refs
 # Subtest: maps only Anthropic-supported image extensions to media types
-ok 33 - maps only Anthropic-supported image extensions to media types
-  ---
-  duration_ms: 1.708505
-  ...
+ok 47 - maps only Anthropic-supported image extensions to media types
 # Subtest: resolves public image paths without allowing traversal outside public
-ok 34 - resolves public image paths without allowing traversal outside public
-  ---
-  duration_ms: 0.645601
-  ...
+ok 48 - resolves public image paths without allowing traversal outside public
 # Subtest: orders candidate images first for section-specific vision context
-ok 35 - orders candidate images first for section-specific vision context
-  ---
-  duration_ms: 1.474081
-  ...
+ok 49 - orders candidate images first for section-specific vision context
 # Subtest: builds text plus base64 image blocks from saved focused crops
-ok 36 - builds text plus base64 image blocks from saved focused crops
-  ---
-  duration_ms: 14.404573
-  ...
-1..36
-# tests 36
+ok 50 - builds text plus base64 image blocks from saved focused crops
+1..50
+# tests 50
 # suites 0
-# pass 36
+# pass 50
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 9453.981697
+# duration_ms 13955.747122
 
 === BUILD OUTPUT ===
-✓ Compiled successfully in 58s
+✓ Compiled successfully
 ✓ Type checking passed
 ✓ 10 static pages generated
