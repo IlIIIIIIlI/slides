@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Play, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,11 @@ const SOURCE_TYPE_STYLES: Record<string, string> = {
 };
 
 export function PresentationCard({ item, onDeleted }: { item: PresentationMeta; onDeleted?: () => void }) {
+  const router = useRouter();
   const sourceStyle = SOURCE_TYPE_STYLES[item.sourceType] ?? SOURCE_TYPE_STYLES.txt;
 
-  async function handleDelete() {
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation();
     if (!confirm(`Delete "${item.title}"? This cannot be undone.`)) return;
     const res = await fetch(`/api/presentations/${item.id}`, { method: "DELETE" });
     if (!res.ok) { alert("Failed to delete the deck."); return; }
@@ -26,7 +29,11 @@ export function PresentationCard({ item, onDeleted }: { item: PresentationMeta; 
   }
 
   return (
-    <Card className="group hover:border-border/80 transition-all">
+    <Card
+      onClick={() => router.push(`/workspace?id=${item.id}`)}
+      className="group hover:border-border/80 transition-all cursor-pointer"
+      title="Open in workspace"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
@@ -58,7 +65,7 @@ export function PresentationCard({ item, onDeleted }: { item: PresentationMeta; 
             <Trash2 className="w-3 h-3" />
           </Button>
           <Button size="sm" variant="ghost" asChild className="h-7 px-2 gap-1.5 text-xs">
-            <Link href={`/player?id=${item.id}`}>
+            <Link href={`/player?id=${item.id}`} onClick={(e) => e.stopPropagation()}>
               <Play className="w-3 h-3" />
               Play
             </Link>
