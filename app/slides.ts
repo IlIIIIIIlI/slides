@@ -115,6 +115,15 @@ export interface Slide {
   evidenceRefs?: string[];
   // animKeys for GSAP Flip morphing (e.g. ["title", "code:0"])
   animKeys?: string[];
+  // Manual per-element layout nudges applied in the player's adjust mode.
+  // Keyed by logical element (e.g. "headline", "supporting", "image").
+  overrides?: Record<string, SlideElementOverride>;
+}
+
+export interface SlideElementOverride {
+  dx?: number;
+  dy?: number;
+  scale?: number;
 }
 
 export const slides: Slide[] = [
