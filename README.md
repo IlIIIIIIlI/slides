@@ -101,6 +101,10 @@ This change closes four coverage gaps:
 
 All four handlers are covered by new focused unit tests (`lib/generation/omml/omml-nary-limits.test.ts`) that assert correct LaTeX output **and** confirm KaTeX accepts each expression without error. The test suite grows from 36 to 50 passing tests.
 
+### 2026-06-05 — Bounding-box-aware PDF ingestion via liteparse
+
+Replaced the `pdf-parse` library with `@llamaindex/liteparse` for server-side PDF text extraction. The old library produced a flat string with no positional information; liteparse exposes per-item coordinates so every extracted text chunk now carries a precise bounding box (`x1`, `y1`, `x2`, `y2`) relative to the page dimensions. This enables the PDF viewer to scroll to and highlight the exact region of the document that corresponds to each generated slide section. Scanned or image-heavy pages are automatically detected by comparing text-area coverage against page area and re-parsed with optional OCR; pages with little text are screen-captured and passed to the vision pipeline as images. The change also adds per-line rectangle data so the highlight overlay follows multi-line paragraphs without painting over unrelated text.
+
 ### 2026-06-05 — Auto-Animate-style element morphing between slides
 
 Added GSAP Flip-plugin-based element morphing so that shared content blocks (headlines, code blocks) smoothly animate their position and size when the user navigates between consecutive slides. Each `ContentBlock` now accepts an optional `animKey` field to declare a stable cross-slide identity; the system auto-derives keys for `headline` and `code-block` types when the field is omitted. The feature can be disabled per-deck via `autoAnimate: false` on `PresentationSpec` and is automatically suppressed when the user's OS `prefers-reduced-motion` setting is active. This brings the slide player closer to Reveal.js-style auto-animate UX without requiring a full framework dependency.

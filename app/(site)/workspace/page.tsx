@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Play, Upload, Link as LinkIcon, Sparkles, Check, AlertCircle, ChevronDown } from "lucide-react";
 import { THEME_PRESETS, SEMANTIC_COLOR_LABELS } from "@/core/theming/presets";
 import { SLIDE_VARIANTS, DEFAULT_VARIANT } from "@/lib/slide-variants";
@@ -18,6 +19,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { SlideImageField } from "@/components/workspace/slide-image-field";
+import { SlideTransfer } from "@/components/workspace/slide-transfer";
 import type { Slide, Brand } from "@/app/slides";
 
 // ========================
@@ -833,6 +836,12 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
   const [local, setLocal] = useState<Slide[]>(presentation?.slides ?? []);
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [topic, setTopic] = useState("");
+  const [topicCount, setTopicCount] = useState(1);
+  const [genLoading, setGenLoading] = useState(false);
+  const [genError, setGenError] = useState("");
 
   useEffect(() => { setLocal(presentation?.slides ?? []); }, [presentation]);
 
@@ -845,6 +854,56 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
   function removeSlide(idx: number) {
     setLocal(prev => prev.filter((_, i) => i !== idx));
     setExpandedIdx((cur) => (cur === idx ? null : cur !== null && cur > idx ? cur - 1 : cur));
+  }
+
+  function reorder(from: number, to: number) {
+    if (from === to) return;
+    setLocal(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setExpandedIdx(null);
+  }
+
+  // After a slide is moved to another deck, drop it here and persist this deck
+  // so the move isn't left half-done.
+  async function handleMoveAway(idx: number) {
+    if (!presentation) return;
+    const next = local.filter((_, i) => i !== idx);
+    setLocal(next);
+    setExpandedIdx(null);
+    await fetch(`/api/presentations/${presentation.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slides: next }),
+    });
+    onSaved(next);
+  }
+
+  async function handleGenerateTopic() {
+    if (!presentation || !topic.trim() || genLoading) return;
+    setGenLoading(true);
+    setGenError("");
+    try {
+      const res = await fetch(`/api/presentations/${presentation.id}/generate-from-topic`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: topic.trim(), count: topicCount }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Generation failed");
+      // New slides are appended to the end; server has already persisted them.
+      const added = (data.slides as Slide[]) ?? [];
+      setLocal(prev => [...prev, ...added]);
+      onSaved([...local, ...added]);
+      setTopic("");
+    } catch (e) {
+      setGenError(e instanceof Error ? e.message : "Generation failed");
+    } finally {
+      setGenLoading(false);
+    }
   }
 
   async function handleSave() {
@@ -883,14 +942,83 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground mb-4">{local.length} slides · click to edit</p>
+      {/* Generate slides for a missing knowledge point */}
+      <Card className="mb-4">
+        <CardContent className="p-4 space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold">Add a missing knowledge point</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Describe a topic the deck doesn&apos;t cover. New slides are grounded in this deck&apos;s sources and appended to the end — drag to reorder afterwards.
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <Textarea
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="e.g. How the repair planning agent resolves conflicting fixes"
+              rows={2}
+              className="text-xs min-h-[44px] flex-1"
+              disabled={genLoading}
+            />
+            <div className="flex flex-col gap-2 w-28 flex-shrink-0">
+              <select
+                value={topicCount}
+                onChange={(e) => setTopicCount(Number(e.target.value))}
+                disabled={genLoading}
+                className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>{n} slide{n > 1 ? "s" : ""}</option>
+                ))}
+              </select>
+              <Button size="sm" className="h-8 text-xs gap-1.5" onClick={handleGenerateTopic} disabled={genLoading || !topic.trim()}>
+                {genLoading ? (
+                  <span className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                {genLoading ? "Generating…" : "Generate"}
+              </Button>
+            </div>
+          </div>
+          {genError && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-2.5 py-2 text-xs text-destructive">
+              <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <span>{genError}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <p className="text-xs text-muted-foreground mb-4">{local.length} slides · click to edit · drag the handle to reorder</p>
 
       {local.map((slide, idx) => {
         const isOpen = expandedIdx === idx;
         const accent = slide.color ?? "#71717a";
+        const isDragging = dragIndex === idx;
+        const isDropTarget = overIndex === idx && dragIndex !== null && dragIndex !== idx;
         return (
-          <div key={idx} className="rounded-xl border border-border overflow-hidden">
+          <div
+            key={idx}
+            draggable
+            onDragStart={(e) => { setDragIndex(idx); setExpandedIdx(null); e.dataTransfer.effectAllowed = "move"; }}
+            onDragOver={(e) => { e.preventDefault(); if (overIndex !== idx) setOverIndex(idx); }}
+            onDrop={(e) => { e.preventDefault(); if (dragIndex !== null) reorder(dragIndex, idx); setDragIndex(null); setOverIndex(null); }}
+            onDragEnd={() => { setDragIndex(null); setOverIndex(null); }}
+            className={cn(
+              "rounded-xl border overflow-hidden transition-colors",
+              isDropTarget ? "border-teal-500/60 bg-teal-500/5" : "border-border",
+              isDragging && "opacity-50",
+            )}
+          >
             <div className="flex items-stretch">
+              <span
+                className="flex items-center px-2 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground"
+                title="Drag to reorder"
+                aria-hidden="true"
+              >
+                <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor"><circle cx="3" cy="3" r="1.3" /><circle cx="9" cy="3" r="1.3" /><circle cx="3" cy="8" r="1.3" /><circle cx="9" cy="8" r="1.3" /><circle cx="3" cy="13" r="1.3" /><circle cx="9" cy="13" r="1.3" /></svg>
+              </span>
               <button
                 className="flex-1 flex items-center gap-4 p-4 text-left hover:bg-accent/30 transition-colors"
                 onClick={() => setExpandedIdx(isOpen ? null : idx)}
@@ -965,6 +1093,14 @@ function SlidesTab({ presentation, onSaved, onSwitchToSources }: { presentation:
 
                 <Field label="Label">
                   <Input className="h-7 text-xs" value={slide.label ?? ""} placeholder="ALL-CAPS section tag" onChange={e => updateSlide(idx, { label: e.target.value })} />
+                </Field>
+
+                <Field label="Image">
+                  <SlideImageField presentationId={presentation.id} slide={slide} onPatch={(p) => updateSlide(idx, p)} />
+                </Field>
+
+                <Field label="Move / copy">
+                  <SlideTransfer sourceId={presentation.id} slide={slide} onMoved={() => handleMoveAway(idx)} />
                 </Field>
 
                 {slide.type !== "quote" && (
@@ -1356,11 +1492,21 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "fidelity", label: "Fidelity" },
 ];
 
-export default function Workspace() {
+function WorkspaceInner() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>("sources");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [presentation, setPresentation] = useState<FullPresentation | null>(null);
   const [loadingPresentation, setLoadingPresentation] = useState(false);
+
+  // Open a specific deck when navigated to with /workspace?id=<deckId> (e.g. from the Library).
+  useEffect(() => {
+    const qid = searchParams.get("id");
+    if (qid) {
+      setSelectedId(qid);
+      setActiveTab("overview");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!selectedId) { setPresentation(null); return; }
@@ -1530,5 +1676,13 @@ export default function Workspace() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Workspace() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <WorkspaceInner />
+    </Suspense>
   );
 }
