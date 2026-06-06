@@ -81,6 +81,10 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 ## Changelog
 
+### 2026-06-06 — Fix Vercel deployment: remove stale pnpm lockfile
+
+Removed `pnpm-lock.yaml` from the repository. The file predated the addition of `katex` and `gsap` as dependencies, so Vercel (which prefers pnpm over npm when a `pnpm-lock.yaml` is present) was failing every deployment with a frozen-install error for those missing packages. Removing the stale lockfile causes Vercel to fall back to `npm` with the up-to-date `package-lock.json`, which includes all current dependencies. Local development and CI are unaffected — the project continues to use `npm`.
+
 ### 2026-06-05 — Hardened OMML→LaTeX converter: n-ary, limits, and grouping characters
 
 The OMML→LaTeX converter in `lib/generation/omml/` is a TypeScript port of Microsoft's markitdown `omml.py`. Since the original port, upstream markitdown hardened several math handlers that our fork was missing or implementing only partially — causing those equation types to fall back to the KaTeX error tile when uploading DOCX or PPTX files.
