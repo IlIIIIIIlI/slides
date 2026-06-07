@@ -1,0 +1,410 @@
+
+> ai-nextjs-slides@0.1.0 pretest
+> node scripts/inline-skills.mjs
+
+[inline-skills] wrote lib/generation/skills.generated.ts (27697 chars)
+
+> ai-nextjs-slides@0.1.0 test
+> node scripts/run-unit-tests.cjs
+
+TAP version 13
+# Subtest: specToSlide animKeys
+    # Subtest: stamps animKeys for headline block
+    ok 1 - stamps animKeys for headline block
+      ---
+      duration_ms: 2.007192
+      ...
+    # Subtest: stamps animKeys for code-block
+    ok 2 - stamps animKeys for code-block
+      ---
+      duration_ms: 0.354458
+      ...
+    # Subtest: omits animKeys when no keyed blocks
+    ok 3 - omits animKeys when no keyed blocks
+      ---
+      duration_ms: 0.40765
+      ...
+    # Subtest: explicit animKey on block is used
+    ok 4 - explicit animKey on block is used
+      ---
+      duration_ms: 0.319653
+      ...
+    1..4
+ok 1 - specToSlide animKeys
+  ---
+  duration_ms: 4.719966
+  type: 'suite'
+  ...
+# Subtest: flipIdFor
+    # Subtest: prefixes with flip-
+    ok 1 - prefixes with flip-
+      ---
+      duration_ms: 0.838672
+      ...
+    1..1
+ok 2 - flipIdFor
+  ---
+  duration_ms: 2.167396
+  type: 'suite'
+  ...
+# Subtest: resolveAnimKey
+    # Subtest: explicit animKey wins
+    ok 1 - explicit animKey wins
+      ---
+      duration_ms: 0.443659
+      ...
+    # Subtest: headline block → title
+    ok 2 - headline block → title
+      ---
+      duration_ms: 0.166041
+      ...
+    # Subtest: code-block uses occurrence index
+    ok 3 - code-block uses occurrence index
+      ---
+      duration_ms: 0.249755
+      ...
+    # Subtest: other block types return undefined
+    ok 4 - other block types return undefined
+      ---
+      duration_ms: 0.17245
+      ...
+    1..4
+ok 3 - resolveAnimKey
+  ---
+  duration_ms: 1.365952
+  type: 'suite'
+  ...
+# Subtest: sharedAnimKeys
+    # Subtest: returns intersection of resolved keys
+    ok 1 - returns intersection of resolved keys
+      ---
+      duration_ms: 3.071678
+      ...
+    # Subtest: empty intersection when no shared keys
+    ok 2 - empty intersection when no shared keys
+      ---
+      duration_ms: 0.601719
+      ...
+    # Subtest: code blocks keyed by occurrence index
+    ok 3 - code blocks keyed by occurrence index
+      ---
+      duration_ms: 0.516847
+      ...
+    # Subtest: explicit animKey match
+    ok 4 - explicit animKey match
+      ---
+      duration_ms: 1.579778
+      ...
+    # Subtest: derived title key is shared
+    ok 5 - derived title key is shared
+      ---
+      duration_ms: 0.53981
+      ...
+    1..5
+ok 4 - sharedAnimKeys
+  ---
+  duration_ms: 6.967224
+  type: 'suite'
+  ...
+# Subtest: inline DOCX equation yields $...$
+ok 5 - inline DOCX equation yields $...$
+  ---
+  duration_ms: 77.096924
+  ...
+# Subtest: m:oMathPara yields $$...$$
+ok 6 - m:oMathPara yields $$...$$
+  ---
+  duration_ms: 14.402361
+  ...
+# Subtest: math-free XML is unchanged by preprocessMathXml
+ok 7 - math-free XML is unchanged by preprocessMathXml
+  ---
+  duration_ms: 0.408978
+  ...
+# Subtest: stripXmlTags extracts plain text with paragraph breaks
+ok 8 - stripXmlTags extracts plain text with paragraph breaks
+  ---
+  duration_ms: 0.510961
+  ...
+# Subtest: math LaTeX survives stripXmlTags
+ok 9 - math LaTeX survives stripXmlTags
+  ---
+  duration_ms: 0.341958
+  ...
+# Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
+ok 10 - preprocessMathXml + stripXmlTags: inline equation at correct position
+  ---
+  duration_ms: 15.988956
+  ...
+# Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
+ok 11 - retries fidelity grading with compact instructions when the first JSON response is truncated
+  ---
+  duration_ms: 3.214601
+  ...
+# Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
+ok 12 - falls back to deterministic fidelity when both narrative JSON responses are invalid
+  ---
+  duration_ms: 0.551963
+  ...
+# Subtest: finds a focused visual region instead of returning the whole page
+ok 13 - finds a focused visual region instead of returning the whole page
+  ---
+  duration_ms: 10.196985
+  ...
+# Subtest: prefers a dense screenshot-like area over sparse page marks
+ok 14 - prefers a dense screenshot-like area over sparse page marks
+  ---
+  duration_ms: 2.696454
+  ...
+# Subtest: returns null for blank pages
+ok 15 - returns null for blank pages
+  ---
+  duration_ms: 2.0823
+  ...
+# Subtest: nary: summation with sub and sup
+ok 16 - nary: summation with sub and sup
+  ---
+  duration_ms: 138.971098
+  ...
+# Subtest: nary: default operator is integral when chr absent
+ok 17 - nary: default operator is integral when chr absent
+  ---
+  duration_ms: 10.002589
+  ...
+# Subtest: nary: product with undOvr emits \\limits
+ok 18 - nary: product with undOvr emits \\limits
+  ---
+  duration_ms: 18.276903
+  ...
+# Subtest: nary: unknown glyph falls back to raw glyph without throwing
+ok 19 - nary: unknown glyph falls back to raw glyph without throwing
+  ---
+  duration_ms: 15.054827
+  ...
+# Subtest: limLow: lim operator gets subscript limit
+ok 20 - limLow: lim operator gets subscript limit
+  ---
+  duration_ms: 11.934384
+  ...
+# Subtest: limLow: max operator gets subscript limit
+ok 21 - limLow: max operator gets subscript limit
+  ---
+  duration_ms: 16.951845
+  ...
+# Subtest: limLow: inf operator gets subscript limit
+ok 22 - limLow: inf operator gets subscript limit
+  ---
+  duration_ms: 7.384873
+  ...
+# Subtest: limLow: non-operator base uses \\underset
+ok 23 - limLow: non-operator base uses \\underset
+  ---
+  duration_ms: 9.815532
+  ...
+# Subtest: limUpp: non-operator base uses \\overset
+ok 24 - limUpp: non-operator base uses \\overset
+  ---
+  duration_ms: 17.156717
+  ...
+# Subtest: limUpp: operator base gets superscript limit
+ok 25 - limUpp: operator base gets superscript limit
+  ---
+  duration_ms: 9.291038
+  ...
+# Subtest: groupChr: overbrace ⏞ emits \\overbrace{...}
+ok 26 - groupChr: overbrace ⏞ emits \\overbrace{...}
+  ---
+  duration_ms: 9.335301
+  ...
+# Subtest: groupChr: underbrace ⏟ emits \\underbrace{...}
+ok 27 - groupChr: underbrace ⏟ emits \\underbrace{...}
+  ---
+  duration_ms: 11.681656
+  ...
+# Subtest: groupChr: non-brace chr at bot emits \\underset
+ok 28 - groupChr: non-brace chr at bot emits \\underset
+  ---
+  duration_ms: 7.507207
+  ...
+# Subtest: dispatch: nary nested inside fraction is reached
+ok 29 - dispatch: nary nested inside fraction is reached
+  ---
+  duration_ms: 14.085139
+  ...
+# Subtest: convert fraction → \\frac{a}{b}
+ok 30 - convert fraction → \\frac{a}{b}
+  ---
+  duration_ms: 75.815459
+  ...
+# Subtest: convert radical with degree → \\sqrt[3]{x}
+ok 31 - convert radical with degree → \\sqrt[3]{x}
+  ---
+  duration_ms: 10.774709
+  ...
+# Subtest: convert radical with hidden degree → \\sqrt{x}
+ok 32 - convert radical with hidden degree → \\sqrt{x}
+  ---
+  duration_ms: 14.352539
+  ...
+# Subtest: convert n-ary summation with limits
+ok 33 - convert n-ary summation with limits
+  ---
+  duration_ms: 8.375788
+  ...
+# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
+ok 34 - convert matrix → \\begin{matrix}...\\end{matrix}
+  ---
+  duration_ms: 10.270047
+  ...
+# Subtest: convert accent → \\hat{v}
+ok 35 - convert accent → \\hat{v}
+  ---
+  duration_ms: 14.552041
+  ...
+# Subtest: convert delimiter → \\left(x+y\\right)
+ok 36 - convert delimiter → \\left(x+y\\right)
+  ---
+  duration_ms: 8.187177
+  ...
+# Subtest: degrade unknown element without throwing
+ok 37 - degrade unknown element without throwing
+  ---
+  duration_ms: 6.297898
+  ...
+# Subtest: oMathPara wrapper is handled
+ok 38 - oMathPara wrapper is handled
+  ---
+  duration_ms: 19.160846
+  ...
+# Subtest: normalizes model outline total/section-count mismatch before validation
+ok 39 - normalizes model outline total/section-count mismatch before validation
+  ---
+  duration_ms: 5.867726
+  ...
+# Subtest: repairs missing first title while preserving target slide count
+ok 40 - repairs missing first title while preserving target slide count
+  ---
+  duration_ms: 2.39115
+  ...
+# Subtest: moves an existing title to the front instead of failing deck validation
+ok 41 - moves an existing title to the front instead of failing deck validation
+  ---
+  duration_ms: 3.818828
+  ...
+# Subtest: inserts fallback image slide for academic decks when source images exist
+ok 42 - inserts fallback image slide for academic decks when source images exist
+  ---
+  duration_ms: 0.891715
+  ...
+# Subtest: synthesizes quiz section slides when the model returns the wrong type
+ok 43 - synthesizes quiz section slides when the model returns the wrong type
+  ---
+  duration_ms: 0.822931
+  ...
+# Subtest: adds fallback evidence refs to academic factual slides in a bounded section
+ok 44 - adds fallback evidence refs to academic factual slides in a bounded section
+  ---
+  duration_ms: 0.373431
+  ...
+# Subtest: selects explicit candidate chunks before scoring by section text
+ok 45 - selects explicit candidate chunks before scoring by section text
+  ---
+  duration_ms: 0.543191
+  ...
+# Subtest: normalizes free-form audience labels with technical fallback
+ok 46 - normalizes free-form audience labels with technical fallback
+  ---
+  duration_ms: 1.317489
+  ...
+# Subtest: rejects unknown evidence refs
+ok 47 - rejects unknown evidence refs
+  ---
+  duration_ms: 1.238806
+  ...
+# Subtest: rejects quiz sections for non-quiz audience profiles
+ok 48 - rejects quiz sections for non-quiz audience profiles
+  ---
+  duration_ms: 0.760713
+  ...
+# Subtest: requires academic quiz sections to be final
+ok 49 - requires academic quiz sections to be final
+  ---
+  duration_ms: 0.275965
+  ...
+# Subtest: rejects academic factual slides without evidence refs
+ok 50 - rejects academic factual slides without evidence refs
+  ---
+  duration_ms: 0.261316
+  ...
+# Subtest: maps only Anthropic-supported image extensions to media types
+ok 51 - maps only Anthropic-supported image extensions to media types
+  ---
+  duration_ms: 1.945366
+  ...
+# Subtest: resolves public image paths without allowing traversal outside public
+ok 52 - resolves public image paths without allowing traversal outside public
+  ---
+  duration_ms: 0.650087
+  ...
+# Subtest: orders candidate images first for section-specific vision context
+ok 53 - orders candidate images first for section-specific vision context
+  ---
+  duration_ms: 1.393684
+  ...
+# Subtest: builds text plus base64 image blocks from saved focused crops
+ok 54 - builds text plus base64 image blocks from saved focused crops
+  ---
+  duration_ms: 29.633299
+  ...
+1..54
+# tests 64
+# suites 4
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12644.594363
+
+> ai-nextjs-slides@0.1.0 prebuild
+> node scripts/inline-skills.mjs && node scripts/copy-pdfjs-worker.mjs
+
+[inline-skills] wrote lib/generation/skills.generated.ts (27697 chars)
+[copy-pdfjs-worker] copied node_modules/pdfjs-dist/build/pdf.worker.min.mjs → public/pdfjs/pdf.worker.min.mjs
+
+> ai-nextjs-slides@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.18
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 15.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/10) ...
+   Generating static pages (2/10) 
+   Generating static pages (4/10) 
+   Generating static pages (7/10) 
+ ✓ Generating static pages (10/10)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    2.72 kB         120 kB
+├ ○ /_not-found                            995 B         104 kB
+├ ƒ /api/analyze/stream                    136 B         103 kB
+├ ƒ /api/presentations                     136 B         103 kB
+├ ƒ /api/presentations/[id]                136 B         103 kB
+├ ƒ /api/validate                          136 B         103 kB
+├ ○ /library                             13.6 kB         151 kB
+├ ○ /player                               322 kB         425 kB
+└ ○ /workspace                           20.7 kB         161 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/255-b0959053a07c1428.js       46.2 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          2.63 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
