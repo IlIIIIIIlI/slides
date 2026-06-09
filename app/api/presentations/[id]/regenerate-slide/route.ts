@@ -26,7 +26,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const deck = await loadDeck(id);
   if (!deck) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (slideIndex < 0 || slideIndex >= deck.slides.length) {
-    return NextResponse.json({ error: "slideIndex out of range" }, { status: 400 });
+    // The client referenced a slide by position that no longer exists on disk
+    // (slides have no stable id, so a deck edited/regenerated in another tab
+    // leaves an open player pointing past the end). Hand back the real count so
+    // the client can resync rather than dead-ending. 409 = state conflict.
+    return NextResponse.json(
+      {
+        error: `Slide ${slideIndex + 1} no longer exists — this deck now has ${deck.slides.length} slide(s). It may have changed in another tab; it has been reloaded, please try again.`,
+        slideCount: deck.slides.length,
+      },
+      { status: 409 },
+    );
   }
 
   const baseSlide = deck.slides[slideIndex];

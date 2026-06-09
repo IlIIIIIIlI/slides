@@ -316,6 +316,17 @@ response = await agent.invoke_async(
     iframeUrl: "http://localhost:8080/",
   },
 
+  // Slide 13b: Fade-scroll embedded webpage
+  {
+    type: "iframe",
+    variant: "scroll",
+    label: "WHAT WORKS",
+    color: "#10b981",
+    headline: "Read it in their own words",
+    supporting: "A live page embedded right in the deck — scroll through it, edges fade so it blends into the slide.",
+    iframeUrl: "https://github.com/deepseek-ai/DeepSeek-V3/issues/1314",
+  },
+
   // Slide 14: Future Optimization
   {
     type: "framework",

@@ -1,0 +1,966 @@
+{
+  "id": "36153974-8868-447c-b169-52c32d70c238",
+  "title": "Penny Marketing Agent MVP",
+  "sourceName": "Requirements Traceability-20260602094040.md",
+  "sourceType": "md",
+  "audienceType": "Technical",
+  "audienceProfile": "technical",
+  "audienceProfileLabel": "Technical",
+  "stylePreset": "dark-minimal",
+  "slideCount": 14,
+  "generatedAt": "2026-06-01T23:56:52.649Z",
+  "slides": [
+    {
+      "type": "title",
+      "variant": "left",
+      "headline": "Penny Marketing Agent",
+      "subtitle": "Sprint 1 MVP Review",
+      "label": "SPRINT REVIEW",
+      "color": "#009B8F",
+      "supporting": "First sprint: versioned marketing assistant for Synogize content generation",
+      "evidenceRefs": [
+        "CHK-001-003"
+      ],
+      "notes": "## Slide: Penny Marketing Agent — Sprint 1 MVP Review\n\n**Key point:** This is a working MVP, not a proof of concept. Penny shipped.\n\n**Open with:** \"What we're reviewing today is a first sprint that delivered more than originally scoped — and I want to walk you through what that means.\"\n\n**Talk track:**\n- Penny is a versioned marketing assistant built specifically for Synogize\n- Sprint 1 goal was simple: better marketing first drafts, faster\n- We'll cover what was built, how the scope evolved, and what comes next\n\n**Transition:** \"Let's start with the three things to take away from this review...\""
+    },
+    {
+      "type": "goals",
+      "variant": "numbered",
+      "headline": "Three things to take away",
+      "label": "SPRINT REVIEW",
+      "color": "#009B8F",
+      "points": [
+        "**Penny works** — LinkedIn posts, carousel copy, case-study drafts, and Canva-ready asset direction all delivered in Sprint 1.",
+        "**Scope evolved intentionally** — basic ChatGPT + Canva became a versioned plugin to make the workflow repeatable, testable, and installable.",
+        "**Gaps are known and sequenced** — SharePoint access, template mapping, and setup simplification are the clear next sprint targets."
+      ],
+      "evidenceRefs": [
+        "CHK-001-003",
+        "CHK-001-004",
+        "CHK-001-005"
+      ],
+      "notes": "## Slide: Three things to take away\n\n**Key point:** Scope expanded for good technical reasons — the business goal never changed.\n\n**Open with:** \"Before we get into the details, here are the three things I want you to leave with.\"\n\n**Talk track:**\n- First: Penny delivered. Core marketing workflows are functional and tested.\n- Second: the move from a basic ChatGPT workflow to a versioned plugin wasn't scope creep — it was the only way to make it reliable across users. Version control, regression tests, repeatable installs.\n- Third: we know exactly what's missing. This isn't vague — SharePoint access, template maps, more voice examples. All sequenced.\n\n**Delivery:** Pause briefly after each point. Let the technical audience absorb the intentionality of the scope evolution — that's the credibility moment.\n\n**Transition:** \"Let's go deeper on what was actually built...\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "THE BRIEF",
+      "color": "#FF2A2A",
+      "headline": "Build Penny for marketing",
+      "supporting": "First sprint: help Synogize marketers generate branded LinkedIn posts and image assets — using existing brand guidelines, Canva, SharePoint, and templates.",
+      "evidenceRefs": [
+        "CHK-001-007",
+        "CHK-001-008",
+        "CHK-001-009"
+      ],
+      "notes": "## Slide: Build Penny for marketing\n\n**Key point:** The sprint had a clear, narrow brief — marketing content generation, not a full AI platform.\n\n**Open with:** \"So what was Penny actually supposed to do? Let's anchor on the original brief before we talk about what was built.\"\n\n**Talk track:**\n- The task was focused: help the Synogize marketing team produce better first drafts, faster\n- The inputs were all pre-existing — brand guidelines, Canva, SharePoint assets, previous content examples\n- No new tooling needed, no new logins — work with what the team already had\n- This is a workflow augmentation task, not a platform build\n\n**Transition:** \"Now, just as important as what was in scope — what was explicitly left out...\""
+    },
+    {
+      "type": "comparison",
+      "variant": "grid",
+      "label": "THE BRIEF",
+      "color": "#FF2A2A",
+      "headline": "In scope. Out of scope.",
+      "beforePoints": [
+        "Branded LinkedIn post generation",
+        "Marketing image assets via Canva",
+        "Synogize brand guidelines as input",
+        "SharePoint Marketing assets",
+        "Existing templates, logos, colours, and examples"
+      ],
+      "afterPoints": [
+        "Lead scorecards or lead evaluation",
+        "ActiveCampaign or funnel automation",
+        "Broader sales pipeline automation",
+        "Codex / Claude / multi-vendor setup"
+      ],
+      "evidenceRefs": [
+        "CHK-001-009",
+        "CHK-001-010",
+        "CHK-001-011"
+      ],
+      "notes": "## Slide: In scope. Out of scope.\n\n**Key point:** The brief was deliberately narrow — content generation only, no CRM, no funnel work.\n\n**Open with:** \"The original ticket was explicit about boundaries. That clarity matters when we talk about what changed.\"\n\n**Talk track:**\n- In-scope was all about content: posts, assets, brand alignment, using existing tools\n- Out-of-scope was everything downstream: leads, scoring, ActiveCampaign, pipeline\n- Notably, multi-vendor AI setup (Codex / Claude) was also explicitly out of scope for the first cut\n- These constraints shaped the MVP — and some of them shifted during the sprint\n\n**Transition:** \"Keeping those constraints in mind, let's talk about what actually got built — and where the scope evolved.\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "DELIVERED",
+      "color": "#7C3CFF",
+      "headline": "Basic chat wasn't enough",
+      "supporting": "Penny evolved from a ChatGPT + Canva workflow into a versioned plugin — because reliability across users demanded it.",
+      "evidenceRefs": [
+        "CHK-001-016",
+        "CHK-001-017",
+        "CHK-001-019"
+      ],
+      "notes": "## Slide: Basic chat wasn't enough\n\n**Key point:** The scope evolved for a concrete technical reason — not feature creep.\n\n**Open with:** \"The original brief said keep it simple: ChatGPT and Canva. That was the right instinct, but it hit a wall quickly.\"\n\n**Talk track:**\n- Plain chat gives you one good draft. It doesn't give you repeatability, testability, or something another user can install.\n- The moment we asked 'can Samantha run this herself?' the answer with basic chat was no.\n- Moving to a versioned plugin wasn't scope creep — it was the minimum needed to make the business goal actually work.\n\n**Transition:** \"So what did the plugin approach buy us specifically? Let's break that down.\""
+    },
+    {
+      "type": "framework",
+      "variant": "cards",
+      "label": "DELIVERED",
+      "color": "#7C3CFF",
+      "headline": "Why the plugin pattern won",
+      "points": [
+        "**Version control** — Skills and changes tracked; safe to iterate and roll back.",
+        "**Repeatable installs** — Samantha and future users can install and test without handholding.",
+        "**Regression tests** — Key workflow behaviours are locked and verified on each change.",
+        "**Approval gates** — Clear separation between draft generation, Canva fitting, and human sign-off."
+      ],
+      "evidenceRefs": [
+        "CHK-001-018"
+      ],
+      "notes": "## Slide: Why the plugin pattern won\n\n**Key point:** Four concrete engineering properties justified moving beyond basic chat.\n\n**Open with:** \"Here's what the plugin approach actually gave us — not in marketing terms, but in engineering terms.\"\n\n**Talk track:**\n- Version control means we're not relying on prompt memory or chat history. Changes are committed, reviewable, reversible.\n- Repeatable installs mean Samantha isn't dependent on Andy to recreate the setup every time.\n- Regression tests are the big one for a technical audience — we can change a skill and immediately know if something broke.\n- The approval gate separation is architectural: Penny treats every output as a draft until a human approves. That's a deliberate design choice, not an accident.\n\n**Transition:** \"Now let's look at what that plugin actually contains — the concrete deliverables from the sprint.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "DELIVERED",
+      "color": "#7C3CFF",
+      "headline": "Sprint deliverables",
+      "leftContent": "The MVP ships a complete marketing content workflow — from brief to brand-safe draft to Canva handoff.",
+      "points": [
+        "**LinkedIn copy** — Posts, hooks, carousel copy, event recaps, competitor themes",
+        "**Brand encoding** — Voice, colours, CTAs, service taxonomy, logo-safety rules",
+        "**Case-study workflow** — Rough notes → chronological narrative → Canva fit",
+        "**Asset direction** — Reusable visual-asset prompts for Canva-ready drafts",
+        "**Setup + tests** — Install docs, regression tests, Canva OAuth helper"
+      ],
+      "mockupKind": "file-tree",
+      "mockupTree": [
+        {
+          "name": "penny-marketing/",
+          "children": [
+            {
+              "name": "skills/",
+              "children": [
+                {
+                  "name": "linkedin.md",
+                  "comment": "# Post types, hooks, CTAs, source context"
+                },
+                {
+                  "name": "brand.md",
+                  "comment": "# Voice, colours, logo-safety rules"
+                },
+                {
+                  "name": "case-study.md",
+                  "comment": "# Rough notes → narrative → Canva fit"
+                },
+                {
+                  "name": "canva.md",
+                  "comment": "# Template fit, draft QA, handoff gates"
+                },
+                {
+                  "name": "assets.md",
+                  "comment": "# Visual direction + reusable asset prompts"
+                },
+                {
+                  "name": "router.md",
+                  "comment": "# Plain-English request routing"
+                },
+                {
+                  "name": "competitor.md",
+                  "comment": "# Competitor theme + X signal research"
+                },
+                {
+                  "name": "presentation.md",
+                  "comment": "# PPTX path for full slide decks"
+                }
+              ]
+            },
+            {
+              "name": "tests/",
+              "children": [
+                {
+                  "name": "regression.md",
+                  "comment": "# Key workflow behaviour tests"
+                },
+                {
+                  "name": "brand-qa.md",
+                  "comment": "# Brand-safety assertion suite"
+                }
+              ]
+            },
+            {
+              "name": "docs/",
+              "children": [
+                {
+                  "name": "setup.md",
+                  "comment": "# Install guide + Canva OAuth flow"
+                },
+                {
+                  "name": "playbook.md",
+                  "comment": "# Marketer-facing workflow guide"
+                }
+              ]
+            },
+            {
+              "name": "tools/",
+              "children": [
+                {
+                  "name": "canva-upload.ts",
+                  "comment": "# Asset upload + export helper"
+                },
+                {
+                  "name": "pptx-export.ts",
+                  "comment": "# Presentation generation path"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "evidenceRefs": [
+        "CHK-001-013",
+        "CHK-001-018"
+      ],
+      "notes": "## Slide: Sprint deliverables\n\n**Key point:** This isn't a prototype — it's a structured, installable plugin with a real file hierarchy, tests, and docs.\n\n**Open with:** \"Here's what's actually in the repo after this sprint.\"\n\n**Talk track:**\n- Walk the file tree: skills/ is the brain — eight skills, each encoding a specific domain of the marketing workflow.\n- The brand skill is the most important — it's what makes outputs Synogize-aligned rather than generic AI copy.\n- router.md is worth calling out: Samantha writes plain English and Penny picks the right workflow — no tool selection required.\n- The case-study workflow is story-first, then Canva. That order matters for quality.\n- tests/ has two files: regression for workflow behaviour, brand-qa for safety assertions. This is what makes it repeatable across users.\n- tools/ shows this went beyond chat — there's real TypeScript for Canva upload and PPTX export.\n- Samantha has already installed it. This isn't just Andy's local setup.\n\n**Transition:** \"With the deliverables on the table, let's look at what's done versus partial versus still open.\""
+    },
+    {
+      "type": "comparison",
+      "variant": "stats",
+      "label": "REQUIREMENTS",
+      "color": "#2563EB",
+      "headline": "MoSCoW delivery status",
+      "beforeNumber": "6",
+      "beforeLabel": "Must-haves — all Done",
+      "afterNumber": "3",
+      "afterLabel": "Won't-haves — stayed out of scope",
+      "winner": "before",
+      "supporting": "Every Must is green. Should-haves are split Done / Partial. No scope creep into ActiveCampaign, lead scoring, or direct publishing.",
+      "evidenceRefs": [
+        "CHK-001-021",
+        "CHK-001-023"
+      ],
+      "notes": "**Key point:** The Must-have tier is clean — every hard requirement is marked Done.\n\n**Open with:** \"Let's walk through where we landed against the original requirements.\"\n\n**Talk track:**\n- All Must requirements are Done — LinkedIn drafts, brand consistency, approval gates, secure secrets, and plain-English routing all work\n- Should-haves split between Done and Partial — case-study drafts and export are there; Canva template fitting and competitor listening still need work\n- Won't-haves stayed out of scope — no scope creep into ActiveCampaign, lead scoring, or direct publishing\n\n**Transition:** \"Now let's look at the non-functional layer — because brand safety and repeatability matter as much as features.\""
+    },
+    {
+      "type": "comparison",
+      "variant": "stats",
+      "label": "REQUIREMENTS",
+      "color": "#2563EB",
+      "headline": "Non-functional requirements",
+      "beforeNumber": "4 / 4",
+      "beforeLabel": "Must NFRs — all Done",
+      "afterNumber": "3 / 4",
+      "afterLabel": "Should NFRs — 1 still Partial",
+      "winner": "before",
+      "supporting": "Brand safety, repeatable workflow, human review gates, and secure secrets handling all confirmed. Marketer-friendly setup remains the open item.",
+      "evidenceRefs": [
+        "CHK-001-023"
+      ],
+      "notes": "**Key point:** The safety and repeatability foundation is fully in place.\n\n**Open with:** \"The non-functional requirements are where the architecture decisions really show up.\"\n\n**Talk track:**\n- All four Must NFRs are green: brand-safe output, repeatable skills/test/plugin packaging, human-controlled approval gates, and Azure Key Vault for secrets\n- The one Partial is setup ease for non-technical users — plain-English workflow is improving but still needs support to install\n- This matters for scaling: the pattern is reusable across departments, but only if setup becomes self-serve\n\n**Transition:** \"With requirements mapped, let's look at what we actually shipped — the architecture and implementation.\""
+    },
+    {
+      "type": "chart",
+      "variant": "bar",
+      "headline": "Feasibility by workflow area",
+      "label": "FEASIBILITY",
+      "color": "#D97706",
+      "supporting": "High-feasibility areas are ready to compound value now. Medium and low areas have concrete blockers before scaling.",
+      "chartKind": "bar",
+      "chartData": {
+        "xLabels": [
+          "LinkedIn copy",
+          "Carousel copy",
+          "Case-study",
+          "Canva template",
+          "Asset auto.",
+          "Brand kit",
+          "SharePoint",
+          "Competitor",
+          "X/Twitter",
+          "Multi-user"
+        ],
+        "series": [
+          {
+            "label": "Feasibility — High=3  Medium=2  Low=1",
+            "color": "#D97706",
+            "points": [
+              3,
+              3,
+              3,
+              2,
+              2,
+              2,
+              1,
+              1,
+              2,
+              2
+            ]
+          }
+        ]
+      },
+      "evidenceRefs": [
+        "CHK-001-025"
+      ],
+      "notes": "## Slide: Feasibility by workflow area\n\n**Key point:** Three workflow areas are high-confidence right now; everything else has a concrete blocker.\n\n**Open with:** \"Not all parts of Penny are equal — some are ready to ship value today, others are blocked by permissions, tooling limits, or source access.\"\n\n**Talk track:**\n- LinkedIn copy, carousel copy, and case-study drafting all score 3 (High) — best candidates for immediate use and iteration\n- Canva template fitting and asset automation are Medium — connector capabilities and design review needs cap the ceiling\n- Brand kit automation is Medium-constrained: the Canva API simply doesn't expose full-res brand asset downloads\n- SharePoint ingestion and LinkedIn competitor scraping score Low — access hasn't been validated yet\n- X/Twitter signals showed promise in the Hermes experiment but aren't a production workflow yet\n\n**Transition:** \"Those medium and low bars map directly to specific gaps we need to close. Let's name them.\""
+    },
+    {
+      "type": "framework",
+      "variant": "cards",
+      "headline": "Gaps blocking full delivery",
+      "label": "FEASIBILITY",
+      "color": "#D97706",
+      "points": [
+        "**SharePoint access** — Marketing folder source ingestion not yet validated; Penny cannot reliably pull brand assets from SharePoint.",
+        "**Approved voice examples** — More real Synogize/Samantha-approved post examples are needed to improve draft quality and brand alignment.",
+        "**Canva template mapping** — Approved templates must be catalogued by use case, page count, image zones, and copy limits.",
+        "**Brand asset source-of-truth** — Canva API doesn't expose full-resolution brand kit downloads; a separate managed store is required.",
+        "**Competitor listening process** — LinkedIn competitor monitoring lacks a repeatable, automatable source process."
+      ],
+      "evidenceRefs": [
+        "CHK-001-027",
+        "CHK-001-025"
+      ],
+      "notes": "## Slide: Gaps blocking full delivery\n\n**Key point:** Every gap here is concrete and closable — none are architectural blockers to the core Penny pattern.\n\n**Open with:** \"These aren't vague risks. Each one is a specific thing that needs to be resolved before Penny can operate at full fidelity.\"\n\n**Talk track:**\n- SharePoint access is the most foundational gap — without it, Penny has to rely on manually supplied assets rather than pulling from the canonical source\n- Voice examples matter more than people expect — the model's output quality improves significantly when it has real approved examples to calibrate against\n- The Canva template mapping gap is partly a process gap, not just a tech one — someone needs to sit down and catalogue what templates exist and when to use each\n- The brand asset store problem is a Canva API limitation, not something we can engineer around — the solution is a managed folder Penny can read from\n- Competitor listening is lowest urgency but highest strategic upside if we get it right — supplied screenshots work today as a manual workaround\n\n**Transition:** \"These gaps are the recommended next sprint candidates — and we'll come back to those in the next steps section.\""
+    },
+    {
+      "type": "goals",
+      "variant": "numbered",
+      "label": "NEXT STEPS",
+      "color": "#009B8F",
+      "headline": "The demo in 7 steps",
+      "points": [
+        "Plain-English brief — Samantha describes the campaign goal in plain English",
+        "Penny routes — no tool selection required from the marketer",
+        "Synogize-aligned draft — post, carousel, or case-study copy generated",
+        "Source context + brand QA — provenance and brand rules applied automatically",
+        "Market signal → POV — competitor or X signal becomes a Synogize perspective",
+        "Canva / PPTX handoff — output routed to the right design format",
+        "Human approval gate — nothing published or finalised without review"
+      ],
+      "evidenceRefs": [
+        "CHK-001-028",
+        "CHK-001-029"
+      ],
+      "notes": "## Slide: The demo in 7 steps\n\n**Key point:** The demo is a linear story — brief in, brand-safe draft out, human approves.\n\n**Open with:** \"Here's exactly what we'll show — seven steps, one clean run-through.\"\n\n**Talk track:**\n- Steps 1–2 prove the routing intelligence — Samantha never touches a tool picker\n- Steps 3–4 are the core value prop: quality draft with brand QA baked in, not bolted on\n- Step 5 is the differentiator angle — turning noisy market signals into original Synogize content\n- Step 6 shows the output flexibility — same workflow, different handoff path\n- Step 7 is non-negotiable: human review before anything leaves the building\n\n**Delivery:** Walk through these sequentially. If time is short, steps 1–4 are the minimum viable demo.\n\n**Transition:** \"That's the demo shape. Let's close with what we're doing in the next sprint to close the gaps.\""
+    },
+    {
+      "type": "recap",
+      "variant": "resources",
+      "label": "NEXT STEPS",
+      "color": "#009B8F",
+      "headline": "Next sprint candidates",
+      "resources": [
+        {
+          "group": "Quality & Examples",
+          "items": [
+            {
+              "title": "Finalise plugin testing",
+              "description": "Close the loop with Samantha feedback on the installed-plugin workflow"
+            },
+            {
+              "title": "Add approved voice examples",
+              "description": "More Synogize/Samantha post examples to sharpen draft quality"
+            },
+            {
+              "title": "Improve case-study workflow",
+              "description": "More real source examples and better slide mapping"
+            }
+          ]
+        },
+        {
+          "group": "Sources & Access",
+          "items": [
+            {
+              "title": "SharePoint ingestion",
+              "description": "Gain access to the Marketing folder so Penny can pull approved assets as sources"
+            },
+            {
+              "title": "Canva template mapping",
+              "description": "Map approved templates by use case, page count, image zones, and copy limits"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "name": "Competitor listening",
+          "description": "Formalise LinkedIn-first workflow with optional X signal enrichment"
+        },
+        {
+          "name": "Setup simplification",
+          "description": "Reduce technical dependency for non-technical users"
+        }
+      ],
+      "evidenceRefs": [
+        "CHK-001-033"
+      ],
+      "notes": "## Slide: Next sprint candidates\n\n**Key point:** Seven concrete actions that close the biggest gaps between MVP and production-grade.\n\n**Open with:** \"We know exactly what's left. Here's the prioritised list.\"\n\n**Talk track:**\n- Quality & Examples group closes the feedback loop — Samantha's real-world use is the test suite\n- SharePoint access is a blocker for reliable source ingestion; it's the single highest-leverage infrastructure item\n- Canva template mapping unlocks the design handoff story end-to-end\n- Competitor listening + X enrichment is the differentiator that makes Penny a market-aware tool, not just a drafting tool\n- Setup simplification is the adoption gate — the workflow is only as useful as it is installable\n\n**Delivery:** Don't read every item. Group them: 'quality', 'sources', and 'workflow reach'. Leave room for the team to reprioritise in discussion.\n\n**Transition:** \"Those are the building blocks. The architecture is solid — now it's about expanding coverage and reducing friction.\""
+    },
+    {
+      "type": "goals",
+      "variant": "list",
+      "headline": "What you'll walk away with",
+      "label": "OPENING",
+      "color": "#009B8F",
+      "points": [
+        "**Understand what Penny is** — a task-based plugin, not a chatbot",
+        "**Know the five core skills** — and when to use each one",
+        "**See the Canva connection** — how assets go from prompt to finished design",
+        "**Be ready to use it** — enough to run your first task today"
+      ],
+      "notes": "## Slide: What you'll walk away with\n\n**Key point:** This talk has four concrete deliverables for Winston — not abstract awareness, but practical readiness.\n\n**Open with:** \"Here's the deal I'm making with you for the next however-long-this-takes.\"\n\n**Talk track:**\n- Point one: Penny is a plugin — it's installed once, then it's always there. It's not a website you visit.\n- Point two: Five skills. Each one maps to a real task your team does every week. LinkedIn posts, case studies, images, Canva edits, presentations.\n- Point three: The Canva connection is what makes this different from just prompting Claude. Penny can actually reach into Canva, check templates, edit designs, and export files.\n- Point four: By the end of this, you should be able to say 'Penny, draft a LinkedIn post about X' and know what to expect back.\n- The single thread through all of this: **brand alignment is automatic**. You never have to brief Penny on Synogize's tone, colours, or partners — it already knows.\n\n**Delivery:** Pause after reading each point. Let Winston absorb the scope before moving on.\n\n**Transition:** \"Let's start with the one idea that makes Penny worth your time.\""
+    }
+  ],
+  "outline": {
+    "title": "Penny Marketing Agent MVP",
+    "totalSlideCount": 13,
+    "sections": [
+      {
+        "id": "SEC-OPENING",
+        "name": "Opening",
+        "purpose": "Introduce Penny, the sprint context, and the three key takeaways for this review.",
+        "label": "SPRINT REVIEW",
+        "color": "#009B8F",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-003",
+          "CHK-001-004",
+          "CHK-001-005"
+        ]
+      },
+      {
+        "id": "SEC-PROBLEM",
+        "name": "Original Task & Scope",
+        "purpose": "Define the original sprint brief, what was in scope, and what was explicitly out of scope.",
+        "label": "THE BRIEF",
+        "color": "#FF2A2A",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-007",
+          "CHK-001-008",
+          "CHK-001-009",
+          "CHK-001-010",
+          "CHK-001-011"
+        ]
+      },
+      {
+        "id": "SEC-DELIVERED",
+        "name": "What Was Delivered",
+        "purpose": "Show the concrete deliverables from the sprint and where the scope evolved into a versioned plugin pattern.",
+        "label": "DELIVERED",
+        "color": "#7C3CFF",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-001-013",
+          "CHK-001-016",
+          "CHK-001-017",
+          "CHK-001-018",
+          "CHK-001-019"
+        ]
+      },
+      {
+        "id": "SEC-REQUIREMENTS",
+        "name": "Requirements Status",
+        "purpose": "Map MoSCoW requirements and non-functional requirements against current delivery status, surfacing what is done, partial, or missing.",
+        "label": "REQUIREMENTS",
+        "color": "#2563EB",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-021",
+          "CHK-001-023",
+          "CHK-001-014",
+          "CHK-001-015"
+        ]
+      },
+      {
+        "id": "SEC-FEASIBILITY",
+        "name": "Complexity & Gaps",
+        "purpose": "Present the feasibility assessment by workflow area and name the current gaps blocking full delivery.",
+        "label": "FEASIBILITY",
+        "color": "#D97706",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-025",
+          "CHK-001-026",
+          "CHK-001-027"
+        ]
+      },
+      {
+        "id": "SEC-CLOSING",
+        "name": "Next Steps & Demo Plan",
+        "purpose": "Summarise key learnings, outline the recommended next sprint candidates, and frame the demo story.",
+        "label": "NEXT STEPS",
+        "color": "#009B8F",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-001-028",
+          "CHK-001-029",
+          "CHK-001-033"
+        ]
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "id": "CHK-001-001",
+      "paragraph": 1,
+      "text": "# Requirements Traceability"
+    },
+    {
+      "id": "CHK-001-002",
+      "paragraph": 2,
+      "text": "# Penny Marketing Agent - Requirements Traceability"
+    },
+    {
+      "id": "CHK-001-003",
+      "paragraph": 3,
+      "text": "Penny has delivered a first sprint MVP for Synogize marketing content generation."
+    },
+    {
+      "id": "CHK-001-004",
+      "paragraph": 4,
+      "text": "The MVP can help draft Synogize-aligned LinkedIn posts, carousel copy, case-study story drafts, Canva-ready asset direction, and branded collateral content. It also captures the operating rules needed for a marketer to brief Penny in plain English, receive a usable first draft, review it, and iterate."
+    },
+    {
+      "id": "CHK-001-005",
+      "paragraph": 5,
+      "text": "The original sprint task asked for a basic ChatGPT + Canva workflow. During the sprint, the work evolved into a versioned Penny plugin because that became the practical way to make the workflow repeatable, testable, installable by another user, and easier to improve over time. This is a scope expansion, not a replacement of the original marketing goal."
+    },
+    {
+      "id": "CHK-001-006",
+      "paragraph": 6,
+      "text": "## Original Sprint Task"
+    },
+    {
+      "id": "CHK-001-007",
+      "paragraph": 7,
+      "text": "Build the first sprint version of Penny, focused on marketing content generation and augmenting the workflow of Synogize team members."
+    },
+    {
+      "id": "CHK-001-008",
+      "paragraph": 8,
+      "text": "The task covered a ChatGPT workflow that can generate branded LinkedIn posts and marketing image assets using:"
+    },
+    {
+      "id": "CHK-001-009",
+      "paragraph": 9,
+      "text": "* Synogize brand guidelines * Canva through ChatGPT web * Synogize Canva login * SharePoint Marketing assets * Existing templates, logos, colours, reference images, and previous content examples"
+    },
+    {
+      "id": "CHK-001-010",
+      "paragraph": 10,
+      "text": "Out of scope for this ticket:"
+    },
+    {
+      "id": "CHK-001-011",
+      "paragraph": 11,
+      "text": "* Lead scorecards * Lead evaluation * ActiveCampaign * Broader funnel or sales pipeline automation * Codex / Claude / multi-vendor setup as an initial target"
+    },
+    {
+      "id": "CHK-001-012",
+      "paragraph": 12,
+      "text": "## What Was Delivered"
+    },
+    {
+      "id": "CHK-001-013",
+      "paragraph": 13,
+      "text": "* Versioned Penny assistant workflow for Synogize marketing. * Synogize brand voice, colours, CTAs, service taxonomy, and logo-safety rules encoded into the workflow. * LinkedIn post drafting, hook options, carousel copy, event recap, competitor-theme, and source-context guidance. * Marketing asset direction and reusable visual-asset prompting for Canva-ready drafts. * Case-study story workflow for turning rough notes into a chronological narrative before Canva fitting. * Canva template-fit and draft QA guidance, including when to stop for human review. * Canva asset upload/export helper tooling where OAuth and permissions are configured. * Presentation/PPTX path for deck use cases that exceed Canva connector limits. * Setup guidance so another user can install and test Penny. * Regression tests for key workflow behaviours. * Early market-research experiment using X / Twitter as a signal source for timely content ideas."
+    },
+    {
+      "id": "CHK-001-014",
+      "paragraph": 14,
+      "text": "## Sprint Task Coverage"
+    },
+    {
+      "id": "CHK-001-015",
+      "paragraph": 15,
+      "text": "| Requirement | Status | Notes | | ---| ---| --- | | Generate branded LinkedIn posts | Done | Penny can draft Synogize-aligned posts, hooks, CTAs, hashtags, source context, and QA notes. | | Generate marketing image assets | Partial | Penny can create Canva-ready visual directions and reusable asset prompts. Full asset production still needs review and Canva handoff. | | Use Synogize brand guidelines | Done | Voice, colours, CTAs, service taxonomy, logo handling, and brand QA are encoded. | | Use Canva through the marketing workflow | Partial | Canva fitting and draft guidance works where tools allow. Some Canva actions still need manual review or handoff. | | Use Synogize Canva login | Partial | Canva OAuth/setup flow exists. Per-user re-auth may still be needed when scopes change. | | Use SharePoint Marketing assets | Not completed | SharePoint marketing folder access is still needed before Penny can reliably use it as a source. | | Use existing templates, logos, colours, reference images, and previous content | Partial | Colours, CTAs, logos, and selected examples are captured. More approved examples and template maps would improve quality. | | Avoid lead scoring, lead evaluation, ActiveCampaign, and funnel automation | Done | These remain out of scope for this MVP. | | Keep workflow simple for marketers | Partial | The user-facing workflow is plain-English, but setup still requires some technical support. |"
+    },
+    {
+      "id": "CHK-001-016",
+      "paragraph": 16,
+      "text": "The task originally said to stick with basic ChatGPT and Canva to avoid learning new tech."
+    },
+    {
+      "id": "CHK-001-017",
+      "paragraph": 17,
+      "text": "During the sprint, the work moved into Codex / Claude plugin packaging because basic chat-only behaviour was not enough to make Penny reliable across users. The plugin approach gave us:"
+    },
+    {
+      "id": "CHK-001-018",
+      "paragraph": 18,
+      "text": "* version control for skills and changes * repeatable install/testing for Samantha and future users * regression tests for important behaviours * safer Canva setup and asset-upload handling * clearer separation between draft generation, Canva fitting, and approval gates"
+    },
+    {
+      "id": "CHK-001-019",
+      "paragraph": 19,
+      "text": "This does mean the implementation went beyond the original technical scope. The business goal stayed the same: help marketing produce better first drafts faster."
+    },
+    {
+      "id": "CHK-001-020",
+      "paragraph": 20,
+      "text": "## MoSCoW Requirements"
+    },
+    {
+      "id": "CHK-001-021",
+      "paragraph": 21,
+      "text": "| Priority | Requirement | Current Status | Notes | | ---| ---| ---| --- | | Must | Generate Synogize-aligned LinkedIn post drafts | Done | Practical, direct, executive-facing tone with source context and QA notes. | | Must | Use Synogize brand rules consistently | Done | Colours, CTAs, service taxonomy, logo safety, and brand QA are encoded. | | Must | Keep human approval before publishing or finalising Canva work | Done | Penny treats outputs as drafts until reviewed. | | Must | Route plain-English marketing requests without making Samantha choose tools | Done | Router guidance handles workflow selection. | | Must | Document setup so another user can install and test | Done | Samantha has installed Penny and can provide feedback. | | Should | Fit approved content into Canva workflows | Partial | Supported where Canva tooling allows; unsupported actions are documented as handoff. | | Should | Create marketing image asset directions | Partial | Asset prompts and visual directions exist; production assets still need review. | | Should | Use existing templates and brand assets | Partial | Core brand rules are captured; template mapping and SharePoint source access need more work. | | Should | Produce case-study drafts from rough notes | Done | Story-first workflow exists; needs more real examples. | | Should | Export Canva/design outputs for handoff | Done | Local export and font bundle support exists. | | Should | Automate market and competitor research | Partial | X research experiment worked as a signal layer; LinkedIn competitor listening still needs a repeatable source process. | | Could | Build longer presentation decks outside Canva limits | Done | PPTX generation path exists for proper slide decks. | | Could | Add competitor listening workflow | Partial | Works from supplied LinkedIn screenshots/copy; direct LinkedIn scraping remains constrained. | | Won't For MVP | Publish directly to LinkedIn | Not included | Human review and publishing remain manual. | | Won't For MVP | Automate ActiveCampaign or full funnel workflows | Not included | Out of scope for the first marketing sprint. | | Won't For MVP | Lead scoring or sales pipeline automation | Not included | Explicitly outside the ticket scope. |"
+    },
+    {
+      "id": "CHK-001-022",
+      "paragraph": 22,
+      "text": "## Non-Functional Requirements"
+    },
+    {
+      "id": "CHK-001-023",
+      "paragraph": 23,
+      "text": "| Priority | Requirement | Current Status | Notes | | ---| ---| ---| --- | | Must | Brand-safe output | Done | Avoids fake stats, fake claims, fake logos, and generic AI language. | | Must | Repeatable workflow | Done | Skills, tests, docs, and plugin packaging make the process reusable. | | Must | Human review gates | Done | Publishing and final Canva approval remain human-controlled. | | Must | Secure secrets handling | Done | Canva app credentials belong in Azure Key Vault; user tokens stay local. | | Should | Easy for a marketer to use | Partial | Plain-English workflow is improving; setup still needs support. | | Should | Testable and version-controlled | Done | Repo contains tests and branch/PR workflow. | | Should | Source-aware research workflow | Partial | Penny separates source signals, facts, and Synogize interpretation in newer LinkedIn guidance. | | Could | Scale to other departments | Promising | Pattern is reusable, but each department needs workflow discovery and domain-specific rules. |"
+    },
+    {
+      "id": "CHK-001-024",
+      "paragraph": 24,
+      "text": "## Complexity And Feasibility"
+    },
+    {
+      "id": "CHK-001-025",
+      "paragraph": 25,
+      "text": "| Area | Feasibility | Notes | | ---| ---| --- | | LinkedIn copy generation | High | Strong first-draft quality when Penny has source context and examples. | | Carousel copy decks | High | Works well when copy is created before Canva fitting. | | Case-study story drafting | High | Likely a strong ROI workflow; needs more real source examples. | | Canva template fitting | Medium | Useful, but limited by connector capabilities and design review needs. | | Canva asset automation | Medium | Upload/export tooling exists, but permissions and review remain important. | | Brand kit automation | Medium / constrained | Canva API does not provide full-resolution brand asset downloads, so approved assets must be stored and managed separately. | | SharePoint source ingestion | Not validated | Access to the marketing folder is still required. | | Automated LinkedIn competitor scraping | Constrained | LinkedIn access is difficult to automate reliably; supplied screenshots/copy work today. | | X / Twitter market-signal research | Promising | Hermes experiment showed useful signal discovery, but this is not yet a production workflow. | | Multi-user setup | Improving | Samantha installed Penny; Andy is improving setup and Canva scope healing. |"
+    },
+    {
+      "id": "CHK-001-026",
+      "paragraph": 26,
+      "text": "* Content generation is the highest-value first use case for marketing. * Brand alignment is the most important quality layer. * The workflow works best when copy comes before Canva fitting. * Canva automation is useful, but it is not a full replacement for human design review. * Source context matters: Penny should show where an idea came from before drafting a point of view. * Automated research can become a differentiator if market signals are turned into timely, original Synogize content. * A useful department assistant needs both content rules and operating rules: when to ask questions, when to draft, and when to stop for approval. * The spike evolved from a basic ChatGPT + Canva workflow into a more scalable plugin pattern."
+    },
+    {
+      "id": "CHK-001-027",
+      "paragraph": 27,
+      "text": "* SharePoint Marketing asset access is still needed. * More approved Synogize/Samantha voice examples should be added. * Approved Canva templates should be mapped by best use, page count, image zones, and copy limits. * More real case-study examples are needed to improve story quality. * LinkedIn competitor listening still needs a repeatable source process. * Brand asset handling needs a clear source-of-truth process because Canva does not expose full-resolution brand kit downloads through the API. * Setup should become easier for non-technical users."
+    },
+    {
+      "id": "CHK-001-028",
+      "paragraph": 28,
+      "text": "A simple demo should show:"
+    },
+    {
+      "id": "CHK-001-029",
+      "paragraph": 29,
+      "text": "1. A plain-English marketing brief. 2. Penny routing the request without Samantha choosing tools. 3. Penny drafting useful Synogize-aligned content. 4. Source context and brand QA applied automatically. 5. A market or competitor signal becoming a Synogize point of view. 6. Canva or presentation handoff where appropriate. 7. Clear human approval gates before anything is final."
+    },
+    {
+      "id": "CHK-001-030",
+      "paragraph": 30,
+      "text": "## Definition Of Done Mapping"
+    },
+    {
+      "id": "CHK-001-031",
+      "paragraph": 31,
+      "text": "| Sprint / Spike Definition Of Done | Status | Notes | | ---| ---| --- | | First sprint version of Penny | Mostly done | Working MVP exists and has been tested through repo/plugin workflows. | | Branded LinkedIn post generation | Done | Core workflow is implemented and improved with post-type/source-context guidance. | | Marketing image asset support | Partial | Asset direction and prompting exists; full Canva asset production remains review-gated. | | Use Synogize brand guidelines | Done | Encoded in Penny skills and tests. | | Use Canva workflow | Partial | Canva workflows are supported where tools allow; limitations are documented. | | Use SharePoint Marketing assets | Not done | Access/source ingestion remains a gap. | | Respect out-of-scope funnel and lead automation | Done | Not included in MVP. | | Demo of solution | Mostly ready | Needs a small demo script and final prompt set. | | Documented framework / playbook | Partial | Requirements traceability and output review hub exist; could be tightened into a standalone playbook. | | Complexity / feasibility report | Partial | Captured here at summary level; can be expanded after demo feedback. | | Labs feasibility / gap report for scaling | Partial | Pattern is promising, but scaling needs domain discovery, source access, setup simplification, and governance. |"
+    },
+    {
+      "id": "CHK-001-032",
+      "paragraph": 32,
+      "text": "## Recommended Next Sprint Candidates"
+    },
+    {
+      "id": "CHK-001-033",
+      "paragraph": 33,
+      "text": "* Finalise installed-plugin testing with Samantha feedback. * Add more approved Synogize voice and post examples. * Clean up and map approved Canva templates. * Formalise LinkedIn-first competitor listening with optional X signal enrichment. * Improve case-study story workflow and slide mapping. * Add SharePoint Marketing folder access and source-ingestion workflow. * Simplify setup for non-technical users. * * *"
+    },
+    {
+      "id": "CHK-001-034",
+      "paragraph": 34,
+      "text": "MoSCoW reference image from original page:"
+    },
+    {
+      "id": "CHK-001-035",
+      "paragraph": 35,
+      "text": "![](https://t36848457.p.clickup-attachments.com/t36848457/36089309-a655-43f8-848e-f6fe304463fb/image.png)"
+    }
+  ],
+  "images": [],
+  "validationWarnings": [
+    {
+      "slideIndex": 11,
+      "field": "points",
+      "message": "7 points (max 5).",
+      "severity": "warning"
+    }
+  ],
+  "fidelityReport": {
+    "generatedAt": "2026-06-01T23:56:52.649Z",
+    "overallGrade": "high",
+    "summary": "The deck faithfully represents the source document across all major sections. The central thesis (Penny delivered a working MVP, scope evolved intentionally to a versioned plugin, known gaps are sequenced for next sprint) is clearly communicated. All MoSCoW Must requirements, non-functional requirements, feasibility ratings, key gaps, demo steps, and next sprint candidates are accurately represented. The file-tree mockup on slide 7 is a presentational elaboration not literally in the source but is fully grounded in the deliverables list. The comparison stats on slide 9 (4/4 Must NFRs done, 3/4 Should NFRs) are accurate derivations from the NFR table. No significant source material is omitted and no unsupported factual claims are made.",
+    "coverage": [
+      {
+        "sectionId": "SEC-OPENING",
+        "sectionName": "Opening: Introduce Penny, the sprint context, and the three key takeaways for this review.",
+        "capturedKeyPoints": [
+          {
+            "text": "Penny delivered a first sprint MVP for Synogize marketing content generation",
+            "evidenceChunkIds": [
+              "CHK-001-003"
+            ]
+          },
+          {
+            "text": "MVP capabilities: LinkedIn posts, carousel copy, case-study drafts, Canva-ready asset direction, branded collateral",
+            "evidenceChunkIds": [
+              "CHK-001-004"
+            ]
+          },
+          {
+            "text": "Scope evolved from basic ChatGPT + Canva to a versioned plugin for repeatability, testability, and installability",
+            "evidenceChunkIds": [
+              "CHK-001-005"
+            ]
+          },
+          {
+            "text": "Three takeaways framed: Penny works, scope evolved intentionally, gaps are known and sequenced",
+            "evidenceChunkIds": [
+              "CHK-001-003",
+              "CHK-001-004",
+              "CHK-001-005"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      },
+      {
+        "sectionId": "SEC-PROBLEM",
+        "sectionName": "Original Task & Scope: Define the original sprint brief, what was in scope, and what was explicitly out of scope.",
+        "capturedKeyPoints": [
+          {
+            "text": "Original task: build first sprint Penny focused on marketing content generation for Synogize team members",
+            "evidenceChunkIds": [
+              "CHK-001-007"
+            ]
+          },
+          {
+            "text": "In-scope inputs: brand guidelines, Canva, SharePoint Marketing assets, existing templates, logos, colours, reference images",
+            "evidenceChunkIds": [
+              "CHK-001-008",
+              "CHK-001-009"
+            ]
+          },
+          {
+            "text": "Out of scope: lead scorecards, lead evaluation, ActiveCampaign, funnel/pipeline automation, Codex/Claude multi-vendor setup",
+            "evidenceChunkIds": [
+              "CHK-001-010",
+              "CHK-001-011"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      },
+      {
+        "sectionId": "SEC-DELIVERED",
+        "sectionName": "What Was Delivered: Show the concrete deliverables from the sprint and where the scope evolved into a versioned plugin pattern.",
+        "capturedKeyPoints": [
+          {
+            "text": "Versioned Penny assistant workflow delivered with brand voice, colours, CTAs, service taxonomy, logo-safety rules encoded",
+            "evidenceChunkIds": [
+              "CHK-001-013"
+            ]
+          },
+          {
+            "text": "LinkedIn post drafting, carousel copy, case-study workflow, asset direction, setup docs, regression tests all delivered",
+            "evidenceChunkIds": [
+              "CHK-001-013"
+            ]
+          },
+          {
+            "text": "Scope moved from basic chat to plugin because plain chat could not deliver reliability across users",
+            "evidenceChunkIds": [
+              "CHK-001-016",
+              "CHK-001-017",
+              "CHK-001-019"
+            ]
+          },
+          {
+            "text": "Plugin approach provided version control, repeatable installs, regression tests, safer Canva handling, and approval gate separation",
+            "evidenceChunkIds": [
+              "CHK-001-018"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Early market-research experiment using X / Twitter as a signal source for timely content ideas was delivered",
+            "sourceChunkIds": [
+              "CHK-001-013"
+            ]
+          },
+          {
+            "text": "Presentation/PPTX path for deck use cases that exceed Canva connector limits was delivered",
+            "sourceChunkIds": [
+              "CHK-001-013"
+            ]
+          },
+          {
+            "text": "Sprint Task Coverage table with per-requirement status (Done/Partial/Not completed) not surfaced as a dedicated slide",
+            "sourceChunkIds": [
+              "CHK-001-015"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-REQUIREMENTS",
+        "sectionName": "Requirements Status: Map MoSCoW requirements and non-functional requirements against current delivery status, surfacing what is done, partial, or missing.",
+        "capturedKeyPoints": [
+          {
+            "text": "All Must MoSCoW requirements are Done: LinkedIn drafts, brand rules, human approval gates, routing, setup docs",
+            "evidenceChunkIds": [
+              "CHK-001-021"
+            ]
+          },
+          {
+            "text": "Should requirements are split: case-study drafts and Canva export Done; Canva fitting, asset directions, template mapping, competitor research Partial",
+            "evidenceChunkIds": [
+              "CHK-001-021"
+            ]
+          },
+          {
+            "text": "Won't-for-MVP items held: direct LinkedIn publish, ActiveCampaign, lead scoring all excluded",
+            "evidenceChunkIds": [
+              "CHK-001-021"
+            ]
+          },
+          {
+            "text": "All four Must NFRs are Done: brand-safe output, repeatable workflow, human review gates, secure secrets handling",
+            "evidenceChunkIds": [
+              "CHK-001-023"
+            ]
+          },
+          {
+            "text": "Marketer-friendly setup remains Partial as the one open Should NFR",
+            "evidenceChunkIds": [
+              "CHK-001-023"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Source-aware research workflow NFR (Should, Partial) and scale-to-other-departments NFR (Could, Promising) not called out in the deck",
+            "sourceChunkIds": [
+              "CHK-001-023"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-FEASIBILITY",
+        "sectionName": "Complexity & Gaps: Present the feasibility assessment by workflow area and name the current gaps blocking full delivery.",
+        "capturedKeyPoints": [
+          {
+            "text": "Feasibility ratings by workflow area: LinkedIn copy, carousel copy, case-study drafts (High); Canva template fit, asset automation, brand kit automation, X/Twitter signals, multi-user setup (Medium); SharePoint ingestion, competitor scraping (Low/constrained)",
+            "evidenceChunkIds": [
+              "CHK-001-025"
+            ]
+          },
+          {
+            "text": "SharePoint Marketing asset access not yet validated — blocking reliable source ingestion",
+            "evidenceChunkIds": [
+              "CHK-001-027"
+            ]
+          },
+          {
+            "text": "More approved Synogize/Samantha voice examples needed to improve draft quality",
+            "evidenceChunkIds": [
+              "CHK-001-027"
+            ]
+          },
+          {
+            "text": "Approved Canva templates need mapping by use case, page count, image zones, and copy limits",
+            "evidenceChunkIds": [
+              "CHK-001-027"
+            ]
+          },
+          {
+            "text": "Brand asset source-of-truth gap: Canva API does not expose full-resolution brand kit downloads",
+            "evidenceChunkIds": [
+              "CHK-001-027",
+              "CHK-001-025"
+            ]
+          },
+          {
+            "text": "LinkedIn competitor listening lacks a repeatable source process",
+            "evidenceChunkIds": [
+              "CHK-001-027"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "More real case-study examples are needed to improve story quality (listed as a current gap)",
+            "sourceChunkIds": [
+              "CHK-001-027"
+            ]
+          },
+          {
+            "text": "Key learnings section (e.g. content generation is highest-value use case; copy-before-Canva order matters; source context principle) not represented as a dedicated slide",
+            "sourceChunkIds": [
+              "CHK-001-026"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CLOSING",
+        "sectionName": "Next Steps & Demo Plan: Summarise key learnings, outline the recommended next sprint candidates, and frame the demo story.",
+        "capturedKeyPoints": [
+          {
+            "text": "Demo in 7 steps: plain-English brief, Penny routing, Synogize-aligned draft, source context + brand QA, market signal to POV, Canva/PPTX handoff, human approval gate",
+            "evidenceChunkIds": [
+              "CHK-001-028",
+              "CHK-001-029"
+            ]
+          },
+          {
+            "text": "Next sprint candidates: plugin testing with Samantha, approved voice examples, Canva template mapping, SharePoint ingestion, case-study improvement, competitor listening, setup simplification",
+            "evidenceChunkIds": [
+              "CHK-001-033"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Key learnings not summarised as a dedicated slide (e.g. brand alignment is most important quality layer; automated research can be a differentiator; department assistant needs content rules and operating rules)",
+            "sourceChunkIds": [
+              "CHK-001-026"
+            ]
+          },
+          {
+            "text": "Definition of Done mapping table (Mostly done / Partial / Not done per DoD criterion) not surfaced",
+            "sourceChunkIds": [
+              "CHK-001-031"
+            ]
+          }
+        ]
+      }
+    ],
+    "unsupportedClaims": [
+      {
+        "slideIndex": 9,
+        "claim": "beforeNumber: '4 / 4' Must NFRs — all Done; afterNumber: '3 / 4' Should NFRs — 1 still Partial",
+        "closestSourceSpan": "Must | Brand-safe output | Done ... Must | Repeatable workflow | Done ... Must | Human review gates | Done ... Must | Secure secrets handling | Done ... Should | Easy for a marketer to use | Partial ... Should | Testable and version-controlled | Done ... Should | Source-aware research workflow | Partial ... Could | Scale to other departments | Promising",
+        "sourceChunkIds": [
+          "CHK-001-023"
+        ]
+      }
+    ],
+    "deterministic": {
+      "totalSlides": 13,
+      "factualSlides": 9,
+      "factualSlidesWithEvidence": 9,
+      "evidenceUsageRatio": 1,
+      "imageSlides": 0,
+      "imageUsageRatio": 0,
+      "slideTypeMix": {
+        "title": 1,
+        "goals": 2,
+        "statement": 2,
+        "comparison": 2,
+        "framework": 3,
+        "split-visual": 1,
+        "chart": 1,
+        "recap": 1
+      },
+      "uniqueChunkIdsCited": 20,
+      "totalChunkIds": 35,
+      "chunkCoverageRatio": 0.5714285714285714
+    }
+  }
+}

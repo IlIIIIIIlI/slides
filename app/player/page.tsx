@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useAutoAnimate } from "@/hooks/use-auto-animate";
 import { flipIdFor } from "@/core/rendering/morph";
-import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -13,6 +12,7 @@ import { inlineMd, stripMd } from "@/lib/markdown-inline";
 import { useKeybindings, matchesBinding, formatBinding } from "@/lib/keybindings";
 import { SettingsDialog } from "@/components/settings/keybinding-settings";
 import { Adjustable } from "@/components/player/adjustable";
+import ZoomableImage from "@/components/player/zoomable-image";
 
 const DEFAULT_BRAND: Brand = { text: "SYNOGIZE LAB", gradientFrom: "#f59e0b", gradientTo: "#3b82f6" };
 
@@ -91,6 +91,65 @@ function FileTreeView({ nodes, color, depth = 0 }: { nodes: FileTreeNode[]; colo
         );
       })}
     </>
+  );
+}
+
+// Route every embed through our same-origin HTML proxy so pages that send
+// X-Frame-Options / CSP frame-ancestors (github, twitter, …) can still be framed.
+// See app/api/embed/route.ts.
+function embedSrc(url?: string): string | undefined {
+  if (!url) return undefined;
+  return `/api/embed?url=${encodeURIComponent(url)}`;
+}
+
+// ScrollFadeFrame — embeds a live webpage (iframe) inside a fixed-height column
+// that scrolls the whole page vertically, with a top/bottom transparency mask so
+// the content fades in/out at the edges. The mask is applied to the scroll
+// viewport (not the scrolled content), so the fade stays pinned to the edges
+// while the page slides underneath. A tall inner iframe lets the wrapper own the
+// scroll instead of the nested document.
+function ScrollFadeFrame({ url, onExpand }: { url?: string; onExpand?: () => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [atTop, setAtTop] = useState(true);
+
+  const onScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) setAtTop(el.scrollTop < 8);
+  }, []);
+
+  // Mask only the edge that has hidden content: no top fade when scrolled to the
+  // very top, so the first line isn't dimmed before the user scrolls.
+  const maskTop = atTop ? "black 0%" : "transparent 0%, black 12%";
+  const maskImage = `linear-gradient(to bottom, ${maskTop}, black 88%, transparent 100%)`;
+
+  if (!url) return null;
+
+  return (
+    <div className="relative h-[620px]">
+      <div
+        ref={scrollRef}
+        onScroll={onScroll}
+        className="h-full w-full overflow-y-auto rounded-xl"
+        style={{ maskImage, WebkitMaskImage: maskImage, scrollbarWidth: "none" }}
+      >
+        <iframe
+          src={embedSrc(url)}
+          title="Web Preview (scroll)"
+          className="w-full border-0 block bg-white"
+          height={2400}
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        />
+      </div>
+      {onExpand && (
+        <button
+          onClick={onExpand}
+          title="Expand"
+          className="absolute right-3 top-3 z-10 rounded-md bg-white/80 p-1.5 text-gray-500 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-gray-700"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -255,7 +314,21 @@ function PresentationView({ id }: { id: string }) {
         body: JSON.stringify({ slideIndex: currentSlideRef.current, instruction: regenInstruction, attachImageId: regenImageId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Regeneration failed");
+      if (!res.ok) {
+        // Deck changed under us (edited/regenerated elsewhere) so our positional
+        // slideIndex is stale. The route hands back the real slide count — resync
+        // the player and clamp the cursor so a retry targets a real slide.
+        if (typeof data.slideCount === "number") {
+          const fresh = await fetch(`/api/presentations/${id}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null);
+          if (Array.isArray(fresh?.slides)) {
+            setSlides(fresh.slides);
+            setCurrentSlide((c) => Math.min(c, Math.max(0, fresh.slides.length - 1)));
+          }
+        }
+        throw new Error(data.error || "Regeneration failed");
+      }
       const idx = currentSlideRef.current;
       setSlides((prev) => prev.map((s, i) => (i === idx ? (data.slide as Slide) : s)));
       resetRegen();
@@ -963,7 +1036,7 @@ function PresentationView({ id }: { id: string }) {
             </div>
           )}
 
-          {slide.type === "iframe" && (
+          {slide.type === "iframe" && v === "split" && (
             <div className="flex gap-12 items-start mt-20">
               <div className="flex-[0.8]">
                 <Adjustable {...adj("headline")}>
@@ -987,9 +1060,33 @@ function PresentationView({ id }: { id: string }) {
                     </button>
                   </div>
                   <div className="relative h-[calc(100%-48px)] bg-white">
-                    <iframe src={slide.iframeUrl} title="Web Preview" className="h-full w-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style={{ minHeight: "100%" }} />
+                    <iframe src={embedSrc(slide.iframeUrl)} title="Web Preview" className="h-full w-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style={{ minHeight: "100%" }} />
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {slide.type === "iframe" && v === "scroll" && (
+            <div className="flex gap-12 items-start mt-20">
+              <div className="flex-[0.8] pt-4">
+                <Adjustable {...adj("headline")}>
+                  <h2 data-flip-id={headlineFlipId} className="type-display text-5xl font-bold leading-tight tracking-[-0.035em]" style={{ color: "var(--slide-text-primary)" }}>{stripMd(slide.headline)}</h2>
+                </Adjustable>
+                {slide.supporting && (
+                  <Adjustable {...adj("supporting")}>
+                    <p className="text-xl font-light mt-6 leading-relaxed" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p>
+                  </Adjustable>
+                )}
+                {slide.iframeUrl && (
+                  <div className="mt-8 flex items-center gap-2 text-sm" style={{ color: "var(--slide-text-muted)" }}>
+                    <svg className="h-3.5 w-3.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+                    <span className="font-mono opacity-70">{new URL(slide.iframeUrl).hostname}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex-[1.5]">
+                <ScrollFadeFrame url={slide.iframeUrl} onExpand={() => setIsIframeExpanded(true)} />
               </div>
             </div>
           )}
@@ -1030,7 +1127,7 @@ function PresentationView({ id }: { id: string }) {
                       </Adjustable>
                       {slide.supporting && <Adjustable {...adj("supporting")}><p className="text-2xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p></Adjustable>}
                     </div>
-                    {slide.imageUrl && <Adjustable {...adj("image")} className="flex-shrink-0 w-80"><div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200/50"><Image src={slide.imageUrl} alt={cleanHeadline} width={640} height={480} className="w-full h-auto object-contain" unoptimized /></div></Adjustable>}
+                    {slide.imageUrl && <Adjustable {...adj("image")} className="flex-shrink-0 w-80"><div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200/50"><ZoomableImage src={slide.imageUrl} alt={cleanHeadline} className="w-full h-auto object-contain" interactive={!editMode} /></div></Adjustable>}
                   </div>
                 ) : (
                   <>
@@ -1040,7 +1137,7 @@ function PresentationView({ id }: { id: string }) {
                       </Adjustable>
                       {slide.supporting && <Adjustable {...adj("supporting")}><p className="text-2xl font-light" style={{ color: "var(--slide-text-muted)" }}>{inlineMd(slide.supporting)}</p></Adjustable>}
                     </div>
-                    {slide.imageUrl && <Adjustable {...adj("image")} className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/50 max-w-5xl mx-auto"><Image src={slide.imageUrl} alt={cleanHeadline} width={1200} height={800} className="w-full h-auto object-contain" style={{ maxHeight: "600px" }} unoptimized /></Adjustable>}
+                    {slide.imageUrl && <Adjustable {...adj("image")} className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/50 max-w-5xl mx-auto"><ZoomableImage src={slide.imageUrl} alt={cleanHeadline} className="w-full h-auto object-contain" style={{ maxHeight: "600px" }} interactive={!editMode} /></Adjustable>}
                   </>
                 )}
               </div>
@@ -1247,7 +1344,7 @@ function PresentationView({ id }: { id: string }) {
               </button>
             </div>
             <div className="relative h-[calc(100%-48px)] bg-white">
-              <iframe src={slide.iframeUrl} title="Web Preview (Expanded)" className="h-full w-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style={{ minHeight: "100%" }} />
+              <iframe src={embedSrc(slide.iframeUrl)} title="Web Preview (Expanded)" className="h-full w-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style={{ minHeight: "100%" }} />
             </div>
           </div>
         </div>

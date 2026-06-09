@@ -64,6 +64,7 @@ export const SLIDE_VARIANTS: Record<SlideType, VariantOption[]> = {
   ],
   iframe: [
     { value: "split", label: "Split" },
+    { value: "scroll", label: "Fade scroll" },
   ],
   "agent-tree": [
     { value: "split", label: "Split" },

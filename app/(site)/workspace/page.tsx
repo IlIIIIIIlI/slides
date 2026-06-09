@@ -666,7 +666,7 @@ function BrandEditor({ presentation, onBrandChange }: { presentation: FullPresen
             <div className="absolute inset-0 blur-lg opacity-40" style={{ background: gradient }} />
             <span
               className="relative text-[10px] font-bold tracking-[0.2em] uppercase"
-              style={{ background: gradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
+              style={{ backgroundImage: gradient, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
             >
               {text || "BRAND"}
             </span>

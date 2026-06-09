@@ -104,6 +104,29 @@ export default function PdfPreview({ pdfUrl, highlights, scrollToId, onScrolled,
   );
 
   useEffect(() => {
+    // react-pdf-highlighter debounces a "set scale" handler bound to window
+    // `resize` and a ResizeObserver, but its cleanup never clears the pending
+    // debounce. So a call scheduled up to 500ms earlier can fire against a
+    // now-detached/hidden viewer (tab switch unmounting this preview, React
+    // StrictMode's mount→unmount→remount in dev, or a resize as the element
+    // hides). pdf.js then logs a benign "offsetParent is not set -- cannot
+    // scroll" from scrollIntoView — scaling still applies, only scroll restore
+    // is skipped. Drop just that one message while the preview is mounted.
+    const original = console.error;
+    type Tagged = typeof console.error & { __k2sPatched?: boolean };
+    if ((original as Tagged).__k2sPatched) return;
+    const patched: Tagged = (...args: Parameters<typeof console.error>) => {
+      if (typeof args[0] === "string" && args[0].includes("offsetParent is not set")) return;
+      original(...args);
+    };
+    patched.__k2sPatched = true;
+    console.error = patched;
+    return () => {
+      console.error = original;
+    };
+  }, []);
+
+  useEffect(() => {
     const node = wrapperRef.current;
     if (!node) return;
 

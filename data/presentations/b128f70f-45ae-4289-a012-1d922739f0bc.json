@@ -1,0 +1,3931 @@
+{
+  "id": "b128f70f-45ae-4289-a012-1d922739f0bc",
+  "title": "Meet Penny",
+  "sourceName": "Marketing plugin configuration Guide for codex-2026060209412738.pdf",
+  "sourceType": "pdf",
+  "sourceUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/source.pdf",
+  "audienceType": "Winston",
+  "audienceProfile": "winston",
+  "audienceProfileLabel": "Winston",
+  "stylePreset": "dark-minimal",
+  "slideCount": 18,
+  "generatedAt": "2026-06-02T00:04:09.597Z",
+  "slides": [
+    {
+      "type": "title",
+      "variant": "left",
+      "headline": "Meet Penny",
+      "subtitle": "Your brand-aligned marketing assistant",
+      "label": "OPENING",
+      "color": "#009B8F",
+      "supporting": "Synogize Marketing — Codex Plugin",
+      "evidenceRefs": [
+        "CHK-p1-02",
+        "CHK-p1-03"
+      ],
+      "notes": "## Slide: Meet Penny\n\n**Key point:** Penny is a real tool built for this team — not a generic AI toy.\n\n**Open with:** \"Today I want to show you something we've built specifically for us.\"\n\n**Talk track:**\n- Don't read the slide. Let it sit for a moment.\n- Penny is the name. It's a plugin. It lives inside Codex or Claude Code — tools the team already uses.\n- The core promise is simple: you describe a marketing task, Penny handles the brand alignment so you don't have to.\n- Every LinkedIn post, case study, image brief, Canva edit, or deck that comes out of Penny already looks and sounds like Synogize.\n\n**Transition:** \"Before I show you what it does, let me be honest about what you'll walk away with today.\""
+    },
+    {
+      "type": "goals",
+      "variant": "list",
+      "headline": "What you'll walk away with",
+      "label": "OPENING",
+      "color": "#009B8F",
+      "points": [
+        "**Understand what Penny is** — a task-based plugin, not a chatbot",
+        "**Know the five core skills** — and when to use each one",
+        "**See the Canva connection** — how assets go from prompt to finished design",
+        "**Be ready to use it** — enough to run your first task today"
+      ],
+      "evidenceRefs": [
+        "CHK-p1-04",
+        "CHK-p1-05"
+      ],
+      "notes": "## Slide: What you'll walk away with\n\n**Key point:** This talk has four concrete deliverables for Winston — not abstract awareness, but practical readiness.\n\n**Open with:** \"Here's the deal I'm making with you for the next however-long-this-takes.\"\n\n**Talk track:**\n- Point one: Penny is a plugin — it's installed once, then it's always there. It's not a website you visit.\n- Point two: Five skills. Each one maps to a real task your team does every week. LinkedIn posts, case studies, images, Canva edits, presentations.\n- Point three: The Canva connection is what makes this different from just prompting Claude. Penny can actually reach into Canva, check templates, edit designs, and export files.\n- Point four: By the end of this, you should be able to say 'Penny, draft a LinkedIn post about X' and know what to expect back.\n- The single thread through all of this: **brand alignment is automatic**. You never have to brief Penny on Synogize's tone, colours, or partners — it already knows.\n\n**Delivery:** Pause after reading each point. Let Winston absorb the scope before moving on.\n\n**Transition:** \"Let's start with the one idea that makes Penny worth your time.\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "THE IDEA",
+      "color": "#7C3CFF",
+      "headline": "Describe the task. Get on-brand output.",
+      "supporting": "Penny is a plugin made of task-specific skills plus Canva tools — and it already knows your brand.",
+      "evidenceRefs": [
+        "CHK-p1-04",
+        "CHK-p1-05"
+      ],
+      "notes": "**Key point:** The single transformative idea — you just describe what you need, and Penny handles brand alignment automatically. That's the promise.\n\n**Open with:** \"So what is Penny, exactly? I want to give you a one-sentence version before we go anywhere else.\"\n\n**Talk track:**\n- The old workflow: write something, then spend time wrestling it back into brand — correct tone, right colours, approved template.\n- Penny flips that. Brand alignment is baked in from the first word it produces.\n- It's not a chatbot you have to instruct carefully every time. It's a plugin that already knows Synogize — the tone, the templates, the approved CTAs, the logo rules.\n- This is the idea we'll keep coming back to: **describe the task, get on-brand output**. That's the fence around everything Penny does.\n\n**Transition:** \"Let me show you what it's actually made of — because 'plugin' can mean a lot of things.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "THE IDEA",
+      "color": "#7C3CFF",
+      "headline": "Skills + Canva tools",
+      "leftContent": "Penny bundles task-specific skills — LinkedIn copy, case studies, image assets, presentations — with a live Canva connector. Every skill applies `penny-core` brand rules automatically.",
+      "points": [
+        "`penny-skill-router` — reads your request, routes to the right workflow",
+        "`penny-core` — always on: brand voice, logo safety, final QA",
+        "Canva tools — export, duplicate, upload, font install"
+      ],
+      "mockupKind": "file-tree",
+      "mockupTree": [
+        {
+          "name": "penny/",
+          "children": [
+            {
+              "name": "penny-core",
+              "comment": "# Always on — brand rules & QA"
+            },
+            {
+              "name": "penny-skill-router",
+              "comment": "# Routes every request"
+            },
+            {
+              "name": "penny-linkedin",
+              "comment": "# LinkedIn text & carousels"
+            },
+            {
+              "name": "penny-case-study",
+              "comment": "# Client stories & proof"
+            },
+            {
+              "name": "penny-create-new-asset",
+              "comment": "# Image & graphic briefs"
+            },
+            {
+              "name": "penny-canva",
+              "comment": "# Edit & export Canva designs"
+            },
+            {
+              "name": "penny-presentation",
+              "comment": "# Build .pptx from scratch"
+            }
+          ]
+        }
+      ],
+      "evidenceRefs": [
+        "CHK-p1-04",
+        "CHK-p8-02",
+        "CHK-p8-04",
+        "CHK-p8-05"
+      ],
+      "notes": "**Key point:** Penny is not one monolithic thing — it's a structured set of skills with a brain (`penny-core`) and a router that means you never have to remember which skill to call.\n\n**Open with:** \"Here's the actual anatomy of the plugin.\"\n\n**Talk track:**\n- Two layers: the **skills** (the task workers) and the **Canva tools** (the connectors to your live designs).\n- `penny-skill-router` is the dispatcher — you write a plain English request, and it figures out which skill to activate and whether to chain multiple steps.\n- `penny-core` is the always-on layer — it's never switched off. Every output, regardless of which skill runs, gets brand voice, logo safety, and a final QA pass.\n- So you don't need to say 'remember Synogize's colours' or 'keep it B2B' — that's already the ground state.\n- The tree here shows the full set of skills we'll walk through in the next sections.\n\n**Delivery:** Point to the tree and let it sit for a moment — the structure is readable and worth scanning.\n\n**Transition:** \"Now, `penny-core` doing brand alignment automatically — that sounds simple, but let me be precise about what it actually knows.\""
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "label": "THE IDEA",
+      "color": "#7C3CFF",
+      "headline": "Every skill. One brand.",
+      "evidenceRefs": [
+        "CHK-p1-06",
+        "CHK-p8-05"
+      ],
+      "notes": "**Key point:** The skills table makes the scope tangible — this isn't a generic AI tool, it's a set of specialised workers that each know what Synogize brand means for their specific output type.\n\n**Open with:** \"Look at this table for a moment — this is the full surface area of what Penny covers.\"\n\n**Talk track:**\n- Each row is a real marketing task the team does today. LinkedIn posts, case studies, image briefs, Canva editing, full decks.\n- But notice what every row shares: the output column always implies brand-aware output. Structured case-study text with proof points. Synogize-aesthetic image briefs. Canva layouts that fit the approved template set.\n- This is what 'brand alignment first' means in practice: it's not a style guide you consult — it's baked into the skill itself.\n- `penny-core` is the invisible thread running through all of them: brand voice, source hierarchy, logo safety rules, final QA.\n- The slogan to remember: **describe the task, get on-brand output**. You'll see this pattern in every workflow we cover today.\n\n**Delivery:** Give them 5–8 seconds to read the table. Then pull their attention back.\n\n**Transition:** \"So that's what Penny is and what it knows. Next — how you actually set it up and where it runs.\"",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-9-focus.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "headline": "Three steps. Done.",
+      "label": "SETUP",
+      "color": "#2563EB",
+      "leftContent": "Install the plugin, connect Canva, optionally add brand fonts. That's the entire setup.",
+      "points": [
+        "**Install** — add `synogize-labs/penny` from the marketplace",
+        "**Connect** — run `/penny:penny-setup` once to authorise Canva",
+        "**Fonts** — run `install_penny_brand_fonts` so exports render correctly"
+      ],
+      "mockupKind": "browser",
+      "mockupUrl": "codex://plugins/marketplace",
+      "mockupContent": "[ Plugins ]  [ Skills ]\n\n   Make Codex work your way\n\n   ┌─────────────────────────────────────┐\n   │  Add marketplace                    │\n   │                                     │\n   │  Source                             │\n   │  synogize-labs/penny                │\n   │                                     │\n   │  Git ref   main                     │\n   │  Sparse paths   plugins/codex       │\n   │                                     │\n   │        [ Cancel ]  [ Add marketplace] │\n   └─────────────────────────────────────┘",
+      "evidenceRefs": [
+        "CHK-p2-03",
+        "CHK-p2-05",
+        "CHK-p2-06",
+        "CHK-p3-01"
+      ],
+      "notes": "**Key point:** Setup is genuinely short — three discrete steps, each with a clear command.\n\n**Open with:** \"Before you can use Penny, you need to install it once. I promise this is the shortest setup you've seen for a tool this capable.\"\n\n**Talk track:**\n- Walk through the three steps in order: plugin install from the marketplace, Canva OAuth, optional font install\n- The marketplace source is `synogize-labs/penny` — one line, that's it\n- `/penny:penny-setup` triggers the Canva OAuth flow and stores the token under `~/.penny/` — you never have to do this again\n- Brand fonts are optional but worth doing: they make sure exported PPTX files look right on your machine\n- Emphasise: all three steps are one-time. After this, you just describe a task in plain English.\n\n**Transition:** \"Let me show you what that plugin install actually looks like in the UI...\""
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "headline": "Add `synogize-labs/penny` to Codex",
+      "label": "SETUP",
+      "color": "#2563EB",
+      "evidenceRefs": [
+        "CHK-p2-05"
+      ],
+      "notes": "**Key point:** The plugin install is a single form in the Codex marketplace — source, ref, sparse path.\n\n**Open with:** \"This is the actual screen you'll see. One modal, three fields.\"\n\n**Talk track:**\n- Source field: `synogize-labs/penny` (on the current branch, `synogize-labs/penny@andy` during review — will simplify to just `synogize-labs/penny` in prod)\n- Git ref defaults to `main`; sparse path is `plugins/codex`\n- Hit 'Add marketplace' and Codex pulls the plugin down — skills and Canva tools included\n- After this the setup prompt runs automatically and downloads system configs\n- Point out: local install is also valid — wrap the downloaded directory as a folder and point Codex at it (useful if you're on the review branch)\n\n**Delivery:** Let the screenshot breathe. It's self-explanatory — your job is to orient, not narrate every pixel.\n\n**Transition:** \"Once that's done, you authorise Canva. And there's one more thing you need to check — let me show you.\"",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-4-focus.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "headline": "Canva plugin must be installed too",
+      "label": "SETUP",
+      "color": "#2563EB",
+      "evidenceRefs": [
+        "CHK-p7-01",
+        "CHK-p2-06"
+      ],
+      "notes": "**Key point:** Penny's Canva tools only work if the Canva plugin is also installed in Codex — a step people miss.\n\n**Open with:** \"This is the one gotcha. The Penny plugin alone isn't enough.\"\n\n**Talk track:**\n- You also need the first-party Canva plugin installed in Codex — search 'canva' in the marketplace and confirm the checkmark is there\n- The screenshot shows exactly what 'installed' looks like: the checkmark next to 'Canva — Search, create, edit designs'\n- After that, run `/penny:penny-setup` once. It opens a browser for Azure login and Canva OAuth. Token is stored under `~/.penny/` — you won't be asked again.\n- Remind: users need to be logged into Microsoft Azure and Canva in their browser before setup can finalise\n- Optional last step: `install_penny_brand_fonts` installs Gotham and Neulis Neue locally so every PPTX export renders with correct fonts\n\n**Delivery:** [PAUSE] after 'the one gotcha' — let it register.\n\n**Transition:** \"Now that Penny is installed and connected, let's look at what it can actually do for you — the skills.\"",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-7-focus.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "SKILLS",
+      "color": "#D97706",
+      "headline": "Five skills. One brand voice.",
+      "supporting": "You describe the task. Penny already knows the tone, templates, and guardrails.",
+      "evidenceRefs": [
+        "CHK-p8-06",
+        "CHK-p9-01",
+        "CHK-p9-02",
+        "CHK-p9-03",
+        "CHK-p9-04"
+      ],
+      "notes": "Key point: Penny isn't a generic AI prompt box — it's five task-specific workflows that already know how Synogize works.\n\nOpen with: 'Let me walk you through what Penny actually does, skill by skill.'\n\nTalk track:\n- The five skills map directly to the team's real recurring tasks: LinkedIn, case studies, image assets, Canva edits, and full decks.\n- Most of the time you won't even pick which skill — penny-skill-router reads your request and routes automatically.\n- The key shift: instead of starting with a blank prompt and then fixing the output for brand, Penny starts on-brand by default.\n- This is the fence: Penny doesn't replace the team's judgment or Sam's personality pass. It replaces the blank page and the first three brand-alignment rounds.\n\nTransition: 'Let's look at each one, starting with the highest-frequency task — LinkedIn.'"
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "label": "SKILLS",
+      "color": "#D97706",
+      "headline": "LinkedIn — from brief to hooks in one prompt",
+      "evidenceRefs": [
+        "CHK-p10-01",
+        "CHK-p10-02",
+        "CHK-p8-06"
+      ],
+      "notes": "Key point: penny-linkedin mirrors the team's existing flow (draft → Sam refines for tone) but bakes Synogize's tone in from the start — so Sam is editing personality, not fixing brand.\n\nOpen with: 'This is real output. One prompt: \"Draft a LinkedIn post about our Snowflake migration win, three hook options.\" Eleven seconds later.'\n\nTalk track:\n- Look at what it produced: a caption, three distinct hooks, CTA options, hashtag suggestions, and a brand QA checklist — all in one pass.\n- The surprise here: Penny didn't need to be told the tone. It already knows 'practical, direct, human B2B.' Sam's job is the final personality pass, not the first three brand corrections.\n- It also handles carousel copy — routes to penny-canva to fit the copy into the Case Study Carousel template.\n- For images on the post, penny-create-new-asset generates the prompt; you take that prompt to ChatGPT or Nano Banana to generate, then upload into Canva.\n- This is the cycle: the brand never drifts because it's baked into the skill, not bolted on afterwards.\n\n[PAUSE — let the audience read the screen]\n\nTransition: 'Same idea applies to case studies — but the volume unlock there is even bigger.'",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-11.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "label": "SKILLS",
+      "color": "#D97706",
+      "headline": "Case studies — from notes to proof point in 12 seconds",
+      "evidenceRefs": [
+        "CHK-p12-01",
+        "CHK-p12-02",
+        "CHK-p12-03",
+        "CHK-p9-01"
+      ],
+      "notes": "Key point: The team currently produces about one case study per month. Automating the text is the lever to increase cadence without increasing headcount.\n\nOpen with: 'Here's Penny given raw project notes — a mid-sized Australian financial services client, data platform modernisation. Watch what comes out.'\n\nTalk track:\n- The output is a full structured draft: Problem → Approach → Outcome, with measurable results already extracted from the notes (75% reduction in reporting prep time, 20+ reports automated).\n- The surprise: Penny didn't summarise the notes — it structured them into a publishable case study with proof QA built in. That's the penny-case-study skill doing its job.\n- The cadence unlock: if writing a case study from notes takes 12 seconds instead of half a day, the constraint shifts from 'do we have time to write this?' to 'do we have the client notes?'\n- Thumbnail workflow: penny-create-new-asset generates the image prompt, you generate the visual, then penny-canva fits it into the Case Study Carousel template.\n- Salient detail to land: the source notes here were rough — no polished brief, just interview-style bullet points. Penny still structured it correctly and flagged unverifiable claims.\n\nTransition: 'Two skills down. Now let me show you the visual side — images and Canva work — and then the biggest one: full decks from scratch.'",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-13.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "comparison",
+      "variant": "stats",
+      "label": "SKILLS",
+      "color": "#D97706",
+      "headline": "What Penny owns vs. what the team still owns",
+      "beforeNumber": "Penny",
+      "beforeLabel": "Brand structure, tone defaults, template fit, image guardrails, .pptx generation",
+      "afterNumber": "Your team",
+      "afterLabel": "Final personality pass, client judgment, campaign strategy, relationship context",
+      "evidenceRefs": [
+        "CHK-p10-01",
+        "CHK-p10-02",
+        "CHK-p15-01",
+        "CHK-p17-01",
+        "CHK-p17-02",
+        "CHK-p19-01"
+      ],
+      "notes": "Key point: This is the fence. Penny is not a replacement — it is a very specific division of labour. The slide makes that unmistakable.\n\nOpen with: 'I want to be clear about what this is and what it isn't.'\n\nTalk track:\n- Penny handles everything that is repeatable and rule-bound: brand voice, approved templates, image guardrails, layout repair, PPTX generation via pptxgenjs.\n- The team still owns everything that requires judgment: does this post sound like Sam? Is this the right story to tell this client? Is this the right time to publish?\n- penny-canva can inspect, duplicate, and edit an existing design — but it cannot reorder pages, change font families, or add new text boxes. For those, you go to penny-presentation and build from scratch.\n- penny-create-new-asset enforces guardrails the team might forget under deadline pressure: no fake logos, no modified Synogize wordmarks, no robot hands or glowing brains.\n- The slogan to take away: Penny handles the craft. You handle the judgment.\n\n[PAUSE — let this land]\n\nTransition: 'So that's the five skills. Let me show you how they connect end to end in a real workflow — and what the Canva tooling does underneath all of it.'"
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "headline": "Six tools. One connected workflow.",
+      "label": "CANVA TOOLS",
+      "color": "#2563EB",
+      "evidenceRefs": [
+        "CHK-p21-01",
+        "CHK-p21-02",
+        "CHK-p21-03",
+        "CHK-p21-04",
+        "CHK-p21-05",
+        "CHK-p21-06",
+        "CHK-p21-07"
+      ],
+      "notes": "**Key point:** The penny-canva MCP server gives Penny six discrete tools that together cover the entire asset-to-delivery chain inside Canva.\n\n**Open with:** 'Under the hood, Penny is talking to Canva through a proper API — not screen-scraping, not copy-paste. Six tools, each with one job.'\n\n**Talk track:**\n- Walk the table top to bottom: upload assets in, copy or delete pages, export out, and two font tools for brand consistency.\n- `upload_local_canva_assets` — anything Penny generates locally (AI images, graphics) goes straight into the Canva Uploads library, no manual drag-and-drop.\n- `copy_canva_design_pages` and `delete_canva_design_pages` — Penny always works on a safe duplicate, never the original. That's the guardrail baked in.\n- `export_canva_design_to_local` — PPTX, PDF, PNG, JPG, GIF, MP4, or CSV. One command, local file in ~/Downloads.\n- The two font tools (`install_penny_brand_fonts` and `emit_penny_font_bundle`) solve the 'it looked fine on my machine' problem for external handoffs.\n- Cycle the core idea: this is brand alignment at the infrastructure level — not just copy rules, but tooling that enforces them automatically.\n\n**Transition:** 'The tool that gets used most in day-to-day handoffs is the export. Let me show you what that actually looks like — before and after Penny gets involved...'",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-21-focus.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "image",
+      "variant": "full",
+      "headline": "Penny rebuilt it. Same brief, branded output.",
+      "label": "CANVA TOOLS",
+      "color": "#2563EB",
+      "evidenceRefs": [
+        "CHK-p21-08",
+        "CHK-p21-09",
+        "CHK-p21-10",
+        "CHK-p21-11"
+      ],
+      "notes": "**Key point:** The before/after is the salient detail — a plain capability deck becomes a fully branded Synogize presentation, and the font bundle travels with the file so it looks right on every machine.\n\n**Open with:** 'Here's the moment that makes it click for people. The brief didn't change. The content didn't change. Penny just applied every brand rule automatically.'\n\n**Talk track:**\n- The 'Before' is a generic Keynote-style deck — Microsoft Data + AI cover, geometric pattern background, blank layout. Functional, but generic.\n- The 'After' has the Synogize visual identity: correct photography treatment, orange brand accent, structured capability layout, proper typography — all from `penny-presentation` or `penny-canva` depending on the workflow.\n- The export step: 'Penny, export this as PPTX: [link]' — Penny calls `export_canva_design_to_local`, saves to ~/Downloads, and decides on the font bundle automatically.\n- Font bundle modes: `auto` (default) — attaches `<deck>-fonts.zip` only if your machine is missing a brand font. `always` — use this when sending to an external recipient whose machine you can't inspect. `never` — skip it entirely.\n- The recipient runs `install.command` / `install.bat` / `install.sh` from the zip — no admin rights, no Node required. They open the deck and it renders correctly.\n- Cycle the core idea: the brand isn't something you apply at the end — Penny bakes it in from the first prompt, and the export tooling ensures it survives the journey to the recipient's machine.\n\n**Transition:** 'So that's the Canva layer. Let me bring this all together and show you what Penny means for how the Synogize marketing team actually works week to week...'",
+      "imageUrl": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-25-focus.png",
+      "imageLayout": "side"
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "BRAND",
+      "color": "#FF2A2A",
+      "headline": "Every output ships on-brand. By default.",
+      "supporting": "penny-core runs on every skill, every time — brand rules aren't a checklist, they're baked in.",
+      "evidenceRefs": [
+        "CHK-p27-01",
+        "CHK-p27-02"
+      ],
+      "notes": "## Slide: Every output ships on-brand. By default.\n\n**Key point:** Brand alignment isn't something you have to remember to apply — Penny enforces it automatically on every single task.\n\n**Open with:** \"Here's the thing that makes Penny different from just asking ChatGPT to write a LinkedIn post.\"\n\n**Talk track:**\n- Every skill — LinkedIn, case studies, presentations, image assets — runs through `penny-core` before anything ships\n- That means Synogize's tone of voice, colour palette, approved CTAs, partner names, and logo rules are checked on every output\n- You don't configure this. You don't have to remember it. It's the default.\n- The fence is built in: there's a hard list of what IS approved — exact service names, exact partner names, exact CTAs — and an equally hard list of what's forbidden\n- Forbidden: glowing brains, robot hands, neon circuits, fake wordmarks, modified logos, invented service names, claimed partners you don't have\n- The practical upshot: Penny can't go off-brand. That's the whole point.\n\n**Transition:** \"Let me show you exactly what that fence looks like — what's in and what's out.\""
+    },
+    {
+      "type": "split-visual",
+      "variant": "ui-mockup",
+      "label": "BRAND",
+      "color": "#FF2A2A",
+      "headline": "The fence",
+      "leftContent": "Penny knows what's approved — and what's banned. Every skill checks both lists before anything leaves the assistant.",
+      "points": [
+        "**Exact service names** — Data + AI Consulting, Managed Services, Solutions only",
+        "**Approved partners** — Snowflake, Microsoft, AWS, dbt, and 5 others. No others.",
+        "**Three CTAs** — \"Let's Connect\", \"Talk to an Expert\", \"Learn More\"",
+        "**No AI clichés** — no glowing brains, robot hands, or neon circuits"
+      ],
+      "mockupKind": "card",
+      "mockupContent": "penny-core guardrails\n\n✓  APPROVED\n   Services    Data + AI Consulting Services\n               Data + AI Managed Services\n               Data + AI Solutions\n\n   Partners    Coalesce · dbt · Snowflake · SAP\n               Microsoft · AWS · GCP\n               Tableau · Fivetran\n\n   CTAs        \"Let's Connect\"\n               \"Talk to an Expert\"\n               \"Learn More\"\n\n   Fonts       Gotham · Neulis Neue\n               (internal use only)\n\n✗  NEVER\n   Fake or modified Synogize wordmark\n   Invented service or partner names\n   Glowing brains · robot hands · neon circuits",
+      "evidenceRefs": [
+        "CHK-p27-05",
+        "CHK-p27-06",
+        "CHK-p27-07",
+        "CHK-p28-21"
+      ],
+      "notes": "## Slide: The fence\n\n**Key point:** The brand guardrails are specific and non-negotiable — Penny knows exactly what's in and what's out.\n\n**Open with:** \"This is the fence I keep talking about. Let me read you both sides of it.\"\n\n**Talk track:**\n- The approved list is precise: not just 'Data + AI services' — it's those exact three phrasings, word for word\n- Partners: there are nine approved partners. If a client asks for a slide mentioning a different vendor, Penny won't claim a partnership that doesn't exist\n- CTAs are locked to three options — no 'Get Started', no 'Book a Demo', no improvisation\n- And then the hard 'never' list: no modified logos, no fake wordmarks, no generated images with robot hands or neon circuits — those are the AI-image clichés that look cheap and off-brand\n- Brand fonts — Gotham and Neulis Neue — are commercial licenses. Internal only. Penny won't bundle them for external redistribution\n- This isn't restrictive for its own sake. It's what makes Penny safe to use without a brand review on every piece.\n\n**Delivery:** Point to both columns — let the contrast land. This is the 'fence' slide — the audience should feel the clarity of what's in versus what's out.\n\n**Transition:** \"Now you know what Penny is and what it protects. Let me show you the actual end-to-end workflows — what a real task looks like from prompt to finished file.\""
+    },
+    {
+      "type": "statement",
+      "variant": "large",
+      "label": "CONTRIBUTION",
+      "color": "#009B8F",
+      "headline": "Describe the task. Get brand-ready output.",
+      "supporting": "Penny collapses the gap between brief and on-brand deliverable — LinkedIn posts, case studies, image assets, and full decks, all shaped to Synogize from the first word.",
+      "evidenceRefs": [
+        "CHK-p1-05",
+        "CHK-p8-02"
+      ],
+      "notes": "**Key point:** This is the one thing to leave the room with — Penny doesn't just speed up tasks, it eliminates the back-and-forth of getting to brand.\n\n**Open with:** \"So here's what I want you to remember after today...\"\n\n**Talk track:**\n- Every workflow — LinkedIn, case study, image asset, full deck — starts brand-aligned. Not 'mostly there', not 'needs a tone pass'. Shaped to Synogize from word one.\n- That's the real shift. It's not a ChatGPT wrapper. It's a system that already knows your voice, your templates, your partners, your CTAs.\n- The single biggest time-save isn't the writing speed — it's not having to fix the output. Brand alignment is baked in, not bolted on.\n- penny-skill-router means you don't even have to know which skill to reach for. You describe what you need. Penny sequences the rest.\n\n**Delivery:** [PAUSE] Let the headline sit. Don't rush to explain it — let Winston read it and feel the claim before you talk.\n\n**Transition:** \"Let me close with exactly what this changes for the team.\""
+    },
+    {
+      "type": "recap",
+      "variant": "bullets",
+      "label": "CONTRIBUTION",
+      "color": "#009B8F",
+      "headline": "What Penny changes",
+      "points": [
+        "**Brand alignment is automatic** — every output shaped to Synogize before you touch it.",
+        "**One prompt, full workflow** — router picks the right skill and sequences multi-step jobs.",
+        "**Text, visuals, decks, exports** — LinkedIn to PPTX, all from a single plugin.",
+        "**Higher cadence, same quality** — more case studies, more posts, without the rework."
+      ],
+      "evidenceRefs": [
+        "CHK-p1-05",
+        "CHK-p8-02",
+        "CHK-p28-04"
+      ],
+      "notes": "**Key point:** Penny is the team's contribution to its own future — a system that holds the brand so the team can move faster.\n\n**Open with:** \"Here's what today has actually given you...\"\n\n**Talk track:**\n- Brand alignment automatic: the old loop was draft → Sam fixes tone → refine → check brand. Penny collapses that to: describe → done.\n- One prompt, full workflow: you don't need to know the skill names. You don't need to sequence the steps. The router does it.\n- Text, visuals, decks, exports: this isn't a writing tool. It's the whole production pipeline — copy, image prompts, Canva edits, PPTX generation, font bundles — all from one place.\n- Higher cadence, same quality: the team currently manages roughly one case study a month. With Penny handling the text scaffold, that ceiling doesn't have to exist.\n\n**Delivery:** Don't read the bullets — they're already on screen. Hit each one with a single punchy sentence, then let the silence confirm it.\n\n[This is the contribution slide — the speaker's own conclusions. End here. No question, no thank you. The deck is done.]\n\n**Close with:** \"That's Penny. That's what it gives the team. Let's use it.\""
+    }
+  ],
+  "outline": {
+    "title": "Meet Penny",
+    "totalSlideCount": 18,
+    "sections": [
+      {
+        "id": "SEC-OPENING",
+        "name": "Opening",
+        "purpose": "Title slide and promise: state plainly what the audience will know and be able to do by the end of this talk.",
+        "label": "OPENING",
+        "color": "#009B8F",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-p1-02",
+          "CHK-p1-03",
+          "CHK-p1-04",
+          "CHK-p1-05"
+        ],
+        "candidateImageIds": []
+      },
+      {
+        "id": "SEC-WHAT",
+        "name": "What Penny Is",
+        "purpose": "Introduce the core idea — Penny is a brand-aligned plugin made of skills plus Canva tools — and plant the central slogan and symbol that will recur throughout.",
+        "label": "THE IDEA",
+        "color": "#7C3CFF",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-p1-04",
+          "CHK-p1-05",
+          "CHK-p1-06",
+          "CHK-p8-02",
+          "CHK-p8-04",
+          "CHK-p8-05"
+        ],
+        "candidateImageIds": [
+          "IMG-p8",
+          "IMG-p9"
+        ]
+      },
+      {
+        "id": "SEC-SETUP",
+        "name": "One-Time Setup",
+        "purpose": "Show the audience exactly how to install and connect Penny — plugin install, Canva auth, brand fonts — using real UI screenshots so the path feels concrete and short.",
+        "label": "SETUP",
+        "color": "#2563EB",
+        "slideCount": 3,
+        "candidateChunkIds": [
+          "CHK-p2-03",
+          "CHK-p2-04",
+          "CHK-p2-05",
+          "CHK-p2-06",
+          "CHK-p3-01",
+          "CHK-p5-01",
+          "CHK-p5-02",
+          "CHK-p6-01",
+          "CHK-p7-01"
+        ],
+        "candidateImageIds": [
+          "IMG-p3",
+          "IMG-p4",
+          "IMG-p5",
+          "IMG-p6",
+          "IMG-p7"
+        ]
+      },
+      {
+        "id": "SEC-SKILLS",
+        "name": "The Five Skills",
+        "purpose": "Walk through each skill (LinkedIn, case study, image asset, Canva design, presentation) with a surprise contrast showing what Penny replaces versus what the team still owns.",
+        "label": "SKILLS",
+        "color": "#D97706",
+        "slideCount": 4,
+        "candidateChunkIds": [
+          "CHK-p8-06",
+          "CHK-p9-01",
+          "CHK-p9-02",
+          "CHK-p9-03",
+          "CHK-p9-04",
+          "CHK-p10-01",
+          "CHK-p10-02",
+          "CHK-p10-03",
+          "CHK-p10-04",
+          "CHK-p12-01",
+          "CHK-p12-02",
+          "CHK-p12-03",
+          "CHK-p15-01",
+          "CHK-p17-01",
+          "CHK-p17-02",
+          "CHK-p19-01"
+        ],
+        "candidateImageIds": [
+          "IMG-p11",
+          "IMG-p13",
+          "IMG-p16",
+          "IMG-p18",
+          "IMG-p20",
+          "IMG-p24",
+          "IMG-p25"
+        ]
+      },
+      {
+        "id": "SEC-CANVA-TOOLS",
+        "name": "Canva Tools & Export",
+        "purpose": "Show the Canva MCP server tools and the export-plus-font-bundle workflow, anchoring the 'before / after' salient detail with the actual screenshots.",
+        "label": "CANVA TOOLS",
+        "color": "#2563EB",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-p21-01",
+          "CHK-p21-02",
+          "CHK-p21-03",
+          "CHK-p21-04",
+          "CHK-p21-05",
+          "CHK-p21-06",
+          "CHK-p21-07",
+          "CHK-p21-08",
+          "CHK-p21-09",
+          "CHK-p21-10",
+          "CHK-p21-11"
+        ],
+        "candidateImageIds": [
+          "IMG-p21",
+          "IMG-p22",
+          "IMG-p23",
+          "IMG-p24",
+          "IMG-p25",
+          "IMG-p26"
+        ]
+      },
+      {
+        "id": "SEC-BRAND",
+        "name": "Brand Guardrails",
+        "purpose": "Reinforce the fence around the core idea — Penny enforces brand alignment by default, contrasting approved rules with what is explicitly forbidden.",
+        "label": "BRAND",
+        "color": "#FF2A2A",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-p27-01",
+          "CHK-p27-02",
+          "CHK-p27-03",
+          "CHK-p27-04",
+          "CHK-p27-05",
+          "CHK-p27-06",
+          "CHK-p27-07",
+          "CHK-p28-19",
+          "CHK-p28-20",
+          "CHK-p28-21"
+        ],
+        "candidateImageIds": [
+          "IMG-p27"
+        ]
+      },
+      {
+        "id": "SEC-CONTRIBUTION",
+        "name": "Contribution",
+        "purpose": "Close with the speaker's own conclusions: what Penny changes for the Synogize marketing team, restating the core idea one final time as a definitive contribution slide.",
+        "label": "CONTRIBUTION",
+        "color": "#009B8F",
+        "slideCount": 2,
+        "candidateChunkIds": [
+          "CHK-p1-05",
+          "CHK-p8-02",
+          "CHK-p28-04",
+          "CHK-p28-05",
+          "CHK-p28-06",
+          "CHK-p28-07"
+        ],
+        "candidateImageIds": []
+      }
+    ]
+  },
+  "chunks": [
+    {
+      "id": "CHK-p1-01",
+      "page": 1,
+      "paragraph": 1,
+      "text": "Marketing plugin con fi guration Guide for codex",
+      "bbox": {
+        "pageNumber": 1,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 63.75000142374995,
+        "x2": 543.0895702289988,
+        "y2": 86.25000192624987,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 63.75000142374995,
+            "x2": 543.0895702289988,
+            "y2": 86.25000192624987
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p1-02",
+      "page": 1,
+      "paragraph": 2,
+      "text": "Plugin name Penny — Synogize Marketing Assistant",
+      "bbox": {
+        "pageNumber": 1,
+        "width": 690,
+        "height": 894,
+        "x1": 45.750001021749874,
+        "y1": 141.7500031657496,
+        "x2": 409.7704089765382,
+        "y2": 153.7500034337496,
+        "rects": [
+          {
+            "x1": 45.750001021749874,
+            "y1": 141.7500031657496,
+            "x2": 409.7704089765382,
+            "y2": 153.7500034337496
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p1-03",
+      "page": 1,
+      "paragraph": 3,
+      "text": "Plugin description A task-based AI assistant for the Synogize marketing team. Bundles brand-aligned skills (LinkedIn copy, case studies, image-asset prompts, Canva template- fi t, and from-scratch presentation/PPTX generation) plus Canva tooling (design export to PPTX/PDF/PNG, brand-font install + hand-o ff bundle, and asset upload via the Canva Connect API). Every work fl ow bakes in Synogize brand rules, tone of voice, and the approved template set. Installs as a Codex / Claude Code plugin.",
+      "bbox": {
+        "pageNumber": 1,
+        "width": 690,
+        "height": 894,
+        "x1": 45.750001021749874,
+        "y1": 168.7500037687496,
+        "x2": 571.0387458031965,
+        "y2": 306.7500068507493,
+        "rects": [
+          {
+            "x1": 45.750001021749874,
+            "y1": 168.7500037687496,
+            "x2": 571.0387458031965,
+            "y2": 180.7500040367496
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 186.75000417074955,
+            "x2": 535.0746343749985,
+            "y2": 198.75000443874956
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 204.7500045727495,
+            "x2": 559.7587582262778,
+            "y2": 216.7500048407495
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 222.75000497474946,
+            "x2": 554.1307008755848,
+            "y2": 234.75000524274947
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 240.7500053767494,
+            "x2": 535.8906772932236,
+            "y2": 252.75000564474942
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 258.75000577874937,
+            "x2": 567.2227419679731,
+            "y2": 270.7500060467494
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 276.7500061807492,
+            "x2": 561.2706687100434,
+            "y2": 288.7500064487492
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 294.7500065827493,
+            "x2": 304.4582173245662,
+            "y2": 306.7500068507493
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p1-04",
+      "page": 1,
+      "paragraph": 4,
+      "text": "Penny is a plugin made of task-speci fi c skills plus a small set of Canva tools . Each skill maps to a real marketing task (write a LinkedIn post, build a carousel, draft a case study, generate an image asset, make a deck) and already knows Synogize's:",
+      "bbox": {
+        "pageNumber": 1,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 474.00001058599884,
+        "x2": 632.5811049276429,
+        "y2": 522.0000116579987,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 474.00001058599884,
+            "x2": 600.9184546455103,
+            "y2": 486.0000108539988
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 492.0000109879988,
+            "x2": 632.5811049276429,
+            "y2": 504.00001125599874
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 510.00001138999875,
+            "x2": 232.94438365242385,
+            "y2": 522.0000116579987
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p1-05",
+      "page": 1,
+      "paragraph": 5,
+      "text": "The single biggest time-save is brand alignment : you describe the task, Penny produces output already shaped to Synogize's brand. https://github.com/synogize-labs/penny",
+      "bbox": {
+        "pageNumber": 1,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 348.75000778874903,
+        "x2": 659.6118835813302,
+        "y2": 663.0000148069984,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 633.0000141369985,
+            "x2": 659.6118835813302,
+            "y2": 645.0000144049984
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 651.0000145389984,
+            "x2": 142.90822961661672,
+            "y2": 663.0000148069984
+          },
+          {
+            "x1": 191.25000427124948,
+            "y1": 348.75000778874903,
+            "x2": 417.35447529591545,
+            "y2": 360.75000805674904
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p1-06",
+      "page": 1,
+      "paragraph": 6,
+      "text": "service taxonomy, tech partners, and approved CTAs, • tone of voice (practical, direct, human B2B), • brand colours, logo rules, and the approved Canva template set, • \"brand alignment fi rst\" requirement — nothing ships o ff -brand. •",
+      "bbox": {
+        "pageNumber": 1,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 531.7500118757487,
+        "x2": 412.3806977848342,
+        "y2": 627.000023170998,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 531.7500118757487,
+            "x2": 348.92453414264685,
+            "y2": 543.7500121437487
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 532.5000259564979,
+            "x2": 42.381282196515166,
+            "y2": 550.500026358498
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 557.2500124452486,
+            "x2": 295.03247391405773,
+            "y2": 569.2500127132486
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 558.000024893998,
+            "x2": 42.381282196515166,
+            "y2": 576.0000252959978
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 582.7500130147484,
+            "x2": 412.3806977848342,
+            "y2": 594.7500132827485
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 583.5000238314979,
+            "x2": 42.381282196515166,
+            "y2": 601.5000242334979
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 608.2500135842486,
+            "x2": 408.732686528362,
+            "y2": 620.2500138522485
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 609.000022768998,
+            "x2": 42.381282196515166,
+            "y2": 627.000023170998
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p2-01",
+      "page": 2,
+      "paragraph": 1,
+      "text": "Penny works in any host that supports the plugin:",
+      "bbox": {
+        "pageNumber": 2,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 603.7500169397483,
+        "x2": 309.828494194502,
+        "y2": 615.7500172077482,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 603.7500169397483,
+            "x2": 309.828494194502,
+            "y2": 615.7500172077482
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p2-02",
+      "page": 2,
+      "paragraph": 2,
+      "text": "The rest of this guide uses Codex-style /slash invocation, but the same skills run from a plain-English request in any host.",
+      "bbox": {
+        "pageNumber": 2,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 693.7500189497481,
+        "x2": 657.5646194106073,
+        "y2": 723.750019619748,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 693.7500189497481,
+            "x2": 657.5646194106073,
+            "y2": 705.7500192177481
+          },
+          {
+            "x1": 42.000000937999886,
+            "y1": 711.7500193517479,
+            "x2": 106.99211391449019,
+            "y2": 723.750019619748
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p2-03",
+      "page": 2,
+      "paragraph": 3,
+      "text": "3. One-time setup Codex — most fl exible and powerful. Recommended for the full work fl ow (text + Canva + export). Requires installing the plugin once. •",
+      "bbox": {
+        "pageNumber": 2,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 625.5000174254983,
+        "x2": 649.4540086044708,
+        "y2": 774.0000207419978,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 755.2500203232478,
+            "x2": 190.10684239571896,
+            "y2": 774.0000207419978
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 625.5000174254983,
+            "x2": 649.4540086044708,
+            "y2": 637.5000176934982
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 643.500017827498,
+            "x2": 196.48827836323755,
+            "y2": 655.500018095498
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 626.2500220502479,
+            "x2": 42.381282196515166,
+            "y2": 644.250022452248
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p2-04",
+      "page": 2,
+      "paragraph": 4,
+      "text": "Claude Code — full skill + Canva-connector support. •",
+      "bbox": {
+        "pageNumber": 2,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 669.0000183969981,
+        "x2": 344.8200422759801,
+        "y2": 687.7500206397478,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 669.0000183969981,
+            "x2": 344.8200422759801,
+            "y2": 681.0000186649982
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 669.750020237748,
+            "x2": 42.381282196515166,
+            "y2": 687.7500206397478
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p2-05",
+      "page": 2,
+      "paragraph": 5,
+      "text": "Install the plugin from the marketplace ( synogize-labs/labs-skills , branch as advised), enabling the Penny skills and the penny-canva tools. 1.",
+      "bbox": {
+        "pageNumber": 2,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 785.250015377248,
+        "x2": 651.4722670495448,
+        "y2": 815.2500216632477,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 785.2500209932479,
+            "x2": 651.4722670495448,
+            "y2": 797.2500212612479
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 803.2500213952477,
+            "x2": 226.88754431715435,
+            "y2": 815.2500216632477
+          },
+          {
+            "x1": 32.390625723390535,
+            "y1": 785.250015377248,
+            "x2": 42.473813448581694,
+            "y2": 797.250015645248
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p2-06",
+      "page": 2,
+      "paragraph": 6,
+      "text": "Connect Canva — run the setup fl ow ( /penny:penny-setup ) once to authorise Canva. This stores a token under ~/.penny/ . Required scopes: asset:read asset:write design:content:read design:content:write 2.",
+      "bbox": {
+        "pageNumber": 2,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 828.750013564748,
+        "x2": 625.5069525196536,
+        "y2": 858.7500226347477,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 828.7500219647476,
+            "x2": 625.5069525196536,
+            "y2": 840.7500222327476
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 846.7500223667477,
+            "x2": 582.7617355150103,
+            "y2": 858.7500226347477
+          },
+          {
+            "x1": 32.390625723390535,
+            "y1": 828.750013564748,
+            "x2": 42.473813448581694,
+            "y2": 840.750013832748
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p3-01",
+      "page": 3,
+      "paragraph": 1,
+      "text": "(Optional) install brand fonts locally so exported decks render correctly on your machine — Penny can do this for you with install_penny_brand_fonts . 3.",
+      "bbox": {
+        "pageNumber": 3,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 56.99998610500086,
+        "x2": 639.2899654774745,
+        "y2": 86.9999867750007,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 56.99998610500086,
+            "x2": 639.2899654774745,
+            "y2": 68.99998637300087
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 74.9999865070007,
+            "x2": 305.21991681657715,
+            "y2": 86.9999867750007
+          },
+          {
+            "x1": 32.390625723390535,
+            "y1": 56.999997721,
+            "x2": 42.473813448581694,
+            "y2": 68.99999798900001
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p4-01",
+      "page": 4,
+      "paragraph": 1,
+      "text": "source is now on the speci fi c branch, once in prod, just need `synogize-labs/penny`",
+      "bbox": {
+        "pageNumber": 4,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 459.74992847575226,
+        "x2": 506.53283983756523,
+        "y2": 471.7499287437522,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 459.74992847575226,
+            "x2": 506.53283983756523,
+            "y2": 471.7499287437522
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p5-01",
+      "page": 5,
+      "paragraph": 1,
+      "text": "local installation Wrap the entire directory as a folder and use it as a plugin.",
+      "bbox": {
+        "pageNumber": 5,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 56.24997284025142,
+        "x2": 359.20860712232445,
+        "y2": 89.99997359400095,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 56.24997284025142,
+            "x2": 147.47995221871847,
+            "y2": 71.2499731752514
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 77.99997332600094,
+            "x2": 359.20860712232445,
+            "y2": 89.99997359400095
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p5-02",
+      "page": 5,
+      "paragraph": 2,
+      "text": "then the setup prompt will automatically call a script, which helps user to download system con fi gs.",
+      "bbox": {
+        "pageNumber": 5,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 590.2499847662498,
+        "x2": 591.5062362853046,
+        "y2": 602.2499850342497,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 590.2499847662498,
+            "x2": 591.5062362853046,
+            "y2": 602.2499850342497
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p6-01",
+      "page": 6,
+      "paragraph": 1,
+      "text": "github installation (optional - only if user knows how to use github) gh auth login git clone brew install gh /bin/bash -c \"$(curl -fsSL Remind: Users still need to log in to their Microsoft Azure account and Canva account in their browser to allow setup to be fi nalised.",
+      "bbox": {
+        "pageNumber": 6,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 527.2497967352574,
+        "x2": 620.329030329013,
+        "y2": 705.7498007217573,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 617.9997987620069,
+            "x2": 509.8647946369786,
+            "y2": 632.9997990970069
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 639.7497992477573,
+            "x2": 105.1801320240226,
+            "y2": 651.7497995157573
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 657.7497996497567,
+            "x2": 78.22809242209382,
+            "y2": 669.7497999177567
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 675.749800051757,
+            "x2": 112.60813743991469,
+            "y2": 687.749800319757
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 693.7498004537573,
+            "x2": 166.28425781368128,
+            "y2": 705.7498007217573
+          },
+          {
+            "x1": 48.000001071999876,
+            "y1": 527.2497967352574,
+            "x2": 97.35610597428602,
+            "y2": 539.2497970032573
+          },
+          {
+            "x1": 48.000001071999876,
+            "y1": 545.2497971372577,
+            "x2": 620.329030329013,
+            "y2": 557.2497974052576
+          },
+          {
+            "x1": 48.000001071999876,
+            "y1": 563.2497975392571,
+            "x2": 208.40429962936207,
+            "y2": 575.249797807257
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p6-02",
+      "page": 6,
+      "paragraph": 2,
+      "text": "https://github.com/synogize-labs/penny.git",
+      "bbox": {
+        "pageNumber": 6,
+        "width": 690,
+        "height": 894,
+        "x1": 101.6015647691013,
+        "y1": 657.7497996497567,
+        "x2": 350.39801020055427,
+        "y2": 669.7497999177567,
+        "rects": [
+          {
+            "x1": 101.6015647691013,
+            "y1": 657.7497996497567,
+            "x2": 350.39801020055427,
+            "y2": 669.7497999177567
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p6-03",
+      "page": 6,
+      "paragraph": 3,
+      "text": "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+      "bbox": {
+        "pageNumber": 6,
+        "width": 690,
+        "height": 894,
+        "x1": 169.4062537834058,
+        "y1": 693.7498004537573,
+        "x2": 570.7348946214112,
+        "y2": 705.7498007217573,
+        "rects": [
+          {
+            "x1": 169.4062537834058,
+            "y1": 693.7498004537573,
+            "x2": 570.7348946214112,
+            "y2": 705.7498007217573
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p7-01",
+      "page": 7,
+      "paragraph": 1,
+      "text": "User needs to make sure that the Canva plugin is installed",
+      "bbox": {
+        "pageNumber": 7,
+        "width": 690,
+        "height": 894,
+        "x1": 48.000001071999876,
+        "y1": 686.9998536790052,
+        "x2": 397.2126091710804,
+        "y2": 698.9998539470052,
+        "rects": [
+          {
+            "x1": 48.000001071999876,
+            "y1": 686.9998536790052,
+            "x2": 397.2126091710804,
+            "y2": 698.9998539470052
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p8-01",
+      "page": 8,
+      "paragraph": 1,
+      "text": "4. The skills — what each one generates",
+      "bbox": {
+        "pageNumber": 8,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 521.9999033700037,
+        "x2": 387.301349649729,
+        "y2": 540.7499037887537,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 521.9999033700037,
+            "x2": 387.301349649729,
+            "y2": 540.7499037887537
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p8-02",
+      "page": 8,
+      "paragraph": 2,
+      "text": "You usually don't pick the skill manually: penny-skill-router reads your request and routes to the right work fl ow, applying penny-core brand rules to everything. The table below is what each skill produces. Output can be found under Private ( )",
+      "bbox": {
+        "pageNumber": 8,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 548.2499039562535,
+        "x2": 756.3717494126086,
+        "y2": 596.249905028254,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 548.2499039562535,
+            "x2": 658.7777704627014,
+            "y2": 560.2499042242534
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 566.2499043582538,
+            "x2": 539.0712827642571,
+            "y2": 578.2499046262537
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 584.2499047602541,
+            "x2": 756.3717494126086,
+            "y2": 596.249905028254
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p8-03",
+      "page": 8,
+      "paragraph": 3,
+      "text": "Skill Use it for It generates",
+      "bbox": {
+        "pageNumber": 8,
+        "width": 690,
+        "height": 894,
+        "x1": 38.2500008542499,
+        "y1": 607.4999052795038,
+        "x2": 463.39813379922344,
+        "y2": 619.4999055475037,
+        "rects": [
+          {
+            "x1": 38.2500008542499,
+            "y1": 607.4999052795038,
+            "x2": 463.39813379922344,
+            "y2": 619.4999055475037
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p8-04",
+      "page": 8,
+      "paragraph": 4,
+      "text": "penny-skill-router Anything ambiguous, or to avoid jumping straight to Canva/image-gen Picks the right work fl ow and sequences multi-step jobs",
+      "bbox": {
+        "pageNumber": 8,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 634.4999058825033,
+        "x2": 554.958312919067,
+        "y2": 682.4999069545038,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 634.4999058825033,
+            "x2": 367.62629921032,
+            "y2": 646.4999061505032
+          },
+          {
+            "x1": 216.75000484074943,
+            "y1": 652.4999062845035,
+            "x2": 359.0222875431636,
+            "y2": 664.4999065525035
+          },
+          {
+            "x1": 216.75000484074943,
+            "y1": 670.4999066865038,
+            "x2": 316.39818864122543,
+            "y2": 682.4999069545038
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 634.4999058825033,
+            "x2": 554.958312919067,
+            "y2": 646.4999061505032
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 652.4999062845035,
+            "x2": 541.998309554627,
+            "y2": 664.4999065525035
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p8-05",
+      "page": 8,
+      "paragraph": 5,
+      "text": "penny-core Always on Brand voice, source hierarchy, logo safety, fi nal QA",
+      "bbox": {
+        "pageNumber": 8,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 697.4999072895033,
+        "x2": 546.114299671551,
+        "y2": 745.499908361503,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 697.4999072895033,
+            "x2": 505.3982258622258,
+            "y2": 709.4999075575033
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 715.4999076915036,
+            "x2": 546.114299671551,
+            "y2": 727.4999079595036
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 733.499908093503,
+            "x2": 412.05002825244935,
+            "y2": 745.499908361503
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p8-06",
+      "page": 8,
+      "paragraph": 6,
+      "text": "penny-linkedin LinkedIn text + carousel copy Hooks, captions, thought- leadership posts, event recaps, culture posts, carousel narratives, Canva- ready copy decks https://app.clickup.com/36848457/docs/134gu9-27696/134gu9-67076",
+      "bbox": {
+        "pageNumber": 8,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 584.2499047602541,
+        "x2": 625.6234479222543,
+        "y2": 844.4999105725028,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 760.4999086965034,
+            "x2": 350.850268685655,
+            "y2": 772.4999089645034
+          },
+          {
+            "x1": 216.75000484074943,
+            "y1": 778.4999090985028,
+            "x2": 243.03005485267047,
+            "y2": 790.4999093665028
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 760.4999086965034,
+            "x2": 540.6303121490754,
+            "y2": 772.4999089645034
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 778.4999090985028,
+            "x2": 525.6542696646104,
+            "y2": 790.4999093665028
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 796.4999095005031,
+            "x2": 514.9982569766262,
+            "y2": 808.4999097685031
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 814.4999099025034,
+            "x2": 547.2182867962067,
+            "y2": 826.4999101705034
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 832.4999103045028,
+            "x2": 491.55021130295324,
+            "y2": 844.4999105725028
+          },
+          {
+            "x1": 233.4023527126518,
+            "y1": 584.2499047602541,
+            "x2": 625.6234479222543,
+            "y2": 596.249905028254
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p9-01",
+      "page": 9,
+      "paragraph": 1,
+      "text": "penny-case-study Client stories / project proof Structured case-study text from notes/interviews/proof points, slide copy, proof QA",
+      "bbox": {
+        "pageNumber": 9,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 36.74994590875292,
+        "x2": 554.3583321806678,
+        "y2": 84.74994698075261,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 36.74994590875292,
+            "x2": 542.5623090422232,
+            "y2": 48.74994617675293
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 54.74994631075322,
+            "x2": 554.3583321806678,
+            "y2": 66.74994657875322
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 72.7499467127526,
+            "x2": 548.8263260571196,
+            "y2": 84.74994698075261
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p9-02",
+      "page": 9,
+      "paragraph": 2,
+      "text": "penny-create-new-asset New images & graphics Synogize-aesthetic image- generation prompts, reusable icon prompts, banner/thumbnail/EDM- header briefs, Canva-ready visual directions",
+      "bbox": {
+        "pageNumber": 9,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 99.74994731575305,
+        "x2": 546.9422931650427,
+        "y2": 201.74994959375272,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 99.74994731575305,
+            "x2": 542.514307241151,
+            "y2": 111.74994758375306
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 117.74994771775243,
+            "x2": 511.5062525486382,
+            "y2": 129.74994798575244
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 135.74994811975273,
+            "x2": 524.8982778977268,
+            "y2": 147.74994838775274
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 153.74994852175303,
+            "x2": 533.1302662315744,
+            "y2": 165.74994878975303
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 171.7499489237524,
+            "x2": 546.9422931650427,
+            "y2": 183.74994919175242
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 189.7499493257527,
+            "x2": 486.1261808068165,
+            "y2": 201.74994959375272
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p9-03",
+      "page": 9,
+      "paragraph": 3,
+      "text": "penny-canva Working with an existing Canva design Template- fi t checks, page maps, duplicate editing, layout repair, asset audits, draft generation, and export to local fi le",
+      "bbox": {
+        "pageNumber": 9,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 216.74994992875224,
+        "x2": 557.999325611983,
+        "y2": 300.7499518047525,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 216.74994992875224,
+            "x2": 355.91425252375075,
+            "y2": 228.74995019675225
+          },
+          {
+            "x1": 216.75000484074943,
+            "y1": 234.74995033075254,
+            "x2": 292.21813822620425,
+            "y2": 246.74995059875255
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 216.74994992875224,
+            "x2": 538.3743084986912,
+            "y2": 228.74995019675225
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 234.74995033075254,
+            "x2": 530.4302948962745,
+            "y2": 246.74995059875255
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 252.74995073275284,
+            "x2": 541.758297924267,
+            "y2": 264.74995100075284
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 270.7499511347522,
+            "x2": 557.999325611983,
+            "y2": 282.74995140275223
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 288.7499515367525,
+            "x2": 461.346111178395,
+            "y2": 300.7499518047525
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p9-04",
+      "page": 9,
+      "paragraph": 4,
+      "text": "penny-presentation A \"proper deck\" A real Synogize- branded .pptx (via pptxgenjs) when you need more slides/layout control than a Canva template allows",
+      "bbox": {
+        "pageNumber": 9,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 315.74995213975205,
+        "x2": 544.2182841792063,
+        "y2": 417.7499544177517,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 315.74995213975205,
+            "x2": 484.6021661477803,
+            "y2": 327.74995240775206
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 333.74995254175235,
+            "x2": 502.53857172335984,
+            "y2": 345.74995280975236
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 351.74995294375174,
+            "x2": 544.2182841792063,
+            "y2": 363.74995321175174
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 369.74995334575203,
+            "x2": 542.5503118919553,
+            "y2": 381.74995361375204
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 387.7499537477524,
+            "x2": 522.4262338175173,
+            "y2": 399.74995401575234
+          },
+          {
+            "x1": 395.25000882724896,
+            "y1": 405.7499541497518,
+            "x2": 430.3740549116859,
+            "y2": 417.7499544177517
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p10-01",
+      "page": 10,
+      "paragraph": 1,
+      "text": "4.1 LinkedIn posts — penny-linkedin (+ assets + carousel) Mirrors the team's current fl ow (draft with ChatGPT/Claude → Sam re fi nes for tone), but with Synogize tone baked in from the start.",
+      "bbox": {
+        "pageNumber": 10,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 30.749999150749886,
+        "x2": 633.013114612291,
+        "y2": 82.50000030649971,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 30.749999150749886,
+            "x2": 411.52723796577345,
+            "y2": 45.74999948574987
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 52.49999963649941,
+            "x2": 633.013114612291,
+            "y2": 64.49999990449942
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 70.5000000384997,
+            "x2": 162.81626913622947,
+            "y2": 82.50000030649971
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p10-02",
+      "page": 10,
+      "paragraph": 2,
+      "text": "Example prompts: Text: /create-linkedin-text → on-brand caption, hook options, and a suggested CTA. Sam still does the fi nal personality pass. •",
+      "bbox": {
+        "pageNumber": 10,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 92.25000052424991,
+        "x2": 625.4428035182201,
+        "y2": 234.00000368999918,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 222.00000342199917,
+            "x2": 132.5882221111366,
+            "y2": 234.00000368999918
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 92.25000052424991,
+            "x2": 625.4428035182201,
+            "y2": 104.25000079224992
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 110.2500009262493,
+            "x2": 173.4362377984088,
+            "y2": 122.25000119424931
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 92.99999626900001,
+            "x2": 42.381282196515166,
+            "y2": 110.99999667099996
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p10-03",
+      "page": 10,
+      "paragraph": 3,
+      "text": "Carousel: route to penny-canva to fi t the copy into the Case Study Carousel or a suitable approved template. •",
+      "bbox": {
+        "pageNumber": 10,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 135.75000149574942,
+        "x2": 603.5737238798112,
+        "y2": 165.75000216574972,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 135.75000149574942,
+            "x2": 603.5737238798112,
+            "y2": 147.75000176374942
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 153.7500018977497,
+            "x2": 104.84411506651821,
+            "y2": 165.75000216574972
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 136.49999445650008,
+            "x2": 42.381282196515166,
+            "y2": 154.49999485850003
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p10-04",
+      "page": 10,
+      "paragraph": 4,
+      "text": "Images for the post: penny-create-new-asset produces the prompt; generate in ChatGPT/Nano Banana; upload into Canva. •",
+      "bbox": {
+        "pageNumber": 10,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 179.25000246724983,
+        "x2": 627.6204949418554,
+        "y2": 209.25000313724922,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 179.25000246724983,
+            "x2": 627.6204949418554,
+            "y2": 191.25000273524984
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 197.25000286924922,
+            "x2": 156.38419736758,
+            "y2": 209.25000313724922
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 179.99999264400003,
+            "x2": 42.381282196515166,
+            "y2": 197.999993046
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p10-05",
+      "page": 10,
+      "paragraph": 5,
+      "text": "\"Penny, draft a LinkedIn post about our Snow fl ake migration win, 3 hook options.\" • \"Penny, turn this into a 6-slide LinkedIn carousel using the case study template.\" •",
+      "bbox": {
+        "pageNumber": 10,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 243.75000390774937,
+        "x2": 513.1929015613063,
+        "y2": 287.99998929599997,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 243.75000390774937,
+            "x2": 513.1929015613063,
+            "y2": 255.75000417574938
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 244.49998995650003,
+            "x2": 42.381282196515166,
+            "y2": 262.4999903585
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 269.2500044772495,
+            "x2": 502.0688777628701,
+            "y2": 281.2500047452495
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 269.999988894,
+            "x2": 42.381282196515166,
+            "y2": 287.99998929599997
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p12-01",
+      "page": 12,
+      "paragraph": 1,
+      "text": "4.2 Case studies — penny-case-study Case studies are large text blobs with a Canva-designed thumbnail. Today the team manages ~1/month; automating the text is the path to a higher cadence.",
+      "bbox": {
+        "pageNumber": 12,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 254.24963089426603,
+        "x2": 615.0609233363585,
+        "y2": 305.99963205001586,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 254.24963089426603,
+            "x2": 255.23438070023371,
+            "y2": 269.249631229266
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 275.99963138001556,
+            "x2": 615.0609233363585,
+            "y2": 287.99963164801557
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 293.99963178201585,
+            "x2": 322.4285774259039,
+            "y2": 305.99963205001586
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p12-02",
+      "page": 12,
+      "paragraph": 2,
+      "text": "Example: \"Penny, write a case study from these project notes; keep it to the problem → approach → outcome structure with measurable results.\" /create-case-study → structured, chronological client story with proof points, ready for the Synogize website. •",
+      "bbox": {
+        "pageNumber": 12,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 315.74963226776606,
+        "x2": 644.0053025827833,
+        "y2": 431.9996348640161,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 401.99963419401587,
+            "x2": 644.0053025827833,
+            "y2": 413.9996344620158
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 419.99963459601616,
+            "x2": 227.59237768289577,
+            "y2": 431.9996348640161
+          },
+          {
+            "x1": 54.75000122274985,
+            "y1": 315.74963226776606,
+            "x2": 609.9247521466511,
+            "y2": 327.74963253576607
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 333.74963266976636,
+            "x2": 97.74009195786175,
+            "y2": 345.74963293776636
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 316.49998695650004,
+            "x2": 42.381282196515166,
+            "y2": 334.4999873585
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p12-03",
+      "page": 12,
+      "paragraph": 3,
+      "text": "Thumbnail: penny-create-new-asset for any AI image, then penny-canva to fi t it into the Case Study Carousel template. •",
+      "bbox": {
+        "pageNumber": 12,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 359.2496332392665,
+        "x2": 592.5633190089122,
+        "y2": 389.24963390926496,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 359.2496332392665,
+            "x2": 592.5633190089122,
+            "y2": 371.2496335072665
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 377.24963364126495,
+            "x2": 160.1008378255849,
+            "y2": 389.24963390926496
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 359.999985144,
+            "x2": 42.381282196515166,
+            "y2": 377.99998554599995
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p14-01",
+      "page": 14,
+      "paragraph": 1,
+      "text": "4.3 Image assets — penny-create-new-asset",
+      "bbox": {
+        "pageNumber": 14,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 836.9997506610104,
+        "x2": 291.8554790181048,
+        "y2": 851.9997509960103,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 836.9997506610104,
+            "x2": 291.8554790181048,
+            "y2": 851.9997509960103
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p15-01",
+      "page": 15,
+      "paragraph": 1,
+      "text": "Creates brand-aligned image assets for Synogize marketing content. /create-image-asset takes a plain-English brief and generates a visual asset aligned to Synogize’s aesthetic: approved colour palette, geometric motif, clean B2B consulting style, and safe logo handling. It is used for LinkedIn post images, carousel covers, case study thumbnails, EDM banners, event graphics, and website campaign visuals. The work fl ow also applies guardrails: no fake logos, no modi fi ed Synogize wordmarks, no robot hands, glowing brains, neon circuits, or generic AI imagery. Generated assets can then be uploaded into Canva using upload_local_canva_assets and fi tted into the selected approved template. Example: “Penny, create a LinkedIn carousel cover image for a post about data platform modernisation. Use Synogize’s brand palette and geometric visual style, keep it executive-facing, and avoid fake logos or generic AI imagery.”",
+      "bbox": {
+        "pageNumber": 15,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 31.499786047509474,
+        "x2": 656.0172216260493,
+        "y2": 241.4997907375091,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 31.499786047509474,
+            "x2": 415.5367490803192,
+            "y2": 43.49978631550948
+          },
+          {
+            "x1": 33.75000075374991,
+            "y1": 49.49978644950977,
+            "x2": 624.9307669567853,
+            "y2": 61.49978671750978
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 67.49978685150825,
+            "x2": 626.7010697713222,
+            "y2": 79.49978711950826
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 85.49978725350854,
+            "x2": 621.9971252412674,
+            "y2": 97.49978752150855
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 103.49978765550884,
+            "x2": 129.98419902798003,
+            "y2": 115.49978792350885
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 121.49978805750914,
+            "x2": 656.0172216260493,
+            "y2": 133.49978832550914
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 139.49978845950943,
+            "x2": 274.1284663972015,
+            "y2": 151.49978872750944
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 157.4997888615079,
+            "x2": 647.0488451007551,
+            "y2": 169.49978912950792
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 175.4997892635082,
+            "x2": 140.4362370614089,
+            "y2": 187.4997895315082
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 193.4997896655085,
+            "x2": 636.5769900418844,
+            "y2": 205.4997899335085
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 211.4997900675088,
+            "x2": 653.3051662904803,
+            "y2": 223.4997903355088
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 229.4997904695091,
+            "x2": 83.31611188572623,
+            "y2": 241.4997907375091
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p17-01",
+      "page": 17,
+      "paragraph": 1,
+      "text": "4.4 Canva designs — penny-canva For any existing Canva design (you give a link). It can:",
+      "bbox": {
+        "pageNumber": 17,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 30.749892782754273,
+        "x2": 329.0285225233028,
+        "y2": 64.4998935365038,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 30.749892782754273,
+            "x2": 242.6484429191478,
+            "y2": 45.749893117754254
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 52.4998932685038,
+            "x2": 329.0285225233028,
+            "y2": 64.4998935365038
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p17-02",
+      "page": 17,
+      "paragraph": 2,
+      "text": "Example: \"Penny, tailor this Capability Doc for a Microsoft-focused client: \" inspect the design (pages, text boxes, fi lls, fi t), • check whether an approved template fi ts the brief, • edit a safe duplicate (text replace, fi lls, layout repair), • copy/delete pages via the Canva helper tools, • export the fi nished design to a local fi le (see §5). •",
+      "bbox": {
+        "pageNumber": 17,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 74.249893754254,
+        "x2": 499.05226114549896,
+        "y2": 230.99989725500382,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 200.9998965850035,
+            "x2": 437.78465800218913,
+            "y2": 212.99989685300352
+          },
+          {
+            "x1": 494.15626103615494,
+            "y1": 218.9998969870038,
+            "x2": 499.05226114549896,
+            "y2": 230.99989725500382
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 74.249893754254,
+            "x2": 309.00053760101105,
+            "y2": 86.24989402225401
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 74.99999701900003,
+            "x2": 42.381282196515166,
+            "y2": 92.99999742099999
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 99.74989432375412,
+            "x2": 335.412540815879,
+            "y2": 111.74989459175413
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 100.49999595650002,
+            "x2": 42.381282196515166,
+            "y2": 118.49999635849997
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 125.24989489325424,
+            "x2": 352.72244325246714,
+            "y2": 137.24989516125424
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 125.999994894,
+            "x2": 42.381282196515166,
+            "y2": 143.99999529599995
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 150.74989546275435,
+            "x2": 305.8804660563295,
+            "y2": 162.74989573075436
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 151.49999383149998,
+            "x2": 42.381282196515166,
+            "y2": 169.49999423349993
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 176.24989603225447,
+            "x2": 336.7374384954685,
+            "y2": 188.24989630025448
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 176.99999276900007,
+            "x2": 42.381282196515166,
+            "y2": 194.99999317100003
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p17-03",
+      "page": 17,
+      "paragraph": 3,
+      "text": "https://www.canva.com/design/DAHK6VYm8m4/zufUq86ETWV2XdB7sSzTjg/edit",
+      "bbox": {
+        "pageNumber": 17,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 218.9998969870038,
+        "x2": 486.6488525934893,
+        "y2": 230.99989725500382,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 218.9998969870038,
+            "x2": 486.6488525934893,
+            "y2": 230.99989725500382
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p19-01",
+      "page": 19,
+      "paragraph": 1,
+      "text": "4.5 Presentations — penny-presentation When the brief needs more slides or layout variety than a Canva template can deliver (the Canva connector can't add/reorder pages), Penny builds a real .pptx from scratch with pptxgenjs — ready for PowerPoint, Keynote, SharePoint, or re-import into Canva. Example: \"Penny, build a 12-slide capability deck for a Databricks prospect. and upload it to canva\" www.canva.com",
+      "bbox": {
+        "pageNumber": 19,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 301.5000055815003,
+        "x2": 631.2852991487035,
+        "y2": 457.5000090654994,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 369.750007105749,
+            "x2": 275.35547864960483,
+            "y2": 384.75000744074896
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 391.50000759149856,
+            "x2": 631.2852991487035,
+            "y2": 403.5000078594985
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 409.50000799349885,
+            "x2": 619.8509194933355,
+            "y2": 421.5000082614988
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 427.50000839549915,
+            "x2": 285.1564286934926,
+            "y2": 439.5000086634991
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 445.50000879749945,
+            "x2": 582.5291305848152,
+            "y2": 457.5000090654994
+          },
+          {
+            "x1": 42.000000937999886,
+            "y1": 301.5000055815003,
+            "x2": 123.57422503482397,
+            "y2": 312.00000581600034
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p19-02",
+      "page": 19,
+      "paragraph": 2,
+      "text": "https://www.canva.com/design/DAHLVatPLyo/Z2rW-gZJLSY-AlEFyIejKg/edit",
+      "bbox": {
+        "pageNumber": 19,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 321.0000060169999,
+        "x2": 382.56785369401416,
+        "y2": 330.7500062347499,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 321.0000060169999,
+            "x2": 382.56785369401416,
+            "y2": 330.7500062347499
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-01",
+      "page": 21,
+      "paragraph": 1,
+      "text": "5. Canva tools (the penny-canva MCP server)",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 157.4991491175383,
+        "x2": 377.91137201501937,
+        "y2": 176.24914953628831,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 157.4991491175383,
+            "x2": 377.91137201501937,
+            "y2": 176.24914953628831
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-02",
+      "page": 21,
+      "paragraph": 2,
+      "text": "upload_local_canva_assets Upload local (AI-generated) images into the Canva Uploads library",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 233.9991508260381,
+        "x2": 550.7884593009408,
+        "y2": 263.9991514960384,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 233.9991508260381,
+            "x2": 550.7884593009408,
+            "y2": 245.9991510940381
+          },
+          {
+            "x1": 306.0000068339992,
+            "y1": 251.9991512280384,
+            "x2": 429.26423968690017,
+            "y2": 263.9991514960384
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-03",
+      "page": 21,
+      "paragraph": 3,
+      "text": "copy_canva_design_pages Create a new design from selected pages of an existing one",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 278.999151831037,
+        "x2": 551.976462102473,
+        "y2": 308.9991525010373,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 278.999151831037,
+            "x2": 551.976462102473,
+            "y2": 290.999152099037
+          },
+          {
+            "x1": 306.0000068339992,
+            "y1": 296.9991522330373,
+            "x2": 391.7761531246663,
+            "y2": 308.9991525010373
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-04",
+      "page": 21,
+      "paragraph": 4,
+      "text": "delete_canva_design_pages Delete pages from a safe duplicate (after approval)",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 323.99915283603593,
+        "x2": 535.1284440262004,
+        "y2": 353.99915350603624,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 323.99915283603593,
+            "x2": 535.1284440262004,
+            "y2": 335.99915310403594
+          },
+          {
+            "x1": 306.0000068339992,
+            "y1": 341.99915323803623,
+            "x2": 358.75210768712924,
+            "y2": 353.99915350603624
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-05",
+      "page": 21,
+      "paragraph": 5,
+      "text": "export_canva_design_to_local Export a design to PPTX/PDF/PNG/JPG/GIF/MP4/CSV locally",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 368.9991538410385,
+        "x2": 531.3364424415125,
+        "y2": 398.9991545110388,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 368.9991538410385,
+            "x2": 408.4202074963836,
+            "y2": 380.9991541090385
+          },
+          {
+            "x1": 306.0000068339992,
+            "y1": 386.99915424303884,
+            "x2": 531.3364424415125,
+            "y2": 398.9991545110388
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-06",
+      "page": 21,
+      "paragraph": 6,
+      "text": "install_penny_brand_fonts Install Synogize brand fonts on the current machine",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 413.99915484603747,
+        "x2": 546.5404928810693,
+        "y2": 443.9991555160377,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 413.99915484603747,
+            "x2": 546.5404928810693,
+            "y2": 425.9991551140374
+          },
+          {
+            "x1": 306.0000068339992,
+            "y1": 431.99915524803777,
+            "x2": 354.40809116511304,
+            "y2": 443.9991555160377
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-07",
+      "page": 21,
+      "paragraph": 7,
+      "text": "emit_penny_font_bundle Produce a <deck>-fonts.zip installer beside an exported PPTX",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 458.9991558510364,
+        "x2": 545.6631461614751,
+        "y2": 488.99915652103664,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 458.9991558510364,
+            "x2": 545.6631461614751,
+            "y2": 470.99915611903634
+          },
+          {
+            "x1": 306.0000068339992,
+            "y1": 476.9991562530367,
+            "x2": 405.56419760759917,
+            "y2": 488.99915652103664
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-08",
+      "page": 21,
+      "paragraph": 8,
+      "text": "5.1 Exporting a design Ask Penny to export and give the Canva link: \"Penny, export this as PPTX: ...\" Penny calls export_canva_design_to_local , saves the fi le (default ~/Downloads ), and for PPTX decides whether to attach the brand-font bundle:",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 524.2491573082876,
+        "x2": 637.5873840644495,
+        "y2": 611.999159268038,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 524.2491573082876,
+            "x2": 189.4198832553767,
+            "y2": 539.2491576432876
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 545.9991577940373,
+            "x2": 279.336444013513,
+            "y2": 557.9991580620372
+          },
+          {
+            "x1": 42.000000937999886,
+            "y1": 563.9991581960376,
+            "x2": 522.7232822811183,
+            "y2": 575.9991584640375
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 581.9991585980379,
+            "x2": 637.5873840644495,
+            "y2": 593.9991588660378
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 599.9991590000382,
+            "x2": 196.4763307129707,
+            "y2": 611.999159268038
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-09",
+      "page": 21,
+      "paragraph": 9,
+      "text": "The recipient runs the matching installer from the zip ( install.command / install.bat / install.sh ) — no admin, no Node — then opens the deck with correct fonts. (Full detail in handover/canva-export-and-brand-fonts.md .) https://www.canva.com/design/<id>/",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 563.9991581960376,
+        "x2": 648.0867764239359,
+        "y2": 745.4991622495363,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 715.499161579536,
+            "x2": 648.0867764239359,
+            "y2": 727.499161847536
+          },
+          {
+            "x1": 30.000000669999917,
+            "y1": 733.4991619815363,
+            "x2": 618.6988335176054,
+            "y2": 745.4991622495363
+          },
+          {
+            "x1": 221.78906745328848,
+            "y1": 563.9991581960376,
+            "x2": 434.1414878458258,
+            "y2": 575.9991584640375
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-10",
+      "page": 21,
+      "paragraph": 10,
+      "text": "auto (default): attaches <deck>-fonts.zip only if your machine is missing one or more brand fonts; skips it if all are installed. •",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 621.7491594857884,
+        "x2": 651.6073581025621,
+        "y2": 651.7491601557849,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 621.7491594857884,
+            "x2": 651.6073581025621,
+            "y2": 633.7491597537883
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 639.7491598877849,
+            "x2": 139.2601506351429,
+            "y2": 651.7491601557849
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 622.4999742064999,
+            "x2": 42.381282196515166,
+            "y2": 640.4999746085
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p21-11",
+      "page": 21,
+      "paragraph": 11,
+      "text": "always : attach regardless — use when sending to an external recipient. • never : no bundle. •",
+      "bbox": {
+        "pageNumber": 21,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 665.249160457285,
+        "x2": 453.63115560609424,
+        "y2": 709.4999717334999,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 665.249160457285,
+            "x2": 453.63115560609424,
+            "y2": 677.249160725285
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 665.999972394,
+            "x2": 42.381282196515166,
+            "y2": 683.9999727959998
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 690.7491610267851,
+            "x2": 151.91740794282157,
+            "y2": 702.7491612947852
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 691.4999713314999,
+            "x2": 42.381282196515166,
+            "y2": 709.4999717334999
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p22-01",
+      "page": 22,
+      "paragraph": 1,
+      "text": "the upload/export function also matters when user login to their own speci fi c developer Canva account, more con fi guration options are waiting for testing. https://www.canva.com/developers/integrations/connect-api",
+      "bbox": {
+        "pageNumber": 22,
+        "width": 690,
+        "height": 894,
+        "x1": 42.000000937999886,
+        "y1": 446.24920894228393,
+        "x2": 610.0092444485375,
+        "y2": 494.2492100142845,
+        "rects": [
+          {
+            "x1": 42.000000937999886,
+            "y1": 446.24920894228393,
+            "x2": 610.0092444485375,
+            "y2": 458.2492092102839
+          },
+          {
+            "x1": 42.000000937999886,
+            "y1": 464.2492093442842,
+            "x2": 402.4566527881973,
+            "y2": 476.2492096122842
+          },
+          {
+            "x1": 62.250001390249835,
+            "y1": 482.2492097462845,
+            "x2": 411.9306508997833,
+            "y2": 494.2492100142845
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-01",
+      "page": 27,
+      "paragraph": 1,
+      "text": "6. Brand alignment (the core requirement)",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 446.99947583902355,
+        "x2": 409.2577469150883,
+        "y2": 465.7494762577735,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 446.99947583902355,
+            "x2": 409.2577469150883,
+            "y2": 465.7494762577735
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-02",
+      "page": 27,
+      "paragraph": 2,
+      "text": "Every skill applies penny-core :",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 473.24947642527235,
+        "x2": 194.84100435144848,
+        "y2": 485.2494766932723,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 473.24947642527235,
+            "x2": 194.84100435144848,
+            "y2": 485.2494766932723
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-03",
+      "page": 27,
+      "paragraph": 3,
+      "text": "7. Approved Canva templates",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 679.4994810315216,
+        "x2": 292.06974982289046,
+        "y2": 698.2494814502716,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 679.4994810315216,
+            "x2": 292.06974982289046,
+            "y2": 698.2494814502716
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-04",
+      "page": 27,
+      "paragraph": 4,
+      "text": "Use only these for Synogize work; Penny fi ts content into them rather than inventing layouts.",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 705.7494816177704,
+        "x2": 552.9368962239225,
+        "y2": 717.7494818857704,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 705.7494816177704,
+            "x2": 552.9368962239225,
+            "y2": 717.7494818857704
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-05",
+      "page": 27,
+      "paragraph": 5,
+      "text": "Co-branded Services: Data + AI Consulting Services · Data + AI Managed Services · Data + AI Solutions (use exact phrasings; don't invent service names). •",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 494.99947691102255,
+        "x2": 612.3897532017029,
+        "y2": 839.9994846160225,
+        "rects": [
+          {
+            "x1": 38.2500008542499,
+            "y1": 827.9994843480225,
+            "x2": 104.73011911397234,
+            "y2": 839.9994846160225
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 494.99947691102255,
+            "x2": 612.3897532017029,
+            "y2": 506.9994771790225
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 512.9994773130229,
+            "x2": 270.31241088697635,
+            "y2": 524.9994775810228
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 495.74997948774995,
+            "x2": 42.381282196515166,
+            "y2": 513.74997988975
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-06",
+      "page": 27,
+      "paragraph": 6,
+      "text": "Partners: Coalesce, dbt, Snow fl ake, SAP, Microsoft, AWS, Google Cloud Platform, Tableau, Fivetran (don't claim others). •",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 538.499477882523,
+        "x2": 637.9029373464969,
+        "y2": 568.4994785525232,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 538.499477882523,
+            "x2": 637.9029373464969,
+            "y2": 550.4994781505229
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 556.4994782845233,
+            "x2": 127.320151718483,
+            "y2": 568.4994785525232
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 539.24997767525,
+            "x2": 42.381282196515166,
+            "y2": 557.24997807725
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p27-07",
+      "page": 27,
+      "paragraph": 7,
+      "text": "CTAs: \"Let's Connect\", \"Talk to an Expert\", \"Learn More\". • Logo: never modify approved logo artwork; never generate a fake wordmark. • Visual style: brand palette, geometric motif, practical B2B look; avoid AI clichés (glowing brains, robot hands, neon circuits). •",
+      "bbox": {
+        "pageNumber": 27,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 581.9994788540234,
+        "x2": 624.8044869789649,
+        "y2": 662.9994806630202,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 581.9994788540234,
+            "x2": 365.18654353083167,
+            "y2": 593.9994791220233
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 582.74997586275,
+            "x2": 42.381282196515166,
+            "y2": 600.7499762647499
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 607.4994794235199,
+            "x2": 486.320930686166,
+            "y2": 619.4994796915198
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 608.2499748002499,
+            "x2": 42.381282196515166,
+            "y2": 626.24997520225
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 632.99947999302,
+            "x2": 624.8044869789649,
+            "y2": 644.9994802610199
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 650.9994803950202,
+            "x2": 170.7482264133765,
+            "y2": 662.9994806630202
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 633.74997373775,
+            "x2": 42.381282196515166,
+            "y2": 651.7499741397498
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-01",
+      "page": 28,
+      "paragraph": 1,
+      "text": "Press Release Banner",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 38.2500008542499,
+        "y1": 36.74952005276907,
+        "x2": 159.16222210462246,
+        "y2": 48.74952032076908,
+        "rects": [
+          {
+            "x1": 38.2500008542499,
+            "y1": 36.74952005276907,
+            "x2": 159.16222210462246,
+            "y2": 48.74952032076908
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-02",
+      "page": 28,
+      "paragraph": 2,
+      "text": "Partnership Announcement",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 38.2500008542499,
+        "y1": 63.749520655771335,
+        "x2": 194.28630403906013,
+        "y2": 75.74952092377134,
+        "rects": [
+          {
+            "x1": 38.2500008542499,
+            "y1": 63.749520655771335,
+            "x2": 194.28630403906013,
+            "y2": 75.74952092377134
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-03",
+      "page": 28,
+      "paragraph": 3,
+      "text": "Standard Presentation",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 38.2500008542499,
+        "y1": 171.74952306776947,
+        "x2": 164.49023752361472,
+        "y2": 183.74952333576948,
+        "rects": [
+          {
+            "x1": 38.2500008542499,
+            "y1": 171.74952306776947,
+            "x2": 164.49023752361472,
+            "y2": 183.74952333576948
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-04",
+      "page": 28,
+      "paragraph": 4,
+      "text": "8. End-to-end recipes",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 219.74952413976962,
+        "x2": 218.34444825135864,
+        "y2": 238.49952455851962,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 219.74952413976962,
+            "x2": 218.34444825135864,
+            "y2": 238.49952455851962
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-05",
+      "page": 28,
+      "paragraph": 5,
+      "text": "LinkedIn post with carousel",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 245.99952472601842,
+        "x2": 196.23631735761055,
+        "y2": 257.99952499401843,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 245.99952472601842,
+            "x2": 196.23631735761055,
+            "y2": 257.99952499401843
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-06",
+      "page": 28,
+      "paragraph": 6,
+      "text": "Event page (ActiveCampaign)",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 466.49952965051756,
+        "x2": 205.53635401531122,
+        "y2": 478.4995299185175,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 466.49952965051756,
+            "x2": 205.53635401531122,
+            "y2": 478.4995299185175
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-07",
+      "page": 28,
+      "paragraph": 7,
+      "text": "Capability deck for a speci fi c partner/client",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 538.4995312585188,
+        "x2": 288.5164552435333,
+        "y2": 550.4995315265187,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 538.4995312585188,
+            "x2": 288.5164552435333,
+            "y2": 550.4995315265187
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-08",
+      "page": 28,
+      "paragraph": 8,
+      "text": "9. Limitations & notes penny-linkedin → caption + hooks (Sam re fi nes tone). 1.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 30.000000669999917,
+        "y1": 267.7495252117686,
+        "x2": 348.14441367522426,
+        "y2": 632.9995333690167,
+        "rects": [
+          {
+            "x1": 30.000000669999917,
+            "y1": 614.2495329502667,
+            "x2": 225.07574902669103,
+            "y2": 632.9995333690167
+          },
+          {
+            "x1": 32.390625723390535,
+            "y1": 267.7495252117686,
+            "x2": 348.14441367522426,
+            "y2": 279.74998920775
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-09",
+      "page": 28,
+      "paragraph": 9,
+      "text": "penny-create-new-asset → image prompts → generate → upload_local_canva_assets . 2.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 293.24952578126874,
+        "x2": 507.9191363435258,
+        "y2": 305.24998814525,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 293.24952578126874,
+            "x2": 507.9191363435258,
+            "y2": 305.24998814525
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-10",
+      "page": 28,
+      "paragraph": 10,
+      "text": "penny-canva → fi t copy + assets into the Case Study Carousel template. 3.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 318.74952635076886,
+        "x2": 444.7986286088349,
+        "y2": 330.74998708275007,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 318.74952635076886,
+            "x2": 444.7986286088349,
+            "y2": 330.74998708275007
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-11",
+      "page": 28,
+      "paragraph": 11,
+      "text": "export_canva_design_to_local if a local fi le is needed. 4.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 344.249526920269,
+        "x2": 335.7482418733766,
+        "y2": 356.24998602024993,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 344.249526920269,
+            "x2": 335.7482418733766,
+            "y2": 356.24998602024993
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-12",
+      "page": 28,
+      "paragraph": 12,
+      "text": "penny-case-study → structured text from notes. 1.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 390.7495279587701,
+        "x2": 312.5283277547984,
+        "y2": 402.7499840827499,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 390.7495279587701,
+            "x2": 312.5283277547984,
+            "y2": 402.7499840827499
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-13",
+      "page": 28,
+      "paragraph": 13,
+      "text": "penny-create-new-asset → thumbnail image prompt → generate. 2.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 416.2495285282702,
+        "x2": 406.40438542636343,
+        "y2": 428.24998302024994,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 416.2495285282702,
+            "x2": 406.40438542636343,
+            "y2": 428.24998302024994
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-14",
+      "page": 28,
+      "paragraph": 14,
+      "text": "penny-canva → build thumbnail in the carousel template. 3.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 441.74952909777033,
+        "x2": 366.9304630697792,
+        "y2": 453.7499819577499,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 441.74952909777033,
+            "x2": 366.9304630697792,
+            "y2": 453.7499819577499
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-15",
+      "page": 28,
+      "paragraph": 15,
+      "text": "penny-create-new-asset → on-brand hero/section images → generate. 1.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 488.24953013626777,
+        "x2": 434.9284235633999,
+        "y2": 500.24998002024995,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 488.24953013626777,
+            "x2": 434.9284235633999,
+            "y2": 500.24998002024995
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-16",
+      "page": 28,
+      "paragraph": 16,
+      "text": "Place images in ActiveCampaign (external tool). Penny supplies the assets and copy, not the page build. 2.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 513.7495307057679,
+        "x2": 631.7889360099509,
+        "y2": 525.7499789577498,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 513.7495307057679,
+            "x2": 631.7889360099509,
+            "y2": 525.7499789577498
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-17",
+      "page": 28,
+      "paragraph": 17,
+      "text": "penny-canva (tailor the approved Capability Doc) or penny-presentation (build a longer custom .pptx ). 1.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 560.249531744269,
+        "x2": 612.4527385031093,
+        "y2": 572.2499770202498,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 560.249531744269,
+            "x2": 612.4527385031093,
+            "y2": 572.2499770202498
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-18",
+      "page": 28,
+      "paragraph": 18,
+      "text": "export_canva_design_to_local → PPTX (+ font bundle for external send). 2.",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 32.390625723390535,
+        "y1": 585.7495323137691,
+        "x2": 440.38841933534025,
+        "y2": 597.7499759577499,
+        "rects": [
+          {
+            "x1": 32.390625723390535,
+            "y1": 585.7495323137691,
+            "x2": 440.38841933534025,
+            "y2": 597.7499759577499
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-19",
+      "page": 28,
+      "paragraph": 19,
+      "text": "The Canva connector cannot upload, delete, add, reorder, or duplicate pages inside a design, change font family, or add new text boxes — those needs route to penny-presentation (build .pptx from scratch). •",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 644.2495336202691,
+        "x2": 634.8597977285337,
+        "y2": 674.2495342902694,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 644.2495336202691,
+            "x2": 634.4813244700811,
+            "y2": 656.2495338882691
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 662.2495340222694,
+            "x2": 634.8597977285337,
+            "y2": 674.2495342902694
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 644.9999732690001,
+            "x2": 42.381282196515166,
+            "y2": 662.9999736709999
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-20",
+      "page": 28,
+      "paragraph": 20,
+      "text": "Font auto mode only checks your machine; pass always for external hand-o ff where you can't inspect the recipient's machine. •",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 687.7495345917695,
+        "x2": 641.9544803369813,
+        "y2": 717.7495352617698,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 687.7495345917695,
+            "x2": 641.9544803369813,
+            "y2": 699.7495348597695
+          },
+          {
+            "x1": 51.00000113899986,
+            "y1": 705.7495349937698,
+            "x2": 163.40423217436063,
+            "y2": 717.7495352617698
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 688.4999714564999,
+            "x2": 42.381282196515166,
+            "y2": 706.4999718585
+          }
+        ]
+      }
+    },
+    {
+      "id": "CHK-p28-21",
+      "page": 28,
+      "paragraph": 21,
+      "text": "Brand fonts (Gotham, Neulis Neue) are commercial — internal Synogize use only, do not redistribute. •",
+      "bbox": {
+        "pageNumber": 28,
+        "width": 690,
+        "height": 894,
+        "x1": 35.613282045363185,
+        "y1": 731.2495355632662,
+        "x2": 618.372935560327,
+        "y2": 749.9999700459998,
+        "rects": [
+          {
+            "x1": 51.00000113899986,
+            "y1": 731.2495355632662,
+            "x2": 618.372935560327,
+            "y2": 743.2495358312663
+          },
+          {
+            "x1": 35.613282045363185,
+            "y1": 731.999969644,
+            "x2": 42.381282196515166,
+            "y2": 749.9999700459998
+          }
+        ]
+      }
+    }
+  ],
+  "images": [
+    {
+      "id": "IMG-p2",
+      "page": 2,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-2-focus.png",
+      "captionHint": "Focused area from page 2. 2. Where Penny runs\nPenny works in any host that supports the plugin:\nThe rest of this guide uses Codex-style   /slash   invocation, but the same skills run from a plain-English re"
+    },
+    {
+      "id": "IMG-p3",
+      "page": 3,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-3-focus.png",
+      "captionHint": "Focused area from page 3. design:meta:read   .\n(Optional) install brand fonts locally   so exported decks render correctly on your machine — Penny can\ndo this for you with   install_penny_brand_fonts   .\n3."
+    },
+    {
+      "id": "IMG-p4",
+      "page": 4,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-4-focus.png",
+      "captionHint": "Focused area from page 4. source is now on the speci fi c branch, once in prod, just need `synogize-labs/penny`"
+    },
+    {
+      "id": "IMG-p5",
+      "page": 5,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-5-focus.png",
+      "captionHint": "Focused area from page 5. local installation\nWrap the entire directory as a folder and use it as a plugin.\nthen the   setup   prompt will automatically call a script, which helps user to download system con"
+    },
+    {
+      "id": "IMG-p6",
+      "page": 6,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-6-focus.png",
+      "captionHint": "Focused area from page 6. github installation (optional - only if user knows how to use github)\ngh auth login\ngit clone\nbrew install gh\n/bin/bash -c \"$(curl -fsSL\nRemind:\nUsers still need to log in to their"
+    },
+    {
+      "id": "IMG-p7",
+      "page": 7,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-7-focus.png",
+      "captionHint": "Focused area from page 7. User needs to make sure that the Canva plugin is installed"
+    },
+    {
+      "id": "IMG-p8",
+      "page": 8,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-8-focus.png",
+      "captionHint": "Focused area from page 8. 4. The skills — what each one generates\nYou usually don't pick the skill manually:   penny-skill-router   reads your request and routes to the right work fl ow,\napplying   penny-co"
+    },
+    {
+      "id": "IMG-p9",
+      "page": 9,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-9-focus.png",
+      "captionHint": "Focused area from page 9. penny-case-study   Client stories / project proof   Structured case-study text\nfrom notes/interviews/proof\npoints, slide copy, proof QA\npenny-create-new-asset   New images & graphi"
+    },
+    {
+      "id": "IMG-p11",
+      "page": 11,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-11.png",
+      "captionHint": ""
+    },
+    {
+      "id": "IMG-p12",
+      "page": 12,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-12-focus.png",
+      "captionHint": "Focused area from page 12. 4.2 Case studies —   penny-case-study\nCase studies are large text blobs with a Canva-designed thumbnail. Today the team manages ~1/month;\nautomating the text is the path to a highe"
+    },
+    {
+      "id": "IMG-p13",
+      "page": 13,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-13.png",
+      "captionHint": ""
+    },
+    {
+      "id": "IMG-p14",
+      "page": 14,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-14.png",
+      "captionHint": "4.3 Image assets —   penny-create-new-asset"
+    },
+    {
+      "id": "IMG-p15",
+      "page": 15,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-15-focus.png",
+      "captionHint": "Focused area from page 15. Creates brand-aligned image assets for Synogize marketing content.\n/create-image-asset   takes a plain-English brief and generates a visual asset aligned to Synogize’s aesthetic:\na"
+    },
+    {
+      "id": "IMG-p16",
+      "page": 16,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-16.png",
+      "captionHint": ""
+    },
+    {
+      "id": "IMG-p18",
+      "page": 18,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-18.png",
+      "captionHint": ""
+    },
+    {
+      "id": "IMG-p19",
+      "page": 19,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-19-focus.png",
+      "captionHint": "Focused area from page 19. 4.5 Presentations —   penny-presentation\nWhen the brief needs more slides or layout variety than a Canva template can deliver (the Canva connector\ncan't add/reorder pages), Penny b"
+    },
+    {
+      "id": "IMG-p20",
+      "page": 20,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-20.png",
+      "captionHint": ""
+    },
+    {
+      "id": "IMG-p21",
+      "page": 21,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-21-focus.png",
+      "captionHint": "Focused area from page 21. 5. Canva tools (the   penny-canva   MCP server)\nTool   What it does\nupload_local_canva_assets   Upload local (AI-generated) images into the\nCanva Uploads library\ncopy_canva_design_"
+    },
+    {
+      "id": "IMG-p22",
+      "page": 22,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-22-focus.png",
+      "captionHint": "Focused area from page 22. the upload/export function also matters when user login to their own speci fi c developer Canva\naccount, more con fi guration options are waiting for testing.\nhttps://www.canva.com"
+    },
+    {
+      "id": "IMG-p23",
+      "page": 23,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-23-focus.png",
+      "captionHint": "Focused area from page 23. "
+    },
+    {
+      "id": "IMG-p24",
+      "page": 24,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-24-focus.png",
+      "captionHint": "Focused area from page 24. Before"
+    },
+    {
+      "id": "IMG-p25",
+      "page": 25,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-25-focus.png",
+      "captionHint": "Focused area from page 25. After"
+    },
+    {
+      "id": "IMG-p26",
+      "page": 26,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-26-focus.png",
+      "captionHint": "Focused area from page 26. "
+    },
+    {
+      "id": "IMG-p27",
+      "page": 27,
+      "filepath": "/extracted/b128f70f-45ae-4289-a012-1d922739f0bc/page-27-focus.png",
+      "captionHint": "Focused area from page 27. 6. Brand alignment (the core requirement)\nEvery skill applies   penny-core   :\n7. Approved Canva templates\nUse only these for Synogize work; Penny   fi ts content into them rather "
+    }
+  ],
+  "validationWarnings": [],
+  "fidelityReport": {
+    "generatedAt": "2026-06-02T00:04:09.596Z",
+    "overallGrade": "high",
+    "summary": "The deck faithfully represents the source document. All major sections are covered: what Penny is, setup, the five skills, Canva tools and export, brand guardrails, and a contribution close. Key facts, skill names, tool names, brand rules, and limitations are accurately reflected. Two minor issues: (1) slide 11 claims '12 seconds' for case study generation — the source mentions no such timing; (2) slide 12 frames the contrast as 'What Penny owns vs. what the team still owns' with specific language not directly sourced, though the underlying division of labour is accurately implied by the source. The end-to-end recipes section (§8) and the full limitations list (§9) receive only partial coverage, but these are appropriately condensed rather than missing entirely. No central ideas are fabricated or omitted.",
+    "coverage": [
+      {
+        "sectionId": "SEC-OPENING",
+        "sectionName": "Opening: Title slide and promise",
+        "capturedKeyPoints": [
+          {
+            "text": "Penny is a task-based AI assistant / plugin for the Synogize marketing team",
+            "evidenceChunkIds": [
+              "CHK-p1-02",
+              "CHK-p1-03"
+            ]
+          },
+          {
+            "text": "Audience walk-away framed as four concrete outcomes: understanding what Penny is, five skills, Canva connection, readiness to use",
+            "evidenceChunkIds": [
+              "CHK-p1-04",
+              "CHK-p1-05"
+            ]
+          }
+        ],
+        "missedKeyPoints": []
+      },
+      {
+        "sectionId": "SEC-WHAT",
+        "sectionName": "What Penny Is",
+        "capturedKeyPoints": [
+          {
+            "text": "Penny is a plugin made of task-specific skills plus Canva tools",
+            "evidenceChunkIds": [
+              "CHK-p1-04"
+            ]
+          },
+          {
+            "text": "The single biggest time-save is brand alignment — you describe the task, Penny produces output already shaped to Synogize's brand",
+            "evidenceChunkIds": [
+              "CHK-p1-05"
+            ]
+          },
+          {
+            "text": "penny-skill-router routes requests automatically; penny-core is always-on brand voice, logo safety, and final QA",
+            "evidenceChunkIds": [
+              "CHK-p8-04",
+              "CHK-p8-05"
+            ]
+          },
+          {
+            "text": "Brand knowledge includes service taxonomy, tech partners, approved CTAs, tone of voice, brand colours, logo rules, approved Canva template set",
+            "evidenceChunkIds": [
+              "CHK-p1-06"
+            ]
+          },
+          {
+            "text": "Full skills table: penny-linkedin, penny-case-study, penny-create-new-asset, penny-canva, penny-presentation",
+            "evidenceChunkIds": [
+              "CHK-p8-06",
+              "CHK-p9-01",
+              "CHK-p9-02",
+              "CHK-p9-03",
+              "CHK-p9-04"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Penny runs in any host supporting the plugin, not just Codex — Claude Code is also fully supported",
+            "sourceChunkIds": [
+              "CHK-p2-01",
+              "CHK-p2-02",
+              "CHK-p2-04"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-SETUP",
+        "sectionName": "One-Time Setup",
+        "capturedKeyPoints": [
+          {
+            "text": "Three-step setup: install plugin from marketplace (synogize-labs/penny), run /penny:penny-setup to authorise Canva, optionally install brand fonts",
+            "evidenceChunkIds": [
+              "CHK-p2-03",
+              "CHK-p2-05",
+              "CHK-p2-06",
+              "CHK-p3-01"
+            ]
+          },
+          {
+            "text": "Canva plugin must also be installed in Codex as a prerequisite",
+            "evidenceChunkIds": [
+              "CHK-p7-01"
+            ]
+          },
+          {
+            "text": "Token stored under ~/.penny/; required Canva scopes listed",
+            "evidenceChunkIds": [
+              "CHK-p2-06"
+            ]
+          },
+          {
+            "text": "Local installation: wrap directory as folder and use as plugin",
+            "evidenceChunkIds": [
+              "CHK-p5-01",
+              "CHK-p5-02"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "GitHub installation path (optional): brew install gh, gh auth login, git clone — for users who know GitHub",
+            "sourceChunkIds": [
+              "CHK-p6-01",
+              "CHK-p6-02",
+              "CHK-p6-03"
+            ]
+          },
+          {
+            "text": "Users need to log in to Microsoft Azure account AND Canva account in their browser before setup can finalise",
+            "sourceChunkIds": [
+              "CHK-p6-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-SKILLS",
+        "sectionName": "The Five Skills",
+        "capturedKeyPoints": [
+          {
+            "text": "penny-linkedin mirrors existing draft→Sam-refines flow but with Synogize tone baked in; generates hooks, captions, CTA options; Sam still does final personality pass",
+            "evidenceChunkIds": [
+              "CHK-p10-01",
+              "CHK-p10-02"
+            ]
+          },
+          {
+            "text": "Carousel routes to penny-canva to fit copy into Case Study Carousel or approved template",
+            "evidenceChunkIds": [
+              "CHK-p10-03"
+            ]
+          },
+          {
+            "text": "Images: penny-create-new-asset produces prompt; generate in ChatGPT/Nano Banana; upload into Canva",
+            "evidenceChunkIds": [
+              "CHK-p10-04"
+            ]
+          },
+          {
+            "text": "penny-case-study: team manages ~1/month; automating text is path to higher cadence; structured problem→approach→outcome with measurable results",
+            "evidenceChunkIds": [
+              "CHK-p12-01",
+              "CHK-p12-02"
+            ]
+          },
+          {
+            "text": "Case study thumbnail: penny-create-new-asset for image, penny-canva to fit into Case Study Carousel template",
+            "evidenceChunkIds": [
+              "CHK-p12-03"
+            ]
+          },
+          {
+            "text": "penny-create-new-asset: brand-aligned image assets, approved colour palette, geometric motif, clean B2B style, guardrails (no fake logos, no AI clichés)",
+            "evidenceChunkIds": [
+              "CHK-p15-01"
+            ]
+          },
+          {
+            "text": "penny-canva: works with existing Canva design via link; inspect, check template fit, edit safe duplicate, copy/delete pages, export",
+            "evidenceChunkIds": [
+              "CHK-p17-01",
+              "CHK-p17-02"
+            ]
+          },
+          {
+            "text": "penny-presentation: builds real .pptx from scratch with pptxgenjs when more slides/layout variety needed than Canva template allows",
+            "evidenceChunkIds": [
+              "CHK-p19-01"
+            ]
+          },
+          {
+            "text": "Division of labour: Penny handles brand structure/defaults/guardrails; team still owns judgment, personality, strategy",
+            "evidenceChunkIds": [
+              "CHK-p10-01",
+              "CHK-p10-02",
+              "CHK-p19-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "penny-create-new-asset outputs are used for EDM banners, event graphics, and website campaign visuals in addition to LinkedIn/carousel",
+            "sourceChunkIds": [
+              "CHK-p15-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CANVA-TOOLS",
+        "sectionName": "Canva Tools & Export",
+        "capturedKeyPoints": [
+          {
+            "text": "Six Canva MCP tools: upload_local_canva_assets, copy_canva_design_pages, delete_canva_design_pages, export_canva_design_to_local, install_penny_brand_fonts, emit_penny_font_bundle",
+            "evidenceChunkIds": [
+              "CHK-p21-02",
+              "CHK-p21-03",
+              "CHK-p21-04",
+              "CHK-p21-05",
+              "CHK-p21-06",
+              "CHK-p21-07"
+            ]
+          },
+          {
+            "text": "Export: Penny calls export_canva_design_to_local, saves to ~/Downloads; PPTX font bundle modes: auto (default), always, never",
+            "evidenceChunkIds": [
+              "CHK-p21-08",
+              "CHK-p21-10",
+              "CHK-p21-11"
+            ]
+          },
+          {
+            "text": "Recipient runs install.command / install.bat / install.sh from zip — no admin, no Node required",
+            "evidenceChunkIds": [
+              "CHK-p21-09"
+            ]
+          },
+          {
+            "text": "Before/after visual contrast anchored in presentation slides",
+            "evidenceChunkIds": [
+              "CHK-p21-08"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Upload/export function behaviour also depends on user's specific developer Canva account; more configuration options waiting for testing via Canva Connect API",
+            "sourceChunkIds": [
+              "CHK-p22-01"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-BRAND",
+        "sectionName": "Brand Guardrails",
+        "capturedKeyPoints": [
+          {
+            "text": "Every skill applies penny-core; brand alignment is the core requirement",
+            "evidenceChunkIds": [
+              "CHK-p27-01",
+              "CHK-p27-02"
+            ]
+          },
+          {
+            "text": "Approved service names: Data + AI Consulting Services, Data + AI Managed Services, Data + AI Solutions — exact phrasings only",
+            "evidenceChunkIds": [
+              "CHK-p27-05"
+            ]
+          },
+          {
+            "text": "Approved partners: Coalesce, dbt, Snowflake, SAP, Microsoft, AWS, Google Cloud Platform, Tableau, Fivetran — don't claim others",
+            "evidenceChunkIds": [
+              "CHK-p27-06"
+            ]
+          },
+          {
+            "text": "CTAs locked to three options; logo rules; visual style with forbidden AI clichés",
+            "evidenceChunkIds": [
+              "CHK-p27-07"
+            ]
+          },
+          {
+            "text": "Brand fonts (Gotham, Neulis Neue) — internal Synogize use only, do not redistribute",
+            "evidenceChunkIds": [
+              "CHK-p28-21"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "Approved Canva template list: Welcome to the team, Meet Us There, Co-branded, Press Release Banner, Partnership Announcement, Case Study Carousel, Use Cases, Capability Doc, Standard Presentation",
+            "sourceChunkIds": [
+              "CHK-p27-03",
+              "CHK-p27-04",
+              "CHK-p28-01",
+              "CHK-p28-02",
+              "CHK-p28-03"
+            ]
+          }
+        ]
+      },
+      {
+        "sectionId": "SEC-CONTRIBUTION",
+        "sectionName": "Contribution",
+        "capturedKeyPoints": [
+          {
+            "text": "Core restatement: Penny collapses gap between brief and on-brand deliverable across all content types",
+            "evidenceChunkIds": [
+              "CHK-p1-05",
+              "CHK-p8-02"
+            ]
+          },
+          {
+            "text": "Brand alignment is automatic; one prompt triggers full workflow via router; covers text, visuals, decks, exports",
+            "evidenceChunkIds": [
+              "CHK-p8-02",
+              "CHK-p1-05"
+            ]
+          },
+          {
+            "text": "Higher cadence potential (case study cadence unlock referenced)",
+            "evidenceChunkIds": [
+              "CHK-p12-01"
+            ]
+          }
+        ],
+        "missedKeyPoints": [
+          {
+            "text": "End-to-end recipes section (§8) covering LinkedIn post with carousel, case study, event page (ActiveCampaign), and capability deck — specific multi-step sequences not surfaced in contribution slides",
+            "sourceChunkIds": [
+              "CHK-p28-04",
+              "CHK-p28-05",
+              "CHK-p28-06",
+              "CHK-p28-07"
+            ]
+          },
+          {
+            "text": "Canva connector limitations: cannot upload, delete, add, reorder, or duplicate pages inside a design; cannot change font family or add new text boxes",
+            "sourceChunkIds": [
+              "CHK-p28-19"
+            ]
+          },
+          {
+            "text": "Font auto mode only checks sender's machine; must use 'always' for external handoff",
+            "sourceChunkIds": [
+              "CHK-p28-20"
+            ]
+          }
+        ]
+      }
+    ],
+    "unsupportedClaims": [
+      {
+        "slideIndex": 10,
+        "claim": "Case studies — from notes to proof point in 12 seconds",
+        "closestSourceSpan": "automating the text is the path to a higher cadence",
+        "sourceChunkIds": [
+          "CHK-p12-01"
+        ]
+      },
+      {
+        "slideIndex": 10,
+        "claim": "75% reduction in reporting prep time, 20+ reports automated",
+        "sourceChunkIds": [
+          "CHK-p12-02"
+        ]
+      }
+    ],
+    "deterministic": {
+      "totalSlides": 18,
+      "factualSlides": 15,
+      "factualSlidesWithEvidence": 15,
+      "evidenceUsageRatio": 1,
+      "imageSlides": 7,
+      "imageUsageRatio": 0.2916666666666667,
+      "slideTypeMix": {
+        "title": 1,
+        "goals": 1,
+        "statement": 4,
+        "split-visual": 3,
+        "image": 7,
+        "comparison": 1,
+        "recap": 1
+      },
+      "uniqueChunkIdsCited": 45,
+      "totalChunkIds": 85,
+      "chunkCoverageRatio": 0.5294117647058824
+    }
+  }
+}
