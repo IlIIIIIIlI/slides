@@ -1,0 +1,9 @@
+slug: 2026-06-02-idea-swap-pdf-parse-for-liteparse-to-get-bounding-box-aware-pdf-s-83v
+kind: feature
+project_id: slides
+idea: 2026-06-02-swap-pdf-parse-for-liteparse-to-get-bounding-box-aware-pdf-s-83v0t
+capability: feature
+novelty: 4
+effort: 3
+source_trending:
+  - run-llama/liteparse
