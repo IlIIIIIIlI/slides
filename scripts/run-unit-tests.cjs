@@ -42,6 +42,7 @@ if (!process.env.TS_TEST_CHILD) {
   const tests = [
     ...collectTests(path.join(root, "lib")),
     ...collectTests(path.join(root, "core")),
+    ...collectTests(path.join(root, "mcp")),
   ];
   if (tests.length === 0) {
     console.error("No unit tests found.");

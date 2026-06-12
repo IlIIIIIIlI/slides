@@ -1,0 +1,455 @@
+
+> ai-nextjs-slides@0.1.0 pretest
+> node scripts/inline-skills.mjs
+
+[inline-skills] wrote lib/generation/skills.generated.ts (27697 chars)
+
+> ai-nextjs-slides@0.1.0 test
+> node scripts/run-unit-tests.cjs
+
+TAP version 13
+# Subtest: specToSlide animKeys
+    # Subtest: stamps animKeys for headline block
+    ok 1 - stamps animKeys for headline block
+      ---
+      duration_ms: 1.925816
+      ...
+    # Subtest: stamps animKeys for code-block
+    ok 2 - stamps animKeys for code-block
+      ---
+      duration_ms: 0.316778
+      ...
+    # Subtest: omits animKeys when no keyed blocks
+    ok 3 - omits animKeys when no keyed blocks
+      ---
+      duration_ms: 0.356732
+      ...
+    # Subtest: explicit animKey on block is used
+    ok 4 - explicit animKey on block is used
+      ---
+      duration_ms: 0.204473
+      ...
+    1..4
+ok 1 - specToSlide animKeys
+  ---
+  duration_ms: 4.237084
+  type: 'suite'
+  ...
+# Subtest: flipIdFor
+    # Subtest: prefixes with flip-
+    ok 1 - prefixes with flip-
+      ---
+      duration_ms: 0.79439
+      ...
+    1..1
+ok 2 - flipIdFor
+  ---
+  duration_ms: 1.914464
+  type: 'suite'
+  ...
+# Subtest: resolveAnimKey
+    # Subtest: explicit animKey wins
+    ok 1 - explicit animKey wins
+      ---
+      duration_ms: 0.405763
+      ...
+    # Subtest: headline block → title
+    ok 2 - headline block → title
+      ---
+      duration_ms: 0.157717
+      ...
+    # Subtest: code-block uses occurrence index
+    ok 3 - code-block uses occurrence index
+      ---
+      duration_ms: 0.282004
+      ...
+    # Subtest: other block types return undefined
+    ok 4 - other block types return undefined
+      ---
+      duration_ms: 0.203345
+      ...
+    1..4
+ok 3 - resolveAnimKey
+  ---
+  duration_ms: 1.394482
+  type: 'suite'
+  ...
+# Subtest: sharedAnimKeys
+    # Subtest: returns intersection of resolved keys
+    ok 1 - returns intersection of resolved keys
+      ---
+      duration_ms: 1.196683
+      ...
+    # Subtest: empty intersection when no shared keys
+    ok 2 - empty intersection when no shared keys
+      ---
+      duration_ms: 0.40494
+      ...
+    # Subtest: code blocks keyed by occurrence index
+    ok 3 - code blocks keyed by occurrence index
+      ---
+      duration_ms: 0.339506
+      ...
+    # Subtest: explicit animKey match
+    ok 4 - explicit animKey match
+      ---
+      duration_ms: 0.333795
+      ...
+    # Subtest: derived title key is shared
+    ok 5 - derived title key is shared
+      ---
+      duration_ms: 0.419673
+      ...
+    1..5
+ok 4 - sharedAnimKeys
+  ---
+  duration_ms: 3.173908
+  type: 'suite'
+  ...
+# Subtest: stripFences removes markdown code fences
+ok 5 - stripFences removes markdown code fences
+  ---
+  duration_ms: 1.476982
+  ...
+# Subtest: extractText plain text: splits into paragraph chunks
+ok 6 - extractText plain text: splits into paragraph chunks
+  ---
+  duration_ms: 1.157921
+  ...
+# Subtest: extractText plain text: fullText matches original content
+ok 7 - extractText plain text: fullText matches original content
+  ---
+  duration_ms: 0.452123
+  ...
+# Subtest: extractText code: detects TS extension and uses code chunking
+ok 8 - extractText code: detects TS extension and uses code chunking
+  ---
+  duration_ms: 0.614966
+  ...
+# Subtest: extractText image: stores upload and returns single image entry
+ok 9 - extractText image: stores upload and returns single image entry
+  ---
+  duration_ms: 13.167609
+  ...
+# Subtest: inline DOCX equation yields $...$
+ok 10 - inline DOCX equation yields $...$
+  ---
+  duration_ms: 60.173863
+  ...
+# Subtest: m:oMathPara yields $$...$$
+ok 11 - m:oMathPara yields $$...$$
+  ---
+  duration_ms: 12.298616
+  ...
+# Subtest: math-free XML is unchanged by preprocessMathXml
+ok 12 - math-free XML is unchanged by preprocessMathXml
+  ---
+  duration_ms: 0.196504
+  ...
+# Subtest: stripXmlTags extracts plain text with paragraph breaks
+ok 13 - stripXmlTags extracts plain text with paragraph breaks
+  ---
+  duration_ms: 0.826795
+  ...
+# Subtest: math LaTeX survives stripXmlTags
+ok 14 - math LaTeX survives stripXmlTags
+  ---
+  duration_ms: 0.66251
+  ...
+# Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
+ok 15 - preprocessMathXml + stripXmlTags: inline equation at correct position
+  ---
+  duration_ms: 10.448132
+  ...
+# Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
+ok 16 - retries fidelity grading with compact instructions when the first JSON response is truncated
+  ---
+  duration_ms: 3.228981
+  ...
+# Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
+ok 17 - falls back to deterministic fidelity when both narrative JSON responses are invalid
+  ---
+  duration_ms: 0.54306
+  ...
+# Subtest: finds a focused visual region instead of returning the whole page
+ok 18 - finds a focused visual region instead of returning the whole page
+  ---
+  duration_ms: 6.29379
+  ...
+# Subtest: prefers a dense screenshot-like area over sparse page marks
+ok 19 - prefers a dense screenshot-like area over sparse page marks
+  ---
+  duration_ms: 1.234954
+  ...
+# Subtest: returns null for blank pages
+ok 20 - returns null for blank pages
+  ---
+  duration_ms: 0.697103
+  ...
+# Subtest: nary: summation with sub and sup
+ok 21 - nary: summation with sub and sup
+  ---
+  duration_ms: 132.76053
+  ...
+# Subtest: nary: default operator is integral when chr absent
+ok 22 - nary: default operator is integral when chr absent
+  ---
+  duration_ms: 9.558603
+  ...
+# Subtest: nary: product with undOvr emits \\limits
+ok 23 - nary: product with undOvr emits \\limits
+  ---
+  duration_ms: 9.503172
+  ...
+# Subtest: nary: unknown glyph falls back to raw glyph without throwing
+ok 24 - nary: unknown glyph falls back to raw glyph without throwing
+  ---
+  duration_ms: 6.934817
+  ...
+# Subtest: limLow: lim operator gets subscript limit
+ok 25 - limLow: lim operator gets subscript limit
+  ---
+  duration_ms: 11.131796
+  ...
+# Subtest: limLow: max operator gets subscript limit
+ok 26 - limLow: max operator gets subscript limit
+  ---
+  duration_ms: 7.44808
+  ...
+# Subtest: limLow: inf operator gets subscript limit
+ok 27 - limLow: inf operator gets subscript limit
+  ---
+  duration_ms: 13.441719
+  ...
+# Subtest: limLow: non-operator base uses \\underset
+ok 28 - limLow: non-operator base uses \\underset
+  ---
+  duration_ms: 9.748082
+  ...
+# Subtest: limUpp: non-operator base uses \\overset
+ok 29 - limUpp: non-operator base uses \\overset
+  ---
+  duration_ms: 12.510016
+  ...
+# Subtest: limUpp: operator base gets superscript limit
+ok 30 - limUpp: operator base gets superscript limit
+  ---
+  duration_ms: 13.049224
+  ...
+# Subtest: groupChr: overbrace ⏞ emits \\overbrace{...}
+ok 31 - groupChr: overbrace ⏞ emits \\overbrace{...}
+  ---
+  duration_ms: 8.962757
+  ...
+# Subtest: groupChr: underbrace ⏟ emits \\underbrace{...}
+ok 32 - groupChr: underbrace ⏟ emits \\underbrace{...}
+  ---
+  duration_ms: 11.707565
+  ...
+# Subtest: groupChr: non-brace chr at bot emits \\underset
+ok 33 - groupChr: non-brace chr at bot emits \\underset
+  ---
+  duration_ms: 7.193897
+  ...
+# Subtest: dispatch: nary nested inside fraction is reached
+ok 34 - dispatch: nary nested inside fraction is reached
+  ---
+  duration_ms: 12.55267
+  ...
+# Subtest: convert fraction → \\frac{a}{b}
+ok 35 - convert fraction → \\frac{a}{b}
+  ---
+  duration_ms: 62.582326
+  ...
+# Subtest: convert radical with degree → \\sqrt[3]{x}
+ok 36 - convert radical with degree → \\sqrt[3]{x}
+  ---
+  duration_ms: 7.913484
+  ...
+# Subtest: convert radical with hidden degree → \\sqrt{x}
+ok 37 - convert radical with hidden degree → \\sqrt{x}
+  ---
+  duration_ms: 9.422746
+  ...
+# Subtest: convert n-ary summation with limits
+ok 38 - convert n-ary summation with limits
+  ---
+  duration_ms: 7.908407
+  ...
+# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
+ok 39 - convert matrix → \\begin{matrix}...\\end{matrix}
+  ---
+  duration_ms: 12.797703
+  ...
+# Subtest: convert accent → \\hat{v}
+ok 40 - convert accent → \\hat{v}
+  ---
+  duration_ms: 8.103468
+  ...
+# Subtest: convert delimiter → \\left(x+y\\right)
+ok 41 - convert delimiter → \\left(x+y\\right)
+  ---
+  duration_ms: 6.388507
+  ...
+# Subtest: degrade unknown element without throwing
+ok 42 - degrade unknown element without throwing
+  ---
+  duration_ms: 9.564462
+  ...
+# Subtest: oMathPara wrapper is handled
+ok 43 - oMathPara wrapper is handled
+  ---
+  duration_ms: 11.1638
+  ...
+# Subtest: normalizes model outline total/section-count mismatch before validation
+ok 44 - normalizes model outline total/section-count mismatch before validation
+  ---
+  duration_ms: 4.816206
+  ...
+# Subtest: repairs missing first title while preserving target slide count
+ok 45 - repairs missing first title while preserving target slide count
+  ---
+  duration_ms: 2.262262
+  ...
+# Subtest: moves an existing title to the front instead of failing deck validation
+ok 46 - moves an existing title to the front instead of failing deck validation
+  ---
+  duration_ms: 0.454313
+  ...
+# Subtest: inserts fallback image slide for academic decks when source images exist
+ok 47 - inserts fallback image slide for academic decks when source images exist
+  ---
+  duration_ms: 3.718285
+  ...
+# Subtest: synthesizes quiz section slides when the model returns the wrong type
+ok 48 - synthesizes quiz section slides when the model returns the wrong type
+  ---
+  duration_ms: 0.839613
+  ...
+# Subtest: adds fallback evidence refs to academic factual slides in a bounded section
+ok 49 - adds fallback evidence refs to academic factual slides in a bounded section
+  ---
+  duration_ms: 0.382
+  ...
+# Subtest: selects explicit candidate chunks before scoring by section text
+ok 50 - selects explicit candidate chunks before scoring by section text
+  ---
+  duration_ms: 0.406215
+  ...
+# Subtest: normalizes free-form audience labels with technical fallback
+ok 51 - normalizes free-form audience labels with technical fallback
+  ---
+  duration_ms: 1.143896
+  ...
+# Subtest: rejects unknown evidence refs
+ok 52 - rejects unknown evidence refs
+  ---
+  duration_ms: 1.226308
+  ...
+# Subtest: rejects quiz sections for non-quiz audience profiles
+ok 53 - rejects quiz sections for non-quiz audience profiles
+  ---
+  duration_ms: 0.750989
+  ...
+# Subtest: requires academic quiz sections to be final
+ok 54 - requires academic quiz sections to be final
+  ---
+  duration_ms: 0.253764
+  ...
+# Subtest: rejects academic factual slides without evidence refs
+ok 55 - rejects academic factual slides without evidence refs
+  ---
+  duration_ms: 0.260389
+  ...
+# Subtest: maps only Anthropic-supported image extensions to media types
+ok 56 - maps only Anthropic-supported image extensions to media types
+  ---
+  duration_ms: 1.183409
+  ...
+# Subtest: resolves public image paths without allowing traversal outside public
+ok 57 - resolves public image paths without allowing traversal outside public
+  ---
+  duration_ms: 0.501979
+  ...
+# Subtest: orders candidate images first for section-specific vision context
+ok 58 - orders candidate images first for section-specific vision context
+  ---
+  duration_ms: 2.624304
+  ...
+# Subtest: builds text plus base64 image blocks from saved focused crops
+ok 59 - builds text plus base64 image blocks from saved focused crops
+  ---
+  duration_ms: 13.95549
+  ...
+# Subtest: mcp/schema
+    # Subtest: SLIDE_TYPES has 16 entries
+    ok 1 - SLIDE_TYPES has 16 entries
+      ---
+      duration_ms: 1.245776
+      ...
+    # Subtest: every SLIDE_TYPE has a description
+    ok 2 - every SLIDE_TYPE has a description
+      ---
+      duration_ms: 0.405955
+      ...
+    # Subtest: SLIDE_JSON_SCHEMA has required fields
+    ok 3 - SLIDE_JSON_SCHEMA has required fields
+      ---
+      duration_ms: 0.88218
+      ...
+    # Subtest: SLIDE_JSON_SCHEMA type enum matches SLIDE_TYPES
+    ok 4 - SLIDE_JSON_SCHEMA type enum matches SLIDE_TYPES
+      ---
+      duration_ms: 0.279689
+      ...
+    # Subtest: headline has maxLength 80
+    ok 5 - headline has maxLength 80
+      ---
+      duration_ms: 0.155804
+      ...
+    # Subtest: supporting has maxLength 200
+    ok 6 - supporting has maxLength 200
+      ---
+      duration_ms: 0.169012
+      ...
+    # Subtest: points has maxItems 5
+    ok 7 - points has maxItems 5
+      ---
+      duration_ms: 0.150341
+      ...
+    # Subtest: AUDIENCE_TYPES has 3 entries
+    ok 8 - AUDIENCE_TYPES has 3 entries
+      ---
+      duration_ms: 0.245357
+      ...
+    # Subtest: STYLE_PRESETS has expected values
+    ok 9 - STYLE_PRESETS has expected values
+      ---
+      duration_ms: 0.394329
+      ...
+    # Subtest: PRESENTATION_JSON_SCHEMA requires id, title, slides
+    ok 10 - PRESENTATION_JSON_SCHEMA requires id, title, slides
+      ---
+      duration_ms: 0.56052
+      ...
+    1..10
+ok 60 - mcp/schema
+  ---
+  duration_ms: 9.917634
+  type: 'suite'
+  ...
+1..60
+# tests 79
+# suites 5
+# pass 79
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11827.521632
+
+---
+MCP server smoke-test
+server: started cleanly (no crash)
+TypeScript check: 0
+0 errors
