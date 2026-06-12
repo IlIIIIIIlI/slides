@@ -1,0 +1,25 @@
+slug: 2026-06-07-bump-next-to-15-5-19
+kind: dep-upgrade
+project_id: slides
+package: npm:next
+from_version: 15.1.6
+to_version: 15.5.19
+counts:
+  removed: 0
+  signature_changed: 1
+  added_informational: 12
+  total_usage_sites: 2
+affected_symbols:
+  - name: Metadata
+    severity: signature-changed
+    kind: interface
+    usage_count: 2
+    usages:
+      - file: app/layout.tsx
+        line: 1
+        column: 0
+        context: import type { Metadata } from "next";
+      - file: app/layout.tsx
+        line: 7
+        column: 24
+        context: "export const metadata: Metadata = {"
