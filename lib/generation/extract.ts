@@ -9,6 +9,8 @@ import fs from "fs/promises";
 import path from "path";
 import { JSDOM } from "jsdom";
 import { findFocusedCropBounds } from "@/lib/generation/image-crop";
+import { preprocessMathXml } from "@/lib/generation/omml/omml";
+import { readZipEntries } from "@/lib/generation/omml/zip";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
@@ -124,152 +126,150 @@ function chunkCode(text: string): ExtractedChunk[] {
 }
 
 // =============================
-// PDF: text per page + page-render images
+// PDF: text per page + page-render images (via @llamaindex/liteparse)
 // =============================
 
+// liteparse TextItem coordinates use top-left origin (y=0 at top, y increases
+// downward), matching the screen-space convention expected by react-pdf-highlighter.
+// PageWidth/height are in PDF points (1 pt = 1/72 inch).
+
 async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Extracted, "sourceName" | "sourceType">> {
-  // pdfjs-dist legacy build runs in Node without DOM polyfills.
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-
-  // Point pdfjs at the worker file on disk. We build a file:// URL from
-  // process.cwd() because under Next.js bundling __filename / require.resolve
-  // resolve against the compiled bundle (no node_modules nearby).
-  const { pathToFileURL } = await import("url");
-  const workerOnDisk = path.join(
-    process.cwd(),
-    "node_modules",
-    "pdfjs-dist",
-    "legacy",
-    "build",
-    "pdf.worker.mjs"
-  );
-  pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(workerOnDisk).href;
-
-  const loadingTask = pdfjs.getDocument({
-    data: new Uint8Array(buf),
-    isEvalSupported: false,
-    useSystemFonts: true,
-  });
-  const pdf = await loadingTask.promise;
-
-  const chunks: ExtractedChunk[] = [];
-  const images: ExtractedImage[] = [];
-  let fullText = "";
-
-  // Lazy-load canvas only if we actually find image-bearing pages.
-  let canvasMod: typeof import("@napi-rs/canvas") | null = null;
-  const ensureCanvas = async () => {
-    if (!canvasMod) canvasMod = await import("@napi-rs/canvas");
-    return canvasMod;
-  };
+  const { LiteParse } = await import("@llamaindex/liteparse");
 
   const outDir = path.join(PUBLIC_EXTRACTED, presentationId);
-  let outDirCreated = false;
-  const ensureOutDir = async () => {
-    if (!outDirCreated) {
-      await fs.mkdir(outDir, { recursive: true });
-      outDirCreated = true;
-    }
-  };
-
-  // Persist the original PDF so the workspace can render an inline preview
-  // with highlight overlays on cited chunks.
-  await ensureOutDir();
+  await fs.mkdir(outDir, { recursive: true });
   await fs.writeFile(path.join(outDir, "source.pdf"), buf);
   const sourceUrl = `/extracted/${presentationId}/source.pdf`;
 
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p);
-    const viewport = page.getViewport({ scale: 1 });
-    const pageWidth = viewport.width;
-    const pageHeight = viewport.height;
+  // Phase 1: Extract text without OCR to get bounding-box-aware items.
+  const parser = new LiteParse({ ocrEnabled: false, quiet: true });
+  const result = await parser.parse(buf);
 
-    // ---- text + per-line bboxes ----
+  // Phase 2: Detect scanned pages (very low text coverage) for selective OCR.
+  // Coverage = total text-item area / page area. Pages below 2% with < 5
+  // items are almost certainly image-only or scanned slides.
+  const scannedPageNums: number[] = [];
+  for (const page of result.pages) {
+    const pageArea = page.width * page.height;
+    if (pageArea > 0) {
+      const textArea = page.textItems.reduce((sum, it) => sum + it.width * it.height, 0);
+      if (textArea / pageArea < 0.02 && page.textItems.length < 5) {
+        scannedPageNums.push(page.pageNum);
+      }
+    }
+  }
+
+  // Phase 3: Re-parse scanned pages with OCR (gracefully skip if unavailable).
+  const ocrPageMap = new Map<number, (typeof result.pages)[0]>();
+  if (scannedPageNums.length > 0) {
+    try {
+      const ocrParser = new LiteParse({
+        ocrEnabled: true,
+        quiet: true,
+        targetPages: scannedPageNums.join(","),
+      });
+      const ocrResult = await ocrParser.parse(buf);
+      for (const page of ocrResult.pages) {
+        ocrPageMap.set(page.pageNum, page);
+      }
+    } catch {
+      // OCR unavailable (e.g. no tesseract) — continue with text-layer results.
+    }
+  }
+
+  // Phase 4: Process each page into chunks + collect image-sparse pages.
+  const chunks: ExtractedChunk[] = [];
+  let fullText = "";
+  const imagePageNums: number[] = [];   // pages worth screenshotting
+
+  for (const rawPage of result.pages) {
+    const page = ocrPageMap.get(rawPage.pageNum) ?? rawPage;
+    const p = page.pageNum;
+    const pageWidth = page.width;
+    const pageHeight = page.height;
+
+    // Sort items top-to-bottom then left-to-right (top-left-origin coords).
+    const items = [...page.textItems].sort((a, b) => a.y !== b.y ? a.y - b.y : a.x - b.x);
+
+    // Average item height — used as line-grouping tolerance.
+    const avgHeight = items.length > 0
+      ? items.reduce((sum, it) => sum + it.height, 0) / items.length
+      : 12;
+
+    // Group items into visual lines by y-proximity.
     type LineEntry = { text: string; x1: number; y1: number; x2: number; y2: number };
     const lineEntries: LineEntry[] = [];
+    let lineItems: typeof items = [];
+    let lineMinY = 0;
+    let lineMaxY = 0;
 
-    const textContent = await page.getTextContent();
-    let currentText: string[] = [];
-    let curX1 = Infinity, curY1 = Infinity, curX2 = -Infinity, curY2 = -Infinity;
-    let lastY: number | null = null;
-
-    const flush = () => {
-      if (!currentText.length) return;
-      // Convert PDF user-space (origin bottom-left) → top-left origin used by
-      // react-pdf-highlighter. curY1 currently holds the top of the line in
-      // PDF coords, curY2 the bottom; flip both.
-      const topY = pageHeight - curY1;
-      const bottomY = pageHeight - curY2;
-      lineEntries.push({
-        text: currentText.join(" "),
-        x1: curX1,
-        y1: Math.min(topY, bottomY),
-        x2: curX2,
-        y2: Math.max(topY, bottomY),
-      });
-      currentText = [];
-      curX1 = Infinity; curY1 = Infinity; curX2 = -Infinity; curY2 = -Infinity;
+    const flushLine = () => {
+      if (!lineItems.length) return;
+      lineItems.sort((a, b) => a.x - b.x); // left-to-right within line
+      const text = lineItems.map((it) => it.text).join(" ").replace(/\s+/g, " ").trim();
+      if (text) {
+        lineEntries.push({
+          text,
+          x1: Math.min(...lineItems.map((it) => it.x)),
+          y1: lineMinY,
+          x2: Math.max(...lineItems.map((it) => it.x + it.width)),
+          y2: lineMaxY,
+        });
+      }
+      lineItems = [];
     };
 
-    for (const item of textContent.items) {
-      const it = item as { str: string; transform?: number[]; width?: number; height?: number; hasEOL?: boolean };
-      if (!it.str) continue;
-      const x = it.transform?.[4] ?? 0;
-      const y = it.transform?.[5] ?? 0;
-      const w = it.width ?? 0;
-      const h = it.height ?? 0;
-
-      if (lastY !== null && Math.abs(y - lastY) > 2) flush();
-
-      currentText.push(it.str);
-      // PDF item bbox in PDF user-space: top y is `y + h`, bottom is `y`.
-      curX1 = Math.min(curX1, x);
-      curX2 = Math.max(curX2, x + w);
-      curY1 = Math.max(curY1 === Infinity ? -Infinity : curY1, y + h); // top in PDF coords
-      curY2 = Math.min(curY2 === -Infinity ? Infinity : curY2, y);     // bottom in PDF coords
-
-      lastY = y;
-      if (it.hasEOL) flush();
+    for (const item of items) {
+      if (lineItems.length === 0) {
+        lineItems = [item];
+        lineMinY = item.y;
+        lineMaxY = item.y + item.height;
+      } else if (item.y <= lineMaxY + avgHeight * 0.3) {
+        // Within 30% of avg height of current line bottom → same line.
+        lineItems.push(item);
+        lineMinY = Math.min(lineMinY, item.y);
+        lineMaxY = Math.max(lineMaxY, item.y + item.height);
+      } else {
+        flushLine();
+        lineItems = [item];
+        lineMinY = item.y;
+        lineMaxY = item.y + item.height;
+      }
     }
-    flush();
+    flushLine();
 
-    // ---- group lines into paragraphs by y-gap ----
-    // pdfjs typically reports lines top-to-bottom in top-left coords (after our
-    // flip), so consecutive lines with a larger-than-typical y-gap mark a
-    // paragraph boundary.
+    // Group lines into paragraphs by y-gap (same heuristic as before).
     type ParaAcc = {
       texts: string[];
       lines: ChunkRect[];
       bbox: { x1: number; y1: number; x2: number; y2: number };
     };
     const paras: ParaAcc[] = [];
-    let prev: LineEntry | null = null;
-    let cur: ParaAcc | null = null;
+    let prevLine: LineEntry | null = null;
+    let curPara: ParaAcc | null = null;
     const lineHeights = lineEntries.map((l) => l.y2 - l.y1).filter((h) => h > 0);
     const medianLineHeight = lineHeights.length
       ? lineHeights.slice().sort((a, b) => a - b)[Math.floor(lineHeights.length / 2)]
       : 12;
+
     for (const line of lineEntries) {
-      const gap = prev && cur ? line.y1 - prev.y2 : 0;
-      // Threshold ~0.6× median line height — paragraph spacing in most PDFs is
-      // larger than the inter-line leading, so this catches real paragraph
-      // breaks without splitting on the small gap between consecutive lines.
-      if (!cur || gap > medianLineHeight * 0.6) {
-        cur = {
+      const gap = prevLine && curPara ? line.y1 - prevLine.y2 : 0;
+      if (!curPara || gap > medianLineHeight * 0.6) {
+        curPara = {
           texts: [],
           lines: [],
           bbox: { x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 },
         };
-        paras.push(cur);
+        paras.push(curPara);
       } else {
-        cur.bbox.x1 = Math.min(cur.bbox.x1, line.x1);
-        cur.bbox.y1 = Math.min(cur.bbox.y1, line.y1);
-        cur.bbox.x2 = Math.max(cur.bbox.x2, line.x2);
-        cur.bbox.y2 = Math.max(cur.bbox.y2, line.y2);
+        curPara.bbox.x1 = Math.min(curPara.bbox.x1, line.x1);
+        curPara.bbox.y1 = Math.min(curPara.bbox.y1, line.y1);
+        curPara.bbox.x2 = Math.max(curPara.bbox.x2, line.x2);
+        curPara.bbox.y2 = Math.max(curPara.bbox.y2, line.y2);
       }
-      cur.texts.push(line.text);
-      cur.lines.push({ x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 });
-      prev = line;
+      curPara.texts.push(line.text);
+      curPara.lines.push({ x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 });
+      prevLine = line;
     }
 
     const pageText = lineEntries.map((l) => l.text).join("\n").replace(/\s+\n/g, "\n").trim();
@@ -291,8 +291,6 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
         || !Number.isFinite(bbox.x2) || !Number.isFinite(bbox.y2)
         || bbox.x2 <= bbox.x1 || bbox.y2 <= bbox.y1
       ) {
-        // Degenerate bbox (no real text dimensions) — store the chunk without
-        // bbox metadata so the preview falls back to the text-excerpt UI.
         chunks.push({
           id: `CHK-p${p}-${String(paraIdx).padStart(2, "0")}`,
           page: p,
@@ -319,63 +317,56 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
       });
     }
 
-    // ---- images: render the page to PNG only if it has image XObjects ----
-    let hasImage = false;
+    // Pages with < 150 chars of text likely carry significant visual content
+    // (charts, photos, diagrams). Cap total at 8 to avoid over-sending images.
+    if (pageText.length < 150 && imagePageNums.length < 8) {
+      imagePageNums.push(p);
+    }
+  }
+
+  // Phase 5: Screenshot image-bearing pages and apply focused-crop logic.
+  const images: ExtractedImage[] = [];
+  if (imagePageNums.length > 0) {
     try {
-      const ops = await page.getOperatorList();
-      // pdfjs OPS.paintImageXObject = 85; paintInlineImageXObject = 86; paintImageXObjectRepeat = 88
-      const IMAGE_OPS = new Set([85, 86, 88]);
-      for (const fn of ops.fnArray) {
-        if (IMAGE_OPS.has(fn)) { hasImage = true; break; }
+      const { createCanvas, loadImage } = await import("@napi-rs/canvas");
+      const screenshots = await parser.screenshot(buf, imagePageNums);
+      for (const shot of screenshots) {
+        try {
+          const img = await loadImage(shot.imageBuffer);
+          const canvas = createCanvas(shot.width, shot.height);
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const pixelData = ctx.getImageData(0, 0, shot.width, shot.height);
+          const cropBounds = findFocusedCropBounds(pixelData);
+          const outputCanvas = cropBounds
+            ? createCanvas(cropBounds.width, cropBounds.height)
+            : canvas;
+          if (cropBounds) {
+            const cropCtx = outputCanvas.getContext("2d");
+            cropCtx.drawImage(
+              img,
+              cropBounds.x, cropBounds.y, cropBounds.width, cropBounds.height,
+              0, 0, cropBounds.width, cropBounds.height,
+            );
+          }
+          const pageText = result.pages.find((pg) => pg.pageNum === shot.pageNum)?.text ?? "";
+          const filename = cropBounds ? `page-${shot.pageNum}-focus.png` : `page-${shot.pageNum}.png`;
+          const pngBuf = await outputCanvas.encode("png");
+          await fs.writeFile(path.join(outDir, filename), pngBuf);
+          images.push({
+            id: `IMG-p${shot.pageNum}`,
+            page: shot.pageNum,
+            filepath: `/extracted/${presentationId}/${filename}`,
+            captionHint: cropBounds
+              ? `Focused area from page ${shot.pageNum}. ${pageText.slice(0, 180)}`
+              : pageText.slice(0, 200),
+          });
+        } catch {
+          // Per-page screenshot failure is non-fatal.
+        }
       }
     } catch {
-      // If op list scan fails, just skip rendering.
-    }
-
-    if (hasImage) {
-      try {
-        const { createCanvas } = await ensureCanvas();
-        const viewport = page.getViewport({ scale: 2 });
-        const canvas = createCanvas(viewport.width, viewport.height);
-        const ctx = canvas.getContext("2d");
-        await page.render({
-          canvasContext: ctx as unknown as CanvasRenderingContext2D,
-          viewport,
-        }).promise;
-        const renderedImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const cropBounds = findFocusedCropBounds(renderedImageData);
-        const outputCanvas = cropBounds
-          ? createCanvas(cropBounds.width, cropBounds.height)
-          : canvas;
-        if (cropBounds) {
-          const cropCtx = outputCanvas.getContext("2d");
-          cropCtx.drawImage(
-            canvas,
-            cropBounds.x,
-            cropBounds.y,
-            cropBounds.width,
-            cropBounds.height,
-            0,
-            0,
-            cropBounds.width,
-            cropBounds.height,
-          );
-        }
-        await ensureOutDir();
-        const filename = cropBounds ? `page-${p}-focus.png` : `page-${p}.png`;
-        const buffer = await outputCanvas.encode("png");
-        await fs.writeFile(path.join(outDir, filename), buffer);
-        images.push({
-          id: `IMG-p${p}`,
-          page: p,
-          filepath: `/extracted/${presentationId}/${filename}`,
-          captionHint: cropBounds
-            ? `Focused area from page ${p}. ${pageText.slice(0, 180)}`
-            : pageText.slice(0, 200),
-        });
-      } catch {
-        // Render failure is non-fatal — skip this page's image.
-      }
+      // Screenshot failure is non-fatal — images array stays empty.
     }
   }
 
@@ -494,6 +485,65 @@ async function extractImageFile(file: File, presentationId: string): Promise<Omi
 }
 
 // =============================
+// DOCX / PPTX: XML extraction + math preprocessing
+// =============================
+
+/** Strip XML tags and decode common entities, adding paragraph breaks. */
+export function stripXmlTags(
+  xml: string,
+  paraTags: string[] = [],
+): string {
+  let result = xml;
+  for (const tag of paraTags) {
+    result = result.replace(new RegExp(`</${tag}>`, "g"), "\n\n");
+  }
+  return result
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function extractDocx(
+  buf: Buffer,
+  _presentationId: string,
+): Promise<Omit<Extracted, "sourceName" | "sourceType">> {
+  const entries = await readZipEntries(
+    buf,
+    (name) => name === "word/document.xml",
+  );
+  const docXml = entries.get("word/document.xml")?.toString("utf8") ?? "";
+  const processed = preprocessMathXml(docXml);
+  const text = stripXmlTags(processed, ["w:p", "w:tr"]);
+  return { fullText: text, chunks: chunkPlainText(text), images: [] };
+}
+
+async function extractPptx(
+  buf: Buffer,
+  _presentationId: string,
+): Promise<Omit<Extracted, "sourceName" | "sourceType">> {
+  const entries = await readZipEntries(
+    buf,
+    (name) => /^ppt\/slides\/slide\d+\.xml$/.test(name),
+  );
+  const slideNames = Array.from(entries.keys()).sort((a, b) => {
+    const n = (s: string) => parseInt(s.match(/\d+/)?.[0] ?? "0", 10);
+    return n(a) - n(b);
+  });
+  const parts = slideNames.map((name) => {
+    const xml = entries.get(name)!.toString("utf8");
+    return stripXmlTags(preprocessMathXml(xml), ["a:p"]);
+  });
+  const fullText = parts.filter(Boolean).join("\n\n---\n\n");
+  return { fullText, chunks: chunkPlainText(fullText), images: [] };
+}
+
+// =============================
 // Public entry
 // =============================
 
@@ -521,6 +571,18 @@ export async function extractText(
     const buf = Buffer.from(await file.arrayBuffer());
     const body = await extractPdf(buf, presentationId);
     return { ...body, sourceName: file.name, sourceType: "pdf" };
+  }
+
+  if (ext === "docx") {
+    const buf = Buffer.from(await file.arrayBuffer());
+    const body = await extractDocx(buf, presentationId);
+    return { ...body, sourceName: file.name, sourceType: "docx" };
+  }
+
+  if (ext === "pptx") {
+    const buf = Buffer.from(await file.arrayBuffer());
+    const body = await extractPptx(buf, presentationId);
+    return { ...body, sourceName: file.name, sourceType: "pptx" };
   }
 
   // txt / md / code fallback

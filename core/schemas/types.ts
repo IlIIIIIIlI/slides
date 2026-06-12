@@ -164,10 +164,15 @@ export type ContentBlockType =
 
 export interface ContentBlock {
   type: ContentBlockType;
+  // MAY contain inline LaTeX delimited by $...$ (inline) or $$...$$ (block).
+  // These are produced when DOCX/PPTX sources contain OMML math equations.
   content: string;
   emphasis?: boolean;
   codeLanguage?: string;
   imageRef?: string;
+  animKey?: string;
+  // Hint for renderers: true when content contains KaTeX-renderable math.
+  hasMath?: boolean;
 }
 
 export interface SlideRenderProps {
@@ -252,6 +257,7 @@ export interface PresentationSpec {
   status: PresentationStatus;
   createdAt: string;
   updatedAt: string;
+  autoAnimate?: boolean;
 }
 
 // ========================

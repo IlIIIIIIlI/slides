@@ -395,3 +395,29 @@ Your presentation has **solid fundamentals** with good typography, color system,
 4. **Improve text flow** (less choppy supporting text)
 
 These changes will transform your presentation from "good" to "bold and minimal" while maintaining readability and professional polish.
+
+---
+
+## Auto-Animate / Flip Morphing
+
+The player now supports **GSAP Flip-based element morphing** between consecutive slides, creating smooth "shared element" transitions similar to reveal.js's Auto-Animate.
+
+### How it works
+
+1. **Element identity (`animKey`)** — Each `ContentBlock` in `core/schemas/types.ts` accepts an optional `animKey?: string`. When absent, `core/rendering/morph.ts` derives a deterministic key:
+   - `headline` blocks → `"title"`
+   - `code-block` blocks → `"code:0"`, `"code:1"`, … (by occurrence order)
+   - All other block types → no morph key (element does not participate in morphing)
+   - An explicit `animKey` always takes precedence over the derived key.
+
+2. **DOM stamping** — `core/rendering/adapter.ts` computes the animKeys per slide and stores them in the `Slide.animKeys` field. The player reads these and stamps matching elements with `data-flip-id="flip-<key>"` attributes (e.g., `data-flip-id="flip-title"`). Elements without a key are not stamped and fall back to the existing slide-in/out animation.
+
+3. **Capture/play orchestration** — `hooks/use-auto-animate.ts` provides `useAutoAnimate({ containerRef, currentIndex, enabled })`. The player calls the returned `captureFlipState()` synchronously in each navigation handler (keyboard, click) **before** changing `currentSlide`. After React commits the new slide DOM, `useLayoutEffect` detects the index change and calls `Flip.from(capturedState, { duration: 0.5, ease: 'power2.inOut', absolute: true })` to animate all matched `[data-flip-id]` elements from their captured positions to the new positions.
+
+4. **`autoAnimate` deck flag** — `PresentationSpec.autoAnimate?: boolean` (default `true`). Set it to `false` in a deck's JSON to disable all morphing for that presentation. The player reads this from the API response and passes `enabled` to the hook.
+
+5. **Reduced-motion respect** — `captureFlipState()` early-returns when `window.matchMedia('(prefers-reduced-motion: reduce)').matches`, skipping the capture entirely so no Flip animation fires.
+
+### Authoring
+
+See `README.md` for a usage example.

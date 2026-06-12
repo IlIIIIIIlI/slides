@@ -1,0 +1,9 @@
+slug: 2026-06-02-idea-port-markitdown-s-nary-limupp-omml-cases-to-harden-your-equa-psb
+kind: feature
+project_id: slides
+idea: 2026-06-02-port-markitdown-s-nary-limupp-omml-cases-to-harden-your-equa-psb40
+capability: omml-conversion
+novelty: 2
+effort: 1
+source_trending:
+  - microsoft/markitdown
