@@ -81,6 +81,10 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 ## Changelog
 
+### 2026-06-12 — Upgrade Next.js to 15.5.18 (security patch release)
+
+Bumped `next` from `^15.1.6` to `^15.5.18` (resolves to `15.5.19`). This release series contains thirteen security fixes including: denial-of-service mitigations for Server Components, Cache Components, and the Image Optimization API; middleware/proxy bypass patches for App Router and Pages Router (i18n); SSRF in WebSocket upgrades; CSP nonce XSS; cache-poisoning in RSC responses; and a cross-site scripting issue in `beforeInteractive` scripts. The `Metadata` interface changed shape between 15.1 and 15.5 but the two usages in `app/layout.tsx` use only `title` and `description`, which are unaffected. `eslint-config-next` was bumped in lockstep. All 69 unit tests continue to pass; full production build succeeds without type errors.
+
 ### 2026-06-06 — Fix Vercel deployment: remove stale pnpm lockfile
 
 Removed `pnpm-lock.yaml` from the repository. The file predated the addition of `katex` and `gsap` as dependencies, so Vercel (which prefers pnpm over npm when a `pnpm-lock.yaml` is present) was failing every deployment with a frozen-install error for those missing packages. Removing the stale lockfile causes Vercel to fall back to `npm` with the up-to-date `package-lock.json`, which includes all current dependencies. Local development and CI are unaffected — the project continues to use `npm`.

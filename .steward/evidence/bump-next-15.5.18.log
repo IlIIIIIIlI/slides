@@ -1,0 +1,18 @@
+## next bump: 15.1.6 → 15.5.19 (satisfies ^15.5.18)
+
+### pnpm install
+Done in 34.6s. No errors.
+
+### Build output
+▲ Next.js 15.5.19
+✓ Compiled successfully in 75s
+✓ Linting and checking validity of types
+✓ Generating static pages (10/10)
+
+All routes build clean (app router + API routes).
+
+### Test suite
+# tests 69
+# pass  69
+# fail  0
+# duration_ms 24337
