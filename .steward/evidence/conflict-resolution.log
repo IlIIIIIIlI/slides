@@ -1,0 +1,83 @@
+=== Conflict resolution evidence ===
+Date: 2026-06-06
+
+Resolved conflict in README.md by integrating both sides:
+  - HEAD: 2026-06-06 Vercel deployment fix + 2026-06-05 OMML hardening entries
+  - origin/main: 2026-06-05 liteparse PDF ingestion entry
+  All three entries preserved in chronological order (newest first).
+
+=== Build output ===
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+=== Test results ===
+# Subtest: specToSlide animKeys
+# Subtest: flipIdFor
+# Subtest: resolveAnimKey
+# Subtest: sharedAnimKeys
+# Subtest: stripFences removes markdown code fences
+# Subtest: extractText plain text: splits into paragraph chunks
+# Subtest: extractText plain text: fullText matches original content
+# Subtest: extractText code: detects TS extension and uses code chunking
+# Subtest: extractText image: stores upload and returns single image entry
+# Subtest: inline DOCX equation yields $...$
+# Subtest: m:oMathPara yields $$...$$
+# Subtest: math-free XML is unchanged by preprocessMathXml
+# Subtest: stripXmlTags extracts plain text with paragraph breaks
+# Subtest: math LaTeX survives stripXmlTags
+# Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
+# Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
+# Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
+# Subtest: finds a focused visual region instead of returning the whole page
+# Subtest: prefers a dense screenshot-like area over sparse page marks
+# Subtest: returns null for blank pages
+# Subtest: nary: summation with sub and sup
+# Subtest: nary: default operator is integral when chr absent
+# Subtest: nary: product with undOvr emits \\limits
+# Subtest: nary: unknown glyph falls back to raw glyph without throwing
+# Subtest: limLow: lim operator gets subscript limit
+# Subtest: limLow: max operator gets subscript limit
+# Subtest: limLow: inf operator gets subscript limit
+# Subtest: limLow: non-operator base uses \\underset
+# Subtest: limUpp: non-operator base uses \\overset
+# Subtest: limUpp: operator base gets superscript limit
+# Subtest: groupChr: overbrace ⏞ emits \\overbrace{...}
+# Subtest: groupChr: underbrace ⏟ emits \\underbrace{...}
+# Subtest: groupChr: non-brace chr at bot emits \\underset
+# Subtest: dispatch: nary nested inside fraction is reached
+# Subtest: convert fraction → \\frac{a}{b}
+# Subtest: convert radical with degree → \\sqrt[3]{x}
+# Subtest: convert radical with hidden degree → \\sqrt{x}
+# Subtest: convert n-ary summation with limits
+# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
+# Subtest: convert accent → \\hat{v}
+# Subtest: convert delimiter → \\left(x+y\\right)
+# Subtest: degrade unknown element without throwing
+# Subtest: oMathPara wrapper is handled
+# Subtest: normalizes model outline total/section-count mismatch before validation
+# Subtest: repairs missing first title while preserving target slide count
+# Subtest: moves an existing title to the front instead of failing deck validation
+# Subtest: inserts fallback image slide for academic decks when source images exist
+# Subtest: synthesizes quiz section slides when the model returns the wrong type
+# Subtest: adds fallback evidence refs to academic factual slides in a bounded section
+# Subtest: selects explicit candidate chunks before scoring by section text
+# Subtest: normalizes free-form audience labels with technical fallback
+# Subtest: rejects unknown evidence refs
+# Subtest: rejects quiz sections for non-quiz audience profiles
+# Subtest: requires academic quiz sections to be final
+# Subtest: rejects academic factual slides without evidence refs
+# Subtest: maps only Anthropic-supported image extensions to media types
+# Subtest: resolves public image paths without allowing traversal outside public
+# Subtest: orders candidate images first for section-specific vision context
+# Subtest: builds text plus base64 image blocks from saved focused crops
+# tests 69
+# suites 4
+# pass 69
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 16480.916186

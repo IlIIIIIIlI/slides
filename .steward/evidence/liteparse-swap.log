@@ -1,0 +1,47 @@
+## Implementation: Swap pdf-parse for @llamaindex/liteparse
+
+### Changes Made
+
+1. **lib/generation/extract.ts** — Rewrote `extractPdf()`:
+   - Removed `pdfjs-dist` text extraction (server-side); kept `pdfjs-dist` as dep for client PDF viewer
+   - Added `@llamaindex/liteparse` for bounding-box-aware text extraction via PDFium
+   - Phase 1: non-OCR parse → get TextItem[] with x/y/width/height per item
+   - Phase 2: detect scanned pages (text coverage < 2% + < 5 items) → selective OCR re-parse
+   - Phase 3: group items into lines (y-proximity threshold: avgHeight × 0.3) then paragraphs (y-gap > medianHeight × 0.6) — preserving same ChunkBBox format for react-pdf-highlighter
+   - Phase 4: screenshot image-sparse pages (< 150 chars text) via liteparse.screenshot(), apply findFocusedCropBounds, save PNG
+
+2. **package.json** — Removed `pdf-parse` (unused) + `@types/pdf-parse`; added `@llamaindex/liteparse ^2.0.4`
+
+3. **lib/generation/extract.test.ts** — New test file covering:
+   - `stripFences()` utility
+   - Plain-text extraction and chunk splitting
+   - Code-file extraction
+   - Image-file extraction
+
+### Test Results
+
+26/26 tests pass (all pre-existing + 5 new extract tests):
+
+```
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9077.757
+```
+
+### Build
+
+`npm run build` → ✓ Compiled successfully in 29.6s, all 10 pages generated, no TS errors.
+
+### Key Design Decisions
+
+- **pdfjs-dist stays**: needed by `react-pdf-highlighter` (client-side PDF viewer + highlight overlay)
+- **pdf-parse removed**: was listed in package.json but never imported in source code
+- **Coordinate system**: liteparse TextItem uses top-left origin (y=0 at top, increases downward) — consistent with react-pdf-highlighter expectations; comment added for future adjusters
+- **Selective OCR**: try/catch wraps OCR pass so missing tesseract silently falls back to text-layer extraction
+- **Screenshot batching**: all image-heavy pages collected then screenshotted in a single `parser.screenshot(buf, pageNums)` call for efficiency
