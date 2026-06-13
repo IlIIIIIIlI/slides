@@ -81,6 +81,24 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 ## Changelog
 
+### 2026-06-13 — Anti-AI-slop linter for SlideSpecs (`core/validation/antislop`)
+
+Added a deterministic, dependency-free linter that scores generated slide decks for stylistic AI tells — patterns that signal a deck was written by a language model rather than a human. The linter runs as a pure TypeScript static analysis pass over the `PresentationSpec` / `SlideSpec` JSON tree (no DOM, no LLM calls) and returns a `SlopReport` with a 0–100 score and per-slide violation details.
+
+**Seven rules** catch the most common AI-generation tells:
+
+- **`purple-gradient`** (error) — detects purple/violet/indigo gradient colours in `renderProps.color` or `visualMode`; downgrades to `info` when the deck's theme preset intentionally uses a purple background.
+- **`em-dash-overuse`** (warn) — flags slides with more than one em-dash across headline/supporting blocks, and flags decks where the em-dash-to-text-block ratio exceeds 40%.
+- **`marketing-buzzwords`** (warn) — matches stem-based regex patterns (`\bseamless\w*\b`, `\brevolution\w*\b`, etc.) to catch inflected forms like "seamlessly" and "revolutionary"; fires when two or more distinct buzzwords appear on a single slide.
+- **`nested-cards`** (error) — detects the card-grid anti-pattern: framework/comparison slides with more than four structural blocks, or any slide whose `visualMode` contains "card".
+- **`inter-everywhere`** (warn) — checks the deck's `ThemePreset` (via `displayFont`/`bodyFont`) and warns when Inter is used as the primary typeface, a default AI typographic choice.
+- **`headline-titlecase-overkill`** (info) — flags long (>8 word) headlines in Title Case using a heuristic: more than 80% of significant words (>3 chars, non-minor-words) start with a capital letter.
+- **`bullet-parallelism-fake`** (info) — detects lists where all bullets start with the same verb or all end with an em-dash explanation, a common AI structural tell.
+
+Scores are computed per-slide (errors −25, warns −10, info −3, clamped to 0–100) and averaged to a deck score. The threshold for triggering self-critique repair is 70 (configurable via `ANTISLOP_THRESHOLD` env var, parsed as an integer).
+
+The `/api/validate` route was updated to accept a `mode` parameter (`"antislop"` | `"fidelity"` | `"all"`, defaulting to `"all"`) and to parse an optional `presentation` object from the request body rather than always validating the hardcoded scratch deck. The `Badge` component gained `success` and `warning` colour variants to support the new `SlopBadge` UI component (`components/fidelity/slop-badge.tsx`) which displays the score with a colour-coded label and a tooltip listing the top three violations.
+
 ### 2026-06-06 — Fix Vercel deployment: remove stale pnpm lockfile
 
 Removed `pnpm-lock.yaml` from the repository. The file predated the addition of `katex` and `gsap` as dependencies, so Vercel (which prefers pnpm over npm when a `pnpm-lock.yaml` is present) was failing every deployment with a frozen-install error for those missing packages. Removing the stale lockfile causes Vercel to fall back to `npm` with the up-to-date `package-lock.json`, which includes all current dependencies. Local development and CI are unaffected — the project continues to use `npm`.
