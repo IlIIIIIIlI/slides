@@ -2,6 +2,7 @@
 // This runs on the prompt-output schema before generated decks are persisted.
 
 import type { Slide } from "@/app/slides";
+import type { TimelineEntry, TimelineTween } from "@/core/schemas/types";
 import type { GenerationAudienceProfile } from "@/lib/generation/audience";
 
 const HEADLINE_MAX = 80;
@@ -110,6 +111,83 @@ function hasItems(value: unknown): value is string[] {
 
 function isHexColor(value: unknown): value is string {
   return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+}
+
+// Whitelisted tween keys — matches TimelineTween in core/schemas/types.ts.
+// Anything outside this set could inject layout-breaking or security-sensitive CSS.
+const ALLOWED_TWEEN_KEYS = new Set<string>([
+  "opacity", "x", "y", "xPercent", "yPercent",
+  "scale", "scaleX", "scaleY", "rotation",
+  "duration", "ease", "stagger", "delay",
+]);
+
+// GSAP position-parameter pattern: number, relative offset, or label.
+// Accepts: numbers, "+=N", "-=N", "<", ">", "<+=N", ">-=N", word labels.
+const GSAP_AT_PATTERN = /^([<>]([+-]=\d+(?:\.\d+)?)?|[+-]=\d+(?:\.\d+)?|\w[\w-]*)$/;
+
+function validateTimelineEntry(
+  entry: unknown,
+  slideIndex: number,
+  entryIndex: number,
+  warnings: SlideWarning[],
+): void {
+  if (!entry || typeof entry !== "object") {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}]`, "Timeline entry must be an object."));
+    return;
+  }
+  const e = entry as Record<string, unknown>;
+
+  // Validate `at`
+  if (typeof e.at === "number") {
+    if (!Number.isFinite(e.at) || e.at < 0) {
+      warnings.push(issue(slideIndex, `timeline[${entryIndex}].at`, "Timeline at must be a finite non-negative number."));
+    }
+  } else if (typeof e.at === "string") {
+    if (!GSAP_AT_PATTERN.test(e.at)) {
+      warnings.push(issue(slideIndex, `timeline[${entryIndex}].at`, `Unrecognised GSAP position string "${e.at}". Use a number, "+=N", "-=N", "<", "<+=N", or a label.`));
+    }
+  } else {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].at`, "Timeline entry missing required field 'at' (number or GSAP position string).", "critical"));
+  }
+
+  // Validate `target`
+  if (typeof e.target !== "string" || !e.target.trim()) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].target`, "Timeline entry missing required field 'target' (non-empty data-anim key).", "critical"));
+  }
+
+  // Validate `tween`
+  if (!e.tween || typeof e.tween !== "object" || Array.isArray(e.tween)) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].tween`, "Timeline entry missing required field 'tween' (object).", "critical"));
+    return;
+  }
+  const tween = e.tween as Partial<TimelineTween> & Record<string, unknown>;
+
+  for (const key of Object.keys(tween)) {
+    if (!ALLOWED_TWEEN_KEYS.has(key)) {
+      warnings.push(issue(
+        slideIndex,
+        `timeline[${entryIndex}].tween.${key}`,
+        `Disallowed tween property "${key}". Only visual transform/opacity and timing properties are permitted.`,
+        "critical",
+      ));
+    }
+  }
+
+  if (tween.opacity !== undefined && (typeof tween.opacity !== "number" || tween.opacity < 0 || tween.opacity > 1)) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].tween.opacity`, "opacity must be a number between 0 and 1."));
+  }
+  if (tween.duration !== undefined && (typeof tween.duration !== "number" || tween.duration <= 0)) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].tween.duration`, "duration must be a positive number."));
+  }
+  if (tween.delay !== undefined && (typeof tween.delay !== "number" || tween.delay < 0)) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].tween.delay`, "delay must be a non-negative number."));
+  }
+  if (tween.stagger !== undefined && (typeof tween.stagger !== "number" || tween.stagger < 0)) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].tween.stagger`, "stagger must be a non-negative number."));
+  }
+  if (tween.ease !== undefined && (typeof tween.ease !== "string" || !tween.ease.trim())) {
+    warnings.push(issue(slideIndex, `timeline[${entryIndex}].tween.ease`, "ease must be a non-empty string."));
+  }
 }
 
 function joinRefList(value: unknown): string[] {
@@ -418,6 +496,12 @@ export function validateSlides(slides: GeneratedSlide[], options: ValidateSlides
         if (!isString(s.answer)) pushMissing(warnings, i, "answer", s.type);
         if (!isString(s.explanation)) pushMissing(warnings, i, "explanation", s.type);
         break;
+    }
+
+    if (Array.isArray(s.timeline)) {
+      (s.timeline as unknown as TimelineEntry[]).forEach((entry, ei) => {
+        validateTimelineEntry(entry, i, ei, warnings);
+      });
     }
 
     const evidenceRefs = joinRefList(s.evidenceRefs);
