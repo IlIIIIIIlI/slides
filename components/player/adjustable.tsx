@@ -75,6 +75,7 @@ export function Adjustable({
 
   return (
     <div
+      data-anim={elKey}
       className={className}
       style={{
         transform: `translate(${dx}px, ${dy}px) scale(${scale})`,

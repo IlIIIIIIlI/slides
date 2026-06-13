@@ -1,4 +1,6 @@
-import type { PresentationSpec } from '@/core/schemas/types';
+import type { PresentationSpec, TimelineEntry } from '@/core/schemas/types';
+
+export type { TimelineEntry };
 
 export interface Brand {
   text: string;
@@ -115,6 +117,9 @@ export interface Slide {
   evidenceRefs?: string[];
   // animKeys for GSAP Flip morphing (e.g. ["title", "code:0"])
   animKeys?: string[];
+  // Per-slide reveal timeline — drives sequenced element animations via GSAP.
+  // Each entry targets an element by its data-anim attribute value.
+  timeline?: TimelineEntry[];
   // Manual per-element layout nudges applied in the player's adjust mode.
   // Keyed by logical element (e.g. "headline", "supporting", "image").
   overrides?: Record<string, SlideElementOverride>;

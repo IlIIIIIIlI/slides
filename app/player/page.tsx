@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useAutoAnimate } from "@/hooks/use-auto-animate";
 import { flipIdFor } from "@/core/rendering/morph";
+import { useSlideTimeline } from "@/lib/animation/slide-timeline";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -126,6 +127,10 @@ function PresentationView({ id }: { id: string }) {
     currentIndex: currentSlide,
     enabled: autoAnimateEnabled,
   });
+
+  // Drive per-slide reveal timeline via GSAP when the slide declares one.
+  // Elements are targeted by their data-anim attribute (set on each Adjustable wrapper).
+  useSlideTimeline(slideContainerRef, slides[currentSlide]?.timeline, currentSlide);
 
   // Custom shortcuts + the two interactive modes they trigger.
   const { bindings } = useKeybindings();
