@@ -1,0 +1,19 @@
+Merge conflict resolution — 2026-06-13 (updated)
+
+Conflict file: README.md
+Resolution: integrated both changelog entries, newest first.
+
+- 2026-06-13: GSAP-driven reveal timeline DSL (origin/main)
+- 2026-06-11: Ship slides as MCP skill (HEAD / this branch)
+
+No other conflict markers found in the repository.
+
+Build result (post-resolution):
+  ✓ Compiled successfully in 16.9s
+  ✓ 10/10 static pages generated
+  ✓ All routes compiled without type errors
+
+Test result (post-resolution):
+  # tests 79
+  # pass  79
+  # fail  0

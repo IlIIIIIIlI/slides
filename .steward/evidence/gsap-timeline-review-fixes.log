@@ -1,0 +1,62 @@
+Review feedback addressed — 2026-06-13
+
+Changes made to satisfy all reviewer comments:
+
+=== Gemini comment 1: SSR safety, lifecycle cleanup, stable targeting, validation ===
+
+1. SSR-safe GSAP plugin registration
+   - Created lib/animation/scroll-trigger.ts
+   - Guards gsap.registerPlugin(ScrollTrigger) behind `typeof window !== 'undefined'`
+   - Follows the same pattern already established in lib/animation/flip.ts
+
+2. React lifecycle cleanup (prevent memory leaks)
+   - Created lib/animation/slide-timeline.ts (useSlideTimeline hook)
+   - Uses useEffect with a cleanup callback that calls tl.kill()
+   - Uses a `cancelled` flag to guard the async gsap import from acting after unmount
+   - Timeline is killed on every slideIndex change AND on component unmount
+
+3. Stable element targeting via data-anim attributes
+   - Modified components/player/adjustable.tsx to render data-anim={elKey} on wrapper div
+   - Every Adjustable-wrapped element (headline, supporting, points, code, quote, etc.)
+     is now targetable via data-anim without fragile CSS class selectors
+   - useSlideTimeline uses CSS.escape() for safe querySelector
+
+4. lib/generation/validate.ts updated
+   - Added validateTimelineEntry() helper
+   - Validates at (number ≥ 0, or GSAP position string matching known patterns)
+   - Validates target (non-empty string)
+   - Validates tween (only whitelisted keys allowed; range checks on opacity/duration/delay/stagger)
+   - Called from validateSlides() for each slide's timeline array
+
+=== Gemini comment 2: strict tween whitelist + clarify at field semantics ===
+
+5. TimelineTween strictly whitelisted (core/schemas/types.ts)
+   - Only: opacity, x, y, xPercent, yPercent, scale, scaleX, scaleY, rotation,
+           duration, ease, stagger, delay
+   - Excludes: width/height, left/top/right/bottom, margin/padding, color, zIndex,
+               innerHTML/textContent, attr, and all other arbitrary properties
+
+6. TimelineEntry.at documented with both absolute and relative offset semantics:
+   - number → absolute seconds from timeline start (e.g. 0, 0.3, 1.5)
+   - string → GSAP position parameter:
+       "<"       align with start of previous tween
+       ">"       end of previous tween (default GSAP behaviour)
+       "+=0.2"   0.2s after end of previous
+       "-=0.1"   0.1s before end of previous (overlap)
+       "<+=0.3"  0.3s after start of previous
+
+=== Build / test result ===
+
+pnpm tsc --noEmit: 0 new errors (pre-existing skills.generated error unrelated)
+pnpm test: 69/69 pass
+pnpm build: ✓ all routes generated, /player bundle 324 kB
+
+Files changed:
+  core/schemas/types.ts               — TimelineTween, TimelineEntry, SlideSpec.timeline
+  app/slides.ts                       — Slide.timeline, re-export TimelineEntry
+  lib/animation/scroll-trigger.ts     — NEW: SSR-safe ScrollTrigger registration
+  lib/animation/slide-timeline.ts     — NEW: useSlideTimeline hook with cleanup
+  lib/generation/validate.ts          — timeline validation (whitelist + at/target checks)
+  app/player/page.tsx                 — imports and calls useSlideTimeline
+  components/player/adjustable.tsx    — data-anim={elKey} on wrapper div
+  README.md                           — changelog entry

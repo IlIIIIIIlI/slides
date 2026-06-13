@@ -81,6 +81,24 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 ## Changelog
 
+### 2026-06-13 — GSAP-driven reveal timeline DSL with strict schema validation
+
+Added a `timeline` field to `SlideSpec` (core schemas) and the `Slide` interface (app/slides), enabling per-slide sequenced element reveals driven by GSAP. Each timeline entry has three fields: `at` (when the animation fires), `target` (which element to animate, identified by a stable `data-anim` attribute), and `tween` (the from-state for the reveal animation).
+
+**Why:** The player was previously limited to static slide content with only Flip-based cross-slide morphing. This change introduces a reveal DSL so Claude-generated decks can describe bullet-point staggering, KaTeX block fade-ins, and other sequenced animations as first-class schema data — without requiring ad-hoc CSS or custom component props.
+
+Four implementation concerns raised in code review were addressed:
+
+1. **Strict tween property whitelist** — `TimelineTween` only allows visual transform/opacity properties (`opacity`, `x`, `y`, `xPercent`, `yPercent`, `scale`, `scaleX`, `scaleY`, `rotation`) plus timing parameters (`duration`, `ease`, `stagger`, `delay`). Layout-breaking properties (`width`, `height`, `left`, `top`, `margin`, `padding`), colour properties, and DOM-manipulation keys (`innerHTML`, `attr`) are excluded at both the TypeScript type level and the runtime validator.
+
+2. **Clarified `at` field semantics** — numeric `at` values place the tween at an absolute second offset from the timeline start; string values use GSAP's standard position-parameter syntax (`"+=0.5"` for 0.5 s after the previous tween ends, `"-=0.2"` for a 200 ms overlap, `"<"` to align with the start of the previous tween, etc.). Both forms are validated in `lib/generation/validate.ts`.
+
+3. **SSR-safe plugin registration** — A new `lib/animation/scroll-trigger.ts` module mirrors the existing `flip.ts` pattern: it registers GSAP's ScrollTrigger plugin only when `typeof window !== 'undefined'`, preventing Next.js SSR from accessing browser APIs during server-side rendering.
+
+4. **React lifecycle cleanup** — The `useSlideTimeline` hook in `lib/animation/slide-timeline.ts` imports GSAP dynamically, creates a timeline, and registers a cleanup callback that calls `tl.kill()` to release all tweens. A `cancelled` flag prevents the async import from starting a timeline if the effect was already cleaned up (e.g., rapid slide navigation or component unmount).
+
+**Stable element targeting** — `components/player/adjustable.tsx` now renders `data-anim={elKey}` on its wrapper `<div>`. Every existing adjustable element in the player (headline, supporting, points, code, quote, bigNumber, etc.) is automatically addressable as a timeline target by its logical key name.
+
 ### 2026-06-11 — Ship slides as an MCP skill: author decks from Claude Code, Cursor, or Gemini
 
 The `mcp/` directory packages the slide generation pipeline as a [Model Context Protocol](https://modelcontextprotocol.io/) server. Any MCP-capable AI editor can now author, edit, and preview presentation decks by calling typed tools against the running Next.js app — without touching the UI.
