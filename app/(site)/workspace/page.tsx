@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, Suspense } from "rea
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Play, Upload, Link as LinkIcon, Sparkles, Check, AlertCircle, ChevronDown } from "lucide-react";
+import { Play, Upload, Link as LinkIcon, Sparkles, Check, AlertCircle, ChevronDown, Download } from "lucide-react";
 import { THEME_PRESETS, SEMANTIC_COLOR_LABELS } from "@/core/theming/presets";
 import { SLIDE_VARIANTS, DEFAULT_VARIANT } from "@/lib/slide-variants";
 import { useGenerate } from "@/hooks/use-generate";
@@ -1614,6 +1614,11 @@ function WorkspaceInner() {
                 <Button size="sm" variant="outline" asChild>
                   <Link href={`/player?id=${presentation.id}`}>
                     <Play className="w-3.5 h-3.5 mr-1" /> Play
+                  </Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/player/export?id=${presentation.id}`} target="_blank">
+                    <Download className="w-3.5 h-3.5 mr-1" /> Export
                   </Link>
                 </Button>
                 <Button
