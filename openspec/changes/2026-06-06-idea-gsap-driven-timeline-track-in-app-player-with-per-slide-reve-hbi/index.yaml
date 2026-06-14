@@ -1,0 +1,9 @@
+slug: 2026-06-06-idea-gsap-driven-timeline-track-in-app-player-with-per-slide-reve-hbi
+kind: feature
+project_id: slides
+idea: 2026-06-03-gsap-driven-timeline-track-in-app-player-with-per-slide-reve-hbihw
+capability: feature
+novelty: 4
+effort: 2
+source_trending:
+  - greensock/GSAP

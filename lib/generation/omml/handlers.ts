@@ -40,17 +40,25 @@ function escapeLatexText(text: string): string {
   return text.replace(/%/g, "\\%").replace(/#/g, "\\#");
 }
 
+// Glyph→LaTeX command table, mirroring markitdown omml.py do_nary
 const NARY_OPS: Record<string, string> = {
-  "∑": "\\sum",   // ∑
-  "∫": "\\int",   // ∫
-  "∬": "\\iint",  // ∬
-  "∭": "\\iiint", // ∭
-  "∏": "\\prod",  // ∏
+  "∑": "\\sum",
+  "∫": "\\int",
+  "∬": "\\iint",
+  "∭": "\\iiint",
+  "∏": "\\prod",
+  "∮": "\\oint",
   "⋂": "\\bigcap",
   "⋃": "\\bigcup",
+  "⨆": "\\bigsqcup",
+  "⋁": "\\bigvee",
+  "⋀": "\\bigwedge",
   "⊕": "\\bigoplus",
   "⊗": "\\bigotimes",
 };
+
+// Operator bases that take subscript/superscript limits directly (not \overset/\underset)
+const LIM_OPS = new Set(["lim", "max", "min", "sup", "inf", "gcd", "det"]);
 
 const ACCENT_CMDS: Record<string, string> = {
   "̂": "\\hat",   // combining circumflex
@@ -131,14 +139,18 @@ export const HANDLERS: Record<string, (el: Element, convert: ConvertFn) => strin
     return `{${base ? convertChildrenEl(base, convert) : ""}}_{${sub ? convertChildrenEl(sub, convert) : ""}}^{${sup ? convertChildrenEl(sup, convert) : ""}}`;
   },
 
-  // N-ary operator (sum, integral, product, …)
+  // N-ary operator (sum, integral, product, …) — mirrors markitdown omml.py do_nary
   nary: (el, convert) => {
     const naryPr = child(el, "naryPr");
     const chrEl = naryPr ? child(naryPr, "chr") : null;
+    const limLocEl = naryPr ? child(naryPr, "limLoc") : null;
     const subHideEl = naryPr ? child(naryPr, "subHide") : null;
     const supHideEl = naryPr ? child(naryPr, "supHide") : null;
-    const chrChar = chrEl ? mAttr(chrEl, "val") : "∑";
-    const op = NARY_OPS[chrChar] ?? "\\sum";
+    // Per OMML spec, when m:chr is absent the default operator is ∫
+    const chrChar = chrEl ? mAttr(chrEl, "val") : "∫";
+    const op = NARY_OPS[chrChar] ?? chrChar; // fallback: emit raw glyph
+    const limLoc = limLocEl ? mAttr(limLocEl, "val") : "subSup";
+    const limits = limLoc === "undOvr" ? "\\limits" : "";
     const subHide = subHideEl ? mAttr(subHideEl, "val") === "1" : false;
     const supHide = supHideEl ? mAttr(supHideEl, "val") === "1" : false;
     const subEl = child(el, "sub");
@@ -147,7 +159,7 @@ export const HANDLERS: Record<string, (el: Element, convert: ConvertFn) => strin
     const sub = !subHide && subEl ? convertChildrenEl(subEl, convert) : "";
     const sup = !supHide && supEl ? convertChildrenEl(supEl, convert) : "";
     const e = eEl ? convertChildrenEl(eEl, convert) : "";
-    return `${op}${sub ? `_{${sub}}` : ""}${sup ? `^{${sup}}` : ""}${e ? ` ${e}` : ""}`;
+    return `${op}${limits}${sub ? `_{${sub}}` : ""}${sup ? `^{${sup}}` : ""}${e ? ` ${e}` : ""}`;
   },
 
   // Matrix
@@ -193,6 +205,20 @@ export const HANDLERS: Record<string, (el: Element, convert: ConvertFn) => strin
     return pos === "bot" ? `\\underline{${e}}` : `\\overline{${e}}`;
   },
 
+  // Grouping character (overbrace/underbrace/arbitrary) — mirrors markitdown omml.py do_groupChr
+  groupChr: (el, convert) => {
+    const groupChrPr = child(el, "groupChrPr");
+    const chrEl = groupChrPr ? child(groupChrPr, "chr") : null;
+    const posEl = groupChrPr ? child(groupChrPr, "pos") : null;
+    const chrChar = chrEl ? mAttr(chrEl, "val") : "⏟";
+    const pos = posEl ? mAttr(posEl, "val") : "bot";
+    const eEl = child(el, "e");
+    const e = eEl ? convertChildrenEl(eEl, convert) : "";
+    if (chrChar === "⏞") return `\\overbrace{${e}}`; // ⏞
+    if (chrChar === "⏟") return `\\underbrace{${e}}`; // ⏟
+    return pos === "top" ? `\\overset{${chrChar}}{${e}}` : `\\underset{${chrChar}}{${e}}`;
+  },
+
   // Named function (sin, cos, log, …)
   func: (el, convert) => {
     const fNameEl = child(el, "fName");
@@ -202,21 +228,31 @@ export const HANDLERS: Record<string, (el: Element, convert: ConvertFn) => strin
     return `${cmd}{${eEl ? convertChildrenEl(eEl, convert) : ""}}`;
   },
 
-  // Lower limit (lim_{...})
+  // Lower limit — mirrors markitdown omml.py do_limLow
   limLow: (el, convert) => {
     const eEl = child(el, "e");
     const limEl = child(el, "lim");
     const base = eEl ? convertChildrenEl(eEl, convert) : "";
     const lim = limEl ? convertChildrenEl(limEl, convert) : "";
-    return base.trim() === "lim" ? `\\lim_{${lim}}` : `\\underset{${lim}}{${base}}`;
+    const baseTrimmed = base.trim();
+    if (LIM_OPS.has(baseTrimmed)) {
+      const cmd = FUNC_NAMES[baseTrimmed] ?? `\\operatorname{${baseTrimmed}}`;
+      return `${cmd}_{${lim}}`;
+    }
+    return `\\underset{${lim}}{${base}}`;
   },
 
-  // Upper limit (overset)
+  // Upper limit — mirrors markitdown omml.py do_limUpp
   limUpp: (el, convert) => {
     const eEl = child(el, "e");
     const limEl = child(el, "lim");
     const base = eEl ? convertChildrenEl(eEl, convert) : "";
     const lim = limEl ? convertChildrenEl(limEl, convert) : "";
+    const baseTrimmed = base.trim();
+    if (LIM_OPS.has(baseTrimmed)) {
+      const cmd = FUNC_NAMES[baseTrimmed] ?? `\\operatorname{${baseTrimmed}}`;
+      return `${cmd}^{${lim}}`;
+    }
     return `\\overset{${lim}}{${base}}`;
   },
 

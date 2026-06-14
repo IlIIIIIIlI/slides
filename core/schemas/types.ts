@@ -214,6 +214,7 @@ export interface SlideSpec {
   visualMode?: string;
   speakerNotes?: string;
   renderProps?: SlideRenderProps;
+  timeline?: TimelineEntry[];
 }
 
 // ========================
@@ -258,6 +259,48 @@ export interface PresentationSpec {
   createdAt: string;
   updatedAt: string;
   autoAnimate?: boolean;
+}
+
+// ========================
+// Timeline / Reveal DSL
+// ========================
+
+// Strictly whitelisted GSAP tween properties.
+// Only transform/opacity/timing properties are allowed to prevent layout-breaking
+// or security-sensitive property injections from the LLM generation side.
+export interface TimelineTween {
+  // Visual
+  opacity?: number;    // 0–1
+  x?: number;          // px (transform, not layout)
+  y?: number;          // px (transform, not layout)
+  xPercent?: number;
+  yPercent?: number;
+  scale?: number;
+  scaleX?: number;
+  scaleY?: number;
+  rotation?: number;   // degrees
+  // Timing
+  duration?: number;   // seconds (must be > 0)
+  ease?: string;       // GSAP ease string e.g. "power2.out", "back.out(1.7)"
+  stagger?: number;    // seconds between child elements (for multi-target tweens)
+  delay?: number;      // additional seconds before this tween starts (must be >= 0)
+}
+
+// A single step in a slide's reveal timeline.
+// `at` places the tween in the GSAP timeline:
+//   - number  → absolute seconds from the start of the timeline (e.g. 0, 0.3, 1.5)
+//   - string  → GSAP position parameter for relative offsets:
+//       "<"       align with the start of the previous tween
+//       ">"       align with the end of the previous tween (default)
+//       "+=0.2"   0.2 s after the end of the previous tween
+//       "-=0.1"   0.1 s before the end of the previous tween (overlap)
+//       "<+=0.3"  0.3 s after the start of the previous tween
+// `target` is a data-anim attribute value identifying the element to animate.
+// `tween`  describes the FROM state; the element animates TO its natural CSS state.
+export interface TimelineEntry {
+  at: number | string;
+  target: string;
+  tween: TimelineTween;
 }
 
 // ========================

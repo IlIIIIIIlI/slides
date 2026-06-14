@@ -1,0 +1,33 @@
+## Merge conflict resolution — 2026-06-05
+
+### Conflict resolved in README.md
+
+The README.md file had an unresolved merge conflict between:
+- HEAD (this branch): Added "Supported OMML constructs" table + Changelog entry for OMML hardening
+- origin/main: Added Changelog entry for Auto-Animate morphing feature
+
+**Resolution:** Integrated BOTH sides:
+- Kept the "Supported OMML constructs" reference table from this branch
+- Included both Changelog entries (OMML hardening first, then Auto-Animate morphing)
+
+No source files were in conflict — only README.md.
+
+### Build result
+
+```
+✓ Compiled successfully in 18.2s
+✓ Generating static pages (10/10)
+```
+
+### Test result
+
+```
+# tests 64
+# suites 4
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+```
+
+All 64 tests pass. Build succeeds cleanly.
