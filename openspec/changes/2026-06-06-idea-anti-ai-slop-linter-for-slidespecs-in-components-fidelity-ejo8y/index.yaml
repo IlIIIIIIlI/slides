@@ -1,0 +1,9 @@
+slug: 2026-06-06-idea-anti-ai-slop-linter-for-slidespecs-in-components-fidelity-ejo8y
+kind: feature
+project_id: slides
+idea: 2026-06-05-anti-ai-slop-linter-for-slidespecs-in-components-fidelity-ejo8y
+capability: antislop-linting
+novelty: 5
+effort: 2
+source_trending:
+  - pbakaus/impeccable
