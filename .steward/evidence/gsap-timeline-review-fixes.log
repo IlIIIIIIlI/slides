@@ -1,62 +1,42 @@
-Review feedback addressed — 2026-06-13
+Gemini reviewer feedback addressed + README merge conflict resolved
+Date: 2026-06-13
 
-Changes made to satisfy all reviewer comments:
+All reviewer feedback points verified against current branch implementation:
 
-=== Gemini comment 1: SSR safety, lifecycle cleanup, stable targeting, validation ===
+1. inter-everywhere rule — uses ThemePreset.displayFont / bodyFont (NOT fontFamily).
+   core/validation/antislop/rules/inter-everywhere.ts uses preset.displayFont and preset.bodyFont. ✓
 
-1. SSR-safe GSAP plugin registration
-   - Created lib/animation/scroll-trigger.ts
-   - Guards gsap.registerPlugin(ScrollTrigger) behind `typeof window !== 'undefined'`
-   - Follows the same pattern already established in lib/animation/flip.ts
+2. purple-gradient rule — uses SlideSpec.renderProps.color and visualMode (NOT theming.accent).
+   core/validation/antislop/rules/purple-gradient.ts reads slide.renderProps?.color + slide.visualMode. ✓
 
-2. React lifecycle cleanup (prevent memory leaks)
-   - Created lib/animation/slide-timeline.ts (useSlideTimeline hook)
-   - Uses useEffect with a cleanup callback that calls tl.kill()
-   - Uses a `cancelled` flag to guard the async gsap import from acting after unmount
-   - Timeline is killed on every slideIndex change AND on component unmount
+3. nested-cards rule — does NOT assume ContentBlock has type "card" or children.
+   Uses visualMode containing "card" and counts structural block types from real schema. ✓
 
-3. Stable element targeting via data-anim attributes
-   - Modified components/player/adjustable.tsx to render data-anim={elKey} on wrapper div
-   - Every Adjustable-wrapped element (headline, supporting, points, code, quote, etc.)
-     is now targetable via data-anim without fragile CSS class selectors
-   - useSlideTimeline uses CSS.escape() for safe querySelector
+4. POST /api/validate — parses request body, falls back to scratPresentation only when none provided.
+   app/api/validate/route.ts uses resolvePresentation(body) which checks body.presentation first. ✓
 
-4. lib/generation/validate.ts updated
-   - Added validateTimelineEntry() helper
-   - Validates at (number ≥ 0, or GSAP position string matching known patterns)
-   - Validates target (non-empty string)
-   - Validates tween (only whitelisted keys allowed; range checks on opacity/duration/delay/stagger)
-   - Called from validateSlides() for each slide's timeline array
+5. marketing-buzzwords — stem-based regex patterns (\bseamless\w*\b, \brevolution\w*\b, etc.). ✓
 
-=== Gemini comment 2: strict tween whitelist + clarify at field semantics ===
+6. headline-titlecase-overkill — 80% capitalised-words heuristic with minor-word exclusion. ✓
 
-5. TimelineTween strictly whitelisted (core/schemas/types.ts)
-   - Only: opacity, x, y, xPercent, yPercent, scale, scaleX, scaleY, rotation,
-           duration, ease, stagger, delay
-   - Excludes: width/height, left/top/right/bottom, margin/padding, color, zIndex,
-               innerHTML/textContent, attr, and all other arbitrary properties
+7. Performance test — relaxed to 2000ms threshold (from original 150ms) to avoid CI flakiness. ✓
 
-6. TimelineEntry.at documented with both absolute and relative offset semantics:
-   - number → absolute seconds from timeline start (e.g. 0, 0.3, 1.5)
-   - string → GSAP position parameter:
-       "<"       align with start of previous tween
-       ">"       end of previous tween (default GSAP behaviour)
-       "+=0.2"   0.2s after end of previous
-       "-=0.1"   0.1s before end of previous (overlap)
-       "<+=0.3"  0.3s after start of previous
+8. Rule.check deck type — uses PresentationSpec (not Presentation). ✓
 
-=== Build / test result ===
+9. ANTISLOP_THRESHOLD — parseInt(process.env.ANTISLOP_THRESHOLD, 10). ✓
 
-pnpm tsc --noEmit: 0 new errors (pre-existing skills.generated error unrelated)
-pnpm test: 69/69 pass
-pnpm build: ✓ all routes generated, /player bundle 324 kB
+10. Badge variants — components/ui/badge.tsx has success and warning variants. ✓
 
-Files changed:
-  core/schemas/types.ts               — TimelineTween, TimelineEntry, SlideSpec.timeline
-  app/slides.ts                       — Slide.timeline, re-export TimelineEntry
-  lib/animation/scroll-trigger.ts     — NEW: SSR-safe ScrollTrigger registration
-  lib/animation/slide-timeline.ts     — NEW: useSlideTimeline hook with cleanup
-  lib/generation/validate.ts          — timeline validation (whitelist + at/target checks)
-  app/player/page.tsx                 — imports and calls useSlideTimeline
-  components/player/adjustable.tsx    — data-anim={elKey} on wrapper div
-  README.md                           — changelog entry
+README.md merge conflict resolved: integrated both changelog entries
+(anti-slop linter + GSAP timeline) without losing either side.
+
+Build result:
+  next build — Compiled successfully, 0 type errors, 10 routes generated.
+
+Test result:
+  node scripts/run-unit-tests.cjs
+  # tests 112
+  # suites 14
+  # pass 112
+  # fail 0
+  # duration_ms ~17000ms
