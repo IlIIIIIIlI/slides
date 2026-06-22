@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import type { ContentBlockParam } from "@anthropic-ai/sdk/resources/messages";
+import type { ContentBlockParam, ImageBlockParam } from "@anthropic-ai/sdk/resources/messages";
 
 import type { ExtractedImage } from "@/lib/generation/extract";
 
@@ -12,6 +12,18 @@ export const VISION_IMAGE_MAX_BYTES = 4_000_000;
 export const VISION_IMAGE_MAX_EDGE = 1568;
 
 type SupportedImageMediaType = "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+
+/** Wrap a raw PNG Buffer into an Anthropic base64 image block. */
+export function toBase64ImageBlock(png: Buffer): ImageBlockParam {
+  return {
+    type: "image",
+    source: {
+      type: "base64",
+      media_type: "image/png",
+      data: png.toString("base64"),
+    },
+  };
+}
 
 /**
  * Ensure an image fits Anthropic's pixel limits. Returns the original bytes when

@@ -5,14 +5,29 @@
 //   - images  : { id, page?, filepath, captionHint? } — rendered/saved image files under
 //               public/extracted/<presentationId>/...
 
+import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
 import { JSDOM } from "jsdom";
 import { findFocusedCropBounds } from "@/lib/generation/image-crop";
 import { preprocessMathXml } from "@/lib/generation/omml/omml";
 import { readZipEntries } from "@/lib/generation/omml/zip";
+import { readPageCache, writePageCache } from "@/lib/generation/extract-cache";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
+
+/** Feature flag for PPTX screenshot ingestion. Read once at module load. */
+export type VisionIngestFlag = "on" | "text-only" | "auto";
+export const SLIDES_VISION_INGEST: VisionIngestFlag =
+  ((process.env.SLIDES_VISION_INGEST ?? "auto") as VisionIngestFlag);
+
+/** Per-page artifact produced by PPTX/PDF liteparse extraction. */
+export interface PageArtifact {
+  index: number;
+  markdown: string;
+  bbox: unknown;
+  screenshotPng?: Buffer;
+}
 
 export interface ChunkRect {
   x1: number;

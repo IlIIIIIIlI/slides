@@ -153,6 +153,23 @@ Slide object fields (only emit fields relevant to the chosen type/variant):
 Output starts with [ and ends with ].
 `.trim();
 
+/** Instruction text appended at the end of the multimodal extraction content block. */
+export function buildExtractionPrompt(opts: { withVision: boolean }): string {
+  const base = [
+    "You are reading a structured representation of a presentation deck.",
+    "Each page is preceded by its slide number, markdown text, and bounding-box JSON.",
+    "Extract the slide content faithfully — titles, body text, bullet points, and data.",
+  ].join(" ");
+
+  if (!opts.withVision) return base;
+
+  return [
+    base,
+    "You will also receive a page screenshot for each slide.",
+    "Use these images to derive accent/brand colors, chart descriptions, and figure-text alignment when the markdown is ambiguous.",
+  ].join(" ");
+}
+
 export const SECTION_DRAFT_SYSTEM_PROMPT = [
   "You are the CONTENT + DESIGN + NOTES stage of a presentation generator.",
   "",
