@@ -1,0 +1,9 @@
+slug: 2026-06-22-idea-vision-augmented-pptx-ingestion-feed-liteparse-page-screensh-13x
+kind: feature
+project_id: slides
+idea: 2026-06-21-vision-augmented-pptx-ingestion-feed-liteparse-page-screensh-13x7v
+capability: pptx-vision-ingestion
+novelty: 3
+effort: 3
+source_trending:
+  - run-llama/liteparse
