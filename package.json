@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",
-    "@llamaindex/liteparse": "^2.0.4",
+    "@llamaindex/liteparse": "^2.1.2",
     "@napi-rs/canvas": "^0.1.100",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-progress": "^1.1.8",
