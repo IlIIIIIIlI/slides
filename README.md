@@ -81,6 +81,16 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 ## Changelog
 
+### 2026-06-23 — Vision-augmented PPTX ingestion (`lib/generation/extract-vision`)
+
+PPTX and PDF decks are now ingested with page screenshots fed alongside the markdown text to Claude during extraction. Previously, the extraction pipeline passed only text (markdown + bounding-box JSON) to Claude, which meant charts, brand colours, figure-text alignment, and decorative layout that don't survive markdown flattening were silently dropped — the root cause of the recurring "imported decks look generic after regeneration" problem.
+
+The new flow: `@llamaindex/liteparse` v2.1.x renders a PNG screenshot for each PPTX/PDF page. `lib/generation/extract-vision.ts` turns those screenshots into Anthropic `image` content blocks and interleaves them with the per-page markdown text in the same extraction request. A `SLIDES_VISION_INGEST` env flag (`on` / `text-only` / `auto`, default `auto`) controls the behaviour — `auto` enables vision for PPTX and stays text-only for DOCX, which has no screenshot API. Screenshots are cached under `public/extracted/<deckId>/page-<n>.png` so re-runs and downstream slide regeneration can reuse the same artifacts without re-rendering.
+
+Image inclusion is bounded by two caps: a per-deck page limit (default 60) and a total-bytes budget (default 25 MB), both adjustable at the call site. Pages are dropped largest-first when either cap is exceeded, with text blocks always preserved.
+
+**Why:** Charts, diagrams, and branded colour palettes are invisible to a text-only extractor. Feeding the page screenshot to Claude alongside the text gives the model the visual context needed to describe figures accurately and preserve brand identity across regeneration — without adding any new external services.
+
 ### 2026-06-13 — Anti-AI-slop linter for SlideSpecs (`core/validation/antislop`)
 
 Added a deterministic, dependency-free linter that scores generated slide decks for stylistic AI tells — patterns that signal a deck was written by a language model rather than a human. The linter runs as a pure TypeScript static analysis pass over the `PresentationSpec` / `SlideSpec` JSON tree (no DOM, no LLM calls) and returns a `SlopReport` with a 0–100 score and per-slide violation details.

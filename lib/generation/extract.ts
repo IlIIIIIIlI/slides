@@ -18,8 +18,11 @@ const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
 /** Feature flag for PPTX screenshot ingestion. Read once at module load. */
 export type VisionIngestFlag = "on" | "text-only" | "auto";
+const _rawVisionIngest = process.env.SLIDES_VISION_INGEST ?? "auto";
 export const SLIDES_VISION_INGEST: VisionIngestFlag =
-  ((process.env.SLIDES_VISION_INGEST ?? "auto") as VisionIngestFlag);
+  _rawVisionIngest === "on" || _rawVisionIngest === "text-only" || _rawVisionIngest === "auto"
+    ? _rawVisionIngest
+    : "auto";
 
 /** Per-page artifact produced by PPTX/PDF liteparse extraction. */
 export interface PageArtifact {

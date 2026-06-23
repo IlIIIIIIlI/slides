@@ -1,0 +1,6 @@
+/root/steward/projects/slides/lib/generation/extract.ts:557:17: entries.get(name)!
+--- overall ---
+(32007 / 32379) 98.85%
+type-coverage success.
+
+--- tests ---
