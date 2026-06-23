@@ -39,6 +39,22 @@ Set `"autoAnimate": false` at the presentation level to disable all morphing for
 
 Morphing is automatically disabled when the user's OS preference is `prefers-reduced-motion: reduce`.
 
+### Imported decks (PPTX / PDF)
+
+When a PDF is imported, `lib/generation/extract.ts` uses `@llamaindex/liteparse` to obtain per-block bounding boxes for every page element. The new `lib/generation/anim-key-synthesis.ts` module converts those spatial coordinates into stable `animKey` values automatically, so recurring titles, figures, and code blocks morph correctly between consecutive pages — without any manual annotation.
+
+**How synthesis works:**
+
+1. Each text block is assigned a *role* (`title`, `body`, `code`, `figure`, or `other`) based on its font size, font family, and position on the page.
+2. Blocks are *fingerprinted* by combining a quantized bounding-box position on a 12-column × 9-row grid with an FNV-1a hash of their normalized text content.
+3. For each pair of adjacent slides, blocks on the next slide are matched against the previous slide using role + content hash equality and a spatial IoU threshold of ≥ 0.5 on the quantized grid.
+4. Matched blocks share a key of the form **`lp:<role>:<n>`** (e.g. `lp:title:1`, `lp:figure:3`). The `lp:` prefix distinguishes synthesized keys from LLM-authored keys (`title`, `code:0`, …).
+
+**Rules:**
+- Blocks with a pre-existing `animKey` (set by the LLM authoring path or a hand-edited spec) are **never overwritten**. Explicit keys always win.
+- Blocks with `_role: "other"` (footers, page numbers, decorative elements) are excluded from the matching pool to prevent spurious morphing.
+- Synthesis is **disabled implicitly** for PPTX and DOCX imports (no spatial bbox available) and when `autoAnimate: false` is set at the deck level (the morph pipeline already short-circuits).
+
 ## Math support
 
 When uploading Word (.docx) or PowerPoint (.pptx) files that contain equations,
@@ -80,6 +96,14 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 
 ## Changelog
+
+### 2026-06-23 — animKey synthesis from liteparse spatial bboxes for imported decks
+
+Added automatic `animKey` synthesis for PDF imports so that recurring elements (titles, figures, quoted-code blocks) morph correctly between consecutive slides without manual annotation.
+
+Previously, only LLM-authored decks benefited from GSAP Flip morphing because `animKey` values were derived by convention (`"title"`, `"code:0"`, …) from the authoring pipeline. Imported PPTX/PDF decks had no bboxes attached to their blocks, so the morph pipeline had nothing to pair across slides.
+
+The new `lib/generation/anim-key-synthesis.ts` module operates on `ExtractedSlide[]` — an internal type that extends the public `SlideSpec` with per-block bbox and role fields. For each adjacent slide pair it builds a fingerprint per block (role + FNV-1a hash of normalized text + quantized 12×9 grid position), matches blocks with IoU ≥ 0.5, and emits keys of the form `lp:<role>:<n>` (`lp:title:1`, `lp:figure:3`, etc.). The `lp:` prefix avoids collisions with LLM-authored keys, and any block with a pre-existing `animKey` is left untouched. Internal `_bbox`, `_role`, `_pageW`, and `_pageH` fields are stripped before the `SlideSpec[]` is returned, so the public schema is unchanged. PPTX and DOCX paths, which do not use liteparse, skip synthesis entirely.
 
 ### 2026-06-13 — Anti-AI-slop linter for SlideSpecs (`core/validation/antislop`)
 

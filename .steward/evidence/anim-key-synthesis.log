@@ -1,0 +1,861 @@
+
+> ai-nextjs-slides@0.1.0 pretest
+> node scripts/inline-skills.mjs
+
+[inline-skills] wrote lib/generation/skills.generated.ts (27697 chars)
+
+> ai-nextjs-slides@0.1.0 test
+> node scripts/run-unit-tests.cjs
+
+TAP version 13
+# Subtest: specToSlide animKeys
+    # Subtest: stamps animKeys for headline block
+    ok 1 - stamps animKeys for headline block
+      ---
+      duration_ms: 2.29654
+      type: 'test'
+      ...
+    # Subtest: stamps animKeys for code-block
+    ok 2 - stamps animKeys for code-block
+      ---
+      duration_ms: 0.273492
+      type: 'test'
+      ...
+    # Subtest: omits animKeys when no keyed blocks
+    ok 3 - omits animKeys when no keyed blocks
+      ---
+      duration_ms: 0.314645
+      type: 'test'
+      ...
+    # Subtest: explicit animKey on block is used
+    ok 4 - explicit animKey on block is used
+      ---
+      duration_ms: 0.250652
+      type: 'test'
+      ...
+    1..4
+ok 1 - specToSlide animKeys
+  ---
+  duration_ms: 4.698285
+  type: 'suite'
+  ...
+# Subtest: flipIdFor
+    # Subtest: prefixes with flip-
+    ok 1 - prefixes with flip-
+      ---
+      duration_ms: 0.836032
+      type: 'test'
+      ...
+    1..1
+ok 2 - flipIdFor
+  ---
+  duration_ms: 2.008515
+  type: 'suite'
+  ...
+# Subtest: resolveAnimKey
+    # Subtest: explicit animKey wins
+    ok 1 - explicit animKey wins
+      ---
+      duration_ms: 0.406954
+      type: 'test'
+      ...
+    # Subtest: headline block → title
+    ok 2 - headline block → title
+      ---
+      duration_ms: 0.176739
+      type: 'test'
+      ...
+    # Subtest: code-block uses occurrence index
+    ok 3 - code-block uses occurrence index
+      ---
+      duration_ms: 0.167462
+      type: 'test'
+      ...
+    # Subtest: other block types return undefined
+    ok 4 - other block types return undefined
+      ---
+      duration_ms: 0.221341
+      type: 'test'
+      ...
+    1..4
+ok 3 - resolveAnimKey
+  ---
+  duration_ms: 1.497403
+  type: 'suite'
+  ...
+# Subtest: sharedAnimKeys
+    # Subtest: returns intersection of resolved keys
+    ok 1 - returns intersection of resolved keys
+      ---
+      duration_ms: 1.306074
+      type: 'test'
+      ...
+    # Subtest: empty intersection when no shared keys
+    ok 2 - empty intersection when no shared keys
+      ---
+      duration_ms: 0.40226
+      type: 'test'
+      ...
+    # Subtest: code blocks keyed by occurrence index
+    ok 3 - code blocks keyed by occurrence index
+      ---
+      duration_ms: 0.312207
+      type: 'test'
+      ...
+    # Subtest: explicit animKey match
+    ok 4 - explicit animKey match
+      ---
+      duration_ms: 0.297918
+      type: 'test'
+      ...
+    # Subtest: derived title key is shared
+    ok 5 - derived title key is shared
+      ---
+      duration_ms: 0.351017
+      type: 'test'
+      ...
+    1..5
+ok 4 - sharedAnimKeys
+  ---
+  duration_ms: 3.142896
+  type: 'suite'
+  ...
+# Subtest: lintPresentation end-to-end
+    # Subtest: clean deck has score 100 and no violations
+    ok 1 - clean deck has score 100 and no violations
+      ---
+      duration_ms: 4.463845
+      type: 'test'
+      ...
+    # Subtest: sloppy deck has score < 100
+    ok 2 - sloppy deck has score < 100
+      ---
+      duration_ms: 1.722508
+      type: 'test'
+      ...
+    # Subtest: report contains generatedAt timestamp
+    ok 3 - report contains generatedAt timestamp
+      ---
+      duration_ms: 0.302269
+      type: 'test'
+      ...
+    # Subtest: slideScores length matches deck slide count
+    ok 4 - slideScores length matches deck slide count
+      ---
+      duration_ms: 0.493287
+      type: 'test'
+      ...
+    # Subtest: violations reference valid slideIds
+    ok 5 - violations reference valid slideIds
+      ---
+      duration_ms: 0.609382
+      type: 'test'
+      ...
+    1..5
+ok 5 - lintPresentation end-to-end
+  ---
+  duration_ms: 10.32311
+  type: 'suite'
+  ...
+# Subtest: bullet-parallelism-fake rule
+    # Subtest: no violation for varied natural bullets
+    ok 1 - no violation for varied natural bullets
+      ---
+      duration_ms: 1.39277
+      type: 'test'
+      ...
+    # Subtest: flags bullets all starting with the same verb
+    ok 2 - flags bullets all starting with the same verb
+      ---
+      duration_ms: 0.278181
+      type: 'test'
+      ...
+    # Subtest: flags bullets all ending with em-dash explanation
+    ok 3 - flags bullets all ending with em-dash explanation
+      ---
+      duration_ms: 0.379695
+      type: 'test'
+      ...
+    # Subtest: no violation for fewer than 3 bullets
+    ok 4 - no violation for fewer than 3 bullets
+      ---
+      duration_ms: 0.247747
+      type: 'test'
+      ...
+    1..4
+ok 6 - bullet-parallelism-fake rule
+  ---
+  duration_ms: 3.885925
+  type: 'suite'
+  ...
+# Subtest: em-dash-overuse rule
+    # Subtest: no violations for a clean headline
+    ok 1 - no violations for a clean headline
+      ---
+      duration_ms: 1.369985
+      type: 'test'
+      ...
+    # Subtest: no violation for single em-dash in headline
+    ok 2 - no violation for single em-dash in headline
+      ---
+      duration_ms: 0.306178
+      type: 'test'
+      ...
+    # Subtest: flags slide with more than one em-dash across text blocks
+    ok 3 - flags slide with more than one em-dash across text blocks
+      ---
+      duration_ms: 0.221351
+      type: 'test'
+      ...
+    # Subtest: flags deck-level ratio above threshold (reported on first slide)
+    ok 4 - flags deck-level ratio above threshold (reported on first slide)
+      ---
+      duration_ms: 0.435966
+      type: 'test'
+      ...
+    1..4
+ok 7 - em-dash-overuse rule
+  ---
+  duration_ms: 3.895871
+  type: 'suite'
+  ...
+# Subtest: headline-titlecase-overkill rule
+    # Subtest: no violation for a short sentence-case headline
+    ok 1 - no violation for a short sentence-case headline
+      ---
+      duration_ms: 1.175075
+      type: 'test'
+      ...
+    # Subtest: no violation for a short title-case headline (≤8 words)
+    ok 2 - no violation for a short title-case headline (≤8 words)
+      ---
+      duration_ms: 0.252545
+      type: 'test'
+      ...
+    # Subtest: flags a long title-case headline (>8 words)
+    ok 3 - flags a long title-case headline (>8 words)
+      ---
+      duration_ms: 0.479181
+      type: 'test'
+      ...
+    # Subtest: no violation for a long sentence-case headline
+    ok 4 - no violation for a long sentence-case headline
+      ---
+      duration_ms: 0.255257
+      type: 'test'
+      ...
+    1..4
+ok 8 - headline-titlecase-overkill rule
+  ---
+  duration_ms: 3.678339
+  type: 'suite'
+  ...
+# Subtest: inter-everywhere rule
+    # Subtest: no violation for Geist-based preset
+    ok 1 - no violation for Geist-based preset
+      ---
+      duration_ms: 1.220878
+      type: 'test'
+      ...
+    # Subtest: no violation for unknown preset id
+    ok 2 - no violation for unknown preset id
+      ---
+      duration_ms: 0.223562
+      type: 'test'
+      ...
+    # Subtest: only fires on the first slide of the deck
+    ok 3 - only fires on the first slide of the deck
+      ---
+      duration_ms: 0.260568
+      type: 'test'
+      ...
+    1..3
+ok 9 - inter-everywhere rule
+  ---
+  duration_ms: 3.060834
+  type: 'suite'
+  ...
+# Subtest: marketing-buzzwords rule
+    # Subtest: no violation for clean copy
+    ok 1 - no violation for clean copy
+      ---
+      duration_ms: 2.301818
+      type: 'test'
+      ...
+    # Subtest: no violation for a single buzzword
+    ok 2 - no violation for a single buzzword
+      ---
+      duration_ms: 0.618932
+      type: 'test'
+      ...
+    # Subtest: flags two distinct buzzwords
+    ok 3 - flags two distinct buzzwords
+      ---
+      duration_ms: 0.328081
+      type: 'test'
+      ...
+    # Subtest: matches inflected forms (seamlessly, revolutionary)
+    ok 4 - matches inflected forms (seamlessly, revolutionary)
+      ---
+      duration_ms: 0.203653
+      type: 'test'
+      ...
+    # Subtest: matches synergistic and holistic
+    ok 5 - matches synergistic and holistic
+      ---
+      duration_ms: 0.326717
+      type: 'test'
+      ...
+    # Subtest: is case-insensitive
+    ok 6 - is case-insensitive
+      ---
+      duration_ms: 0.284436
+      type: 'test'
+      ...
+    1..6
+ok 10 - marketing-buzzwords rule
+  ---
+  duration_ms: 5.55814
+  type: 'suite'
+  ...
+# Subtest: nested-cards rule
+    # Subtest: no violation for a clean statement slide
+    ok 1 - no violation for a clean statement slide
+      ---
+      duration_ms: 1.236746
+      type: 'test'
+      ...
+    # Subtest: flags framework slide with too many structural blocks
+    ok 2 - flags framework slide with too many structural blocks
+      ---
+      duration_ms: 0.260547
+      type: 'test'
+      ...
+    # Subtest: no violation for framework slide within block threshold
+    ok 3 - no violation for framework slide within block threshold
+      ---
+      duration_ms: 0.268468
+      type: 'test'
+      ...
+    # Subtest: flags slide with card visualMode
+    ok 4 - flags slide with card visualMode
+      ---
+      duration_ms: 0.329496
+      type: 'test'
+      ...
+    # Subtest: flags comparison slide with too many structural blocks
+    ok 5 - flags comparison slide with too many structural blocks
+      ---
+      duration_ms: 0.19313
+      type: 'test'
+      ...
+    1..5
+ok 11 - nested-cards rule
+  ---
+  duration_ms: 3.834797
+  type: 'suite'
+  ...
+# Subtest: purple-gradient rule
+    # Subtest: returns no violations for a clean slide
+    ok 1 - returns no violations for a clean slide
+      ---
+      duration_ms: 1.258739
+      type: 'test'
+      ...
+    # Subtest: flags purple in renderProps.color as error
+    ok 2 - flags purple in renderProps.color as error
+      ---
+      duration_ms: 0.631808
+      type: 'test'
+      ...
+    # Subtest: flags violet gradient in visualMode
+    ok 3 - flags violet gradient in visualMode
+      ---
+      duration_ms: 0.306817
+      type: 'test'
+      ...
+    # Subtest: flags \#7c3aed hex color
+    ok 4 - flags \#7c3aed hex color
+      ---
+      duration_ms: 0.209194
+      type: 'test'
+      ...
+    # Subtest: returns no violations for non-purple colors
+    ok 5 - returns no violations for non-purple colors
+      ---
+      duration_ms: 0.173276
+      type: 'test'
+      ...
+    1..5
+ok 12 - purple-gradient rule
+  ---
+  duration_ms: 4.051203
+  type: 'suite'
+  ...
+# Subtest: scoreSlide
+    # Subtest: returns 100 for a clean slide
+    ok 1 - returns 100 for a clean slide
+      ---
+      duration_ms: 1.718067
+      type: 'test'
+      ...
+    # Subtest: deducts 25 for an error violation
+    ok 2 - deducts 25 for an error violation
+      ---
+      duration_ms: 0.632221
+      type: 'test'
+      ...
+    # Subtest: clamps score to 0 for many violations
+    ok 3 - clamps score to 0 for many violations
+      ---
+      duration_ms: 1.456183
+      type: 'test'
+      ...
+    1..3
+ok 13 - scoreSlide
+  ---
+  duration_ms: 5.311587
+  type: 'suite'
+  ...
+# Subtest: lintPresentation
+    # Subtest: returns score 100 for a clean deck
+    ok 1 - returns score 100 for a clean deck
+      ---
+      duration_ms: 0.873345
+      type: 'test'
+      ...
+    # Subtest: returns deck score as mean of slide scores
+    ok 2 - returns deck score as mean of slide scores
+      ---
+      duration_ms: 0.531439
+      type: 'test'
+      ...
+    # Subtest: returns score 100 for an empty deck
+    ok 3 - returns score 100 for an empty deck
+      ---
+      duration_ms: 0.170715
+      type: 'test'
+      ...
+    # Subtest: completes 30×20 deck within 2000ms
+    ok 4 - completes 30×20 deck within 2000ms
+      ---
+      duration_ms: 6.08948
+      type: 'test'
+      ...
+    1..4
+ok 14 - lintPresentation
+  ---
+  duration_ms: 8.322762
+  type: 'suite'
+  ...
+# Subtest: normalizeText: lowercases, collapses whitespace, strips non-alphanumeric, truncates
+ok 15 - normalizeText: lowercases, collapses whitespace, strips non-alphanumeric, truncates
+  ---
+  duration_ms: 1.745934
+  type: 'test'
+  ...
+# Subtest: fnv1a32: same string yields same hash, different strings differ
+ok 16 - fnv1a32: same string yields same hash, different strings differ
+  ---
+  duration_ms: 0.378856
+  type: 'test'
+  ...
+# Subtest: quantizeBBox: maps bbox to grid cells correctly
+ok 17 - quantizeBBox: maps bbox to grid cells correctly
+  ---
+  duration_ms: 1.078531
+  type: 'test'
+  ...
+# Subtest: iou: identical boxes = 1, no overlap = 0, partial overlap is correct
+ok 18 - iou: identical boxes = 1, no overlap = 0, partial overlap is correct
+  ---
+  duration_ms: 0.38445
+  type: 'test'
+  ...
+# Subtest: title block at same bbox+text across three slides gets shared lp:title: key
+ok 19 - title block at same bbox+text across three slides gets shared lp:title: key
+  ---
+  duration_ms: 0.633057
+  type: 'test'
+  ...
+# Subtest: figure bbox shifted by ~8% of page dims still matches (IoU ≥ 0.5)
+ok 20 - figure bbox shifted by ~8% of page dims still matches (IoU ≥ 0.5)
+  ---
+  duration_ms: 0.339501
+  type: 'test'
+  ...
+# Subtest: figure bbox shifted by ~40% of page dims does NOT match (IoU < 0.5)
+ok 21 - figure bbox shifted by ~40% of page dims does NOT match (IoU < 0.5)
+  ---
+  duration_ms: 0.517929
+  type: 'test'
+  ...
+# Subtest: block with pre-existing animKey is left untouched and key is not reused
+ok 22 - block with pre-existing animKey is left untouched and key is not reused
+  ---
+  duration_ms: 0.363066
+  type: 'test'
+  ...
+# Subtest: DOCX-style input (no _bbox) leaves animKey undefined
+ok 23 - DOCX-style input (no _bbox) leaves animKey undefined
+  ---
+  duration_ms: 0.466034
+  type: 'test'
+  ...
+# Subtest: synthesizeAnimKeys is deterministic: two runs on cloned input yield identical keys
+ok 24 - synthesizeAnimKeys is deterministic: two runs on cloned input yield identical keys
+  ---
+  duration_ms: 0.811173
+  type: 'test'
+  ...
+# Subtest: stripInternal removes _bbox, _role, _pageW, _pageH from all blocks and slides
+ok 25 - stripInternal removes _bbox, _role, _pageW, _pageH from all blocks and slides
+  ---
+  duration_ms: 0.366558
+  type: 'test'
+  ...
+# Subtest: stripFences removes markdown code fences
+ok 26 - stripFences removes markdown code fences
+  ---
+  duration_ms: 1.61948
+  type: 'test'
+  ...
+# Subtest: extractText plain text: splits into paragraph chunks
+ok 27 - extractText plain text: splits into paragraph chunks
+  ---
+  duration_ms: 2.726663
+  type: 'test'
+  ...
+# Subtest: extractText plain text: fullText matches original content
+ok 28 - extractText plain text: fullText matches original content
+  ---
+  duration_ms: 0.572695
+  type: 'test'
+  ...
+# Subtest: extractText code: detects TS extension and uses code chunking
+ok 29 - extractText code: detects TS extension and uses code chunking
+  ---
+  duration_ms: 0.708126
+  type: 'test'
+  ...
+# Subtest: extractText image: stores upload and returns single image entry
+ok 30 - extractText image: stores upload and returns single image entry
+  ---
+  duration_ms: 19.568258
+  type: 'test'
+  ...
+# Subtest: inline DOCX equation yields $...$
+ok 31 - inline DOCX equation yields $...$
+  ---
+  duration_ms: 64.991607
+  type: 'test'
+  ...
+# Subtest: m:oMathPara yields $$...$$
+ok 32 - m:oMathPara yields $$...$$
+  ---
+  duration_ms: 8.147111
+  type: 'test'
+  ...
+# Subtest: math-free XML is unchanged by preprocessMathXml
+ok 33 - math-free XML is unchanged by preprocessMathXml
+  ---
+  duration_ms: 0.210168
+  type: 'test'
+  ...
+# Subtest: stripXmlTags extracts plain text with paragraph breaks
+ok 34 - stripXmlTags extracts plain text with paragraph breaks
+  ---
+  duration_ms: 0.752673
+  type: 'test'
+  ...
+# Subtest: math LaTeX survives stripXmlTags
+ok 35 - math LaTeX survives stripXmlTags
+  ---
+  duration_ms: 0.659144
+  type: 'test'
+  ...
+# Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
+ok 36 - preprocessMathXml + stripXmlTags: inline equation at correct position
+  ---
+  duration_ms: 11.378783
+  type: 'test'
+  ...
+# Subtest: liteparsePagesToSlides: recurring headline on adjacent pages shares a stable lp: animKey
+ok 37 - liteparsePagesToSlides: recurring headline on adjacent pages shares a stable lp: animKey
+  ---
+  duration_ms: 1.842655
+  type: 'test'
+  ...
+# Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
+ok 38 - retries fidelity grading with compact instructions when the first JSON response is truncated
+  ---
+  duration_ms: 7.828873
+  type: 'test'
+  ...
+# Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
+ok 39 - falls back to deterministic fidelity when both narrative JSON responses are invalid
+  ---
+  duration_ms: 1.728989
+  type: 'test'
+  ...
+# Subtest: finds a focused visual region instead of returning the whole page
+ok 40 - finds a focused visual region instead of returning the whole page
+  ---
+  duration_ms: 6.541198
+  type: 'test'
+  ...
+# Subtest: prefers a dense screenshot-like area over sparse page marks
+ok 41 - prefers a dense screenshot-like area over sparse page marks
+  ---
+  duration_ms: 2.640585
+  type: 'test'
+  ...
+# Subtest: returns null for blank pages
+ok 42 - returns null for blank pages
+  ---
+  duration_ms: 0.67812
+  type: 'test'
+  ...
+# Subtest: nary: summation with sub and sup
+ok 43 - nary: summation with sub and sup
+  ---
+  duration_ms: 138.825831
+  type: 'test'
+  ...
+# Subtest: nary: default operator is integral when chr absent
+ok 44 - nary: default operator is integral when chr absent
+  ---
+  duration_ms: 9.236338
+  type: 'test'
+  ...
+# Subtest: nary: product with undOvr emits \\limits
+ok 45 - nary: product with undOvr emits \\limits
+  ---
+  duration_ms: 8.843151
+  type: 'test'
+  ...
+# Subtest: nary: unknown glyph falls back to raw glyph without throwing
+ok 46 - nary: unknown glyph falls back to raw glyph without throwing
+  ---
+  duration_ms: 6.530947
+  type: 'test'
+  ...
+# Subtest: limLow: lim operator gets subscript limit
+ok 47 - limLow: lim operator gets subscript limit
+  ---
+  duration_ms: 11.051019
+  type: 'test'
+  ...
+# Subtest: limLow: max operator gets subscript limit
+ok 48 - limLow: max operator gets subscript limit
+  ---
+  duration_ms: 7.163848
+  type: 'test'
+  ...
+# Subtest: limLow: inf operator gets subscript limit
+ok 49 - limLow: inf operator gets subscript limit
+  ---
+  duration_ms: 12.888665
+  type: 'test'
+  ...
+# Subtest: limLow: non-operator base uses \\underset
+ok 50 - limLow: non-operator base uses \\underset
+  ---
+  duration_ms: 9.527304
+  type: 'test'
+  ...
+# Subtest: limUpp: non-operator base uses \\overset
+ok 51 - limUpp: non-operator base uses \\overset
+  ---
+  duration_ms: 11.748314
+  type: 'test'
+  ...
+# Subtest: limUpp: operator base gets superscript limit
+ok 52 - limUpp: operator base gets superscript limit
+  ---
+  duration_ms: 12.643021
+  type: 'test'
+  ...
+# Subtest: groupChr: overbrace ⏞ emits \\overbrace{...}
+ok 53 - groupChr: overbrace ⏞ emits \\overbrace{...}
+  ---
+  duration_ms: 8.362429
+  type: 'test'
+  ...
+# Subtest: groupChr: underbrace ⏟ emits \\underbrace{...}
+ok 54 - groupChr: underbrace ⏟ emits \\underbrace{...}
+  ---
+  duration_ms: 10.912787
+  type: 'test'
+  ...
+# Subtest: groupChr: non-brace chr at bot emits \\underset
+ok 55 - groupChr: non-brace chr at bot emits \\underset
+  ---
+  duration_ms: 7.166967
+  type: 'test'
+  ...
+# Subtest: dispatch: nary nested inside fraction is reached
+ok 56 - dispatch: nary nested inside fraction is reached
+  ---
+  duration_ms: 13.560539
+  type: 'test'
+  ...
+# Subtest: convert fraction → \\frac{a}{b}
+ok 57 - convert fraction → \\frac{a}{b}
+  ---
+  duration_ms: 126.888866
+  type: 'test'
+  ...
+# Subtest: convert radical with degree → \\sqrt[3]{x}
+ok 58 - convert radical with degree → \\sqrt[3]{x}
+  ---
+  duration_ms: 9.979643
+  type: 'test'
+  ...
+# Subtest: convert radical with hidden degree → \\sqrt{x}
+ok 59 - convert radical with hidden degree → \\sqrt{x}
+  ---
+  duration_ms: 7.638868
+  type: 'test'
+  ...
+# Subtest: convert n-ary summation with limits
+ok 60 - convert n-ary summation with limits
+  ---
+  duration_ms: 8.003164
+  type: 'test'
+  ...
+# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
+ok 61 - convert matrix → \\begin{matrix}...\\end{matrix}
+  ---
+  duration_ms: 11.458582
+  type: 'test'
+  ...
+# Subtest: convert accent → \\hat{v}
+ok 62 - convert accent → \\hat{v}
+  ---
+  duration_ms: 8.532825
+  type: 'test'
+  ...
+# Subtest: convert delimiter → \\left(x+y\\right)
+ok 63 - convert delimiter → \\left(x+y\\right)
+  ---
+  duration_ms: 13.441493
+  type: 'test'
+  ...
+# Subtest: degrade unknown element without throwing
+ok 64 - degrade unknown element without throwing
+  ---
+  duration_ms: 6.215232
+  type: 'test'
+  ...
+# Subtest: oMathPara wrapper is handled
+ok 65 - oMathPara wrapper is handled
+  ---
+  duration_ms: 12.695073
+  type: 'test'
+  ...
+# Subtest: normalizes model outline total/section-count mismatch before validation
+ok 66 - normalizes model outline total/section-count mismatch before validation
+  ---
+  duration_ms: 2.288059
+  type: 'test'
+  ...
+# Subtest: repairs missing first title while preserving target slide count
+ok 67 - repairs missing first title while preserving target slide count
+  ---
+  duration_ms: 2.356148
+  type: 'test'
+  ...
+# Subtest: moves an existing title to the front instead of failing deck validation
+ok 68 - moves an existing title to the front instead of failing deck validation
+  ---
+  duration_ms: 0.724873
+  type: 'test'
+  ...
+# Subtest: inserts fallback image slide for academic decks when source images exist
+ok 69 - inserts fallback image slide for academic decks when source images exist
+  ---
+  duration_ms: 0.670565
+  type: 'test'
+  ...
+# Subtest: synthesizes quiz section slides when the model returns the wrong type
+ok 70 - synthesizes quiz section slides when the model returns the wrong type
+  ---
+  duration_ms: 0.736766
+  type: 'test'
+  ...
+# Subtest: adds fallback evidence refs to academic factual slides in a bounded section
+ok 71 - adds fallback evidence refs to academic factual slides in a bounded section
+  ---
+  duration_ms: 0.416397
+  type: 'test'
+  ...
+# Subtest: selects explicit candidate chunks before scoring by section text
+ok 72 - selects explicit candidate chunks before scoring by section text
+  ---
+  duration_ms: 0.418889
+  type: 'test'
+  ...
+# Subtest: normalizes free-form audience labels with technical fallback
+ok 73 - normalizes free-form audience labels with technical fallback
+  ---
+  duration_ms: 1.283281
+  type: 'test'
+  ...
+# Subtest: rejects unknown evidence refs
+ok 74 - rejects unknown evidence refs
+  ---
+  duration_ms: 1.309258
+  type: 'test'
+  ...
+# Subtest: rejects quiz sections for non-quiz audience profiles
+ok 75 - rejects quiz sections for non-quiz audience profiles
+  ---
+  duration_ms: 0.751319
+  type: 'test'
+  ...
+# Subtest: requires academic quiz sections to be final
+ok 76 - requires academic quiz sections to be final
+  ---
+  duration_ms: 0.263783
+  type: 'test'
+  ...
+# Subtest: rejects academic factual slides without evidence refs
+ok 77 - rejects academic factual slides without evidence refs
+  ---
+  duration_ms: 0.264689
+  type: 'test'
+  ...
+# Subtest: maps only Anthropic-supported image extensions to media types
+ok 78 - maps only Anthropic-supported image extensions to media types
+  ---
+  duration_ms: 1.354775
+  type: 'test'
+  ...
+# Subtest: resolves public image paths without allowing traversal outside public
+ok 79 - resolves public image paths without allowing traversal outside public
+  ---
+  duration_ms: 0.501565
+  type: 'test'
+  ...
+# Subtest: orders candidate images first for section-specific vision context
+ok 80 - orders candidate images first for section-specific vision context
+  ---
+  duration_ms: 1.052045
+  type: 'test'
+  ...
+# Subtest: builds text plus base64 image blocks from saved focused crops
+ok 81 - builds text plus base64 image blocks from saved focused crops
+  ---
+  duration_ms: 61.896946
+  type: 'test'
+  ...
+1..81
+# tests 124
+# suites 14
+# pass 124
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18136.591898
