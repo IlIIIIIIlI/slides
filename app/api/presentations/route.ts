@@ -1,10 +1,39 @@
 export const runtime = "nodejs";
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { randomUUID } from "crypto";
 
 const DATA_DIR = path.join(process.cwd(), "data", "presentations");
+
+export async function POST(req: NextRequest) {
+  let body: { title?: string; audienceType?: string; stylePreset?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const title = body.title?.trim();
+  if (!title) return NextResponse.json({ error: "title is required" }, { status: 400 });
+
+  await fs.mkdir(DATA_DIR, { recursive: true });
+
+  const id = randomUUID();
+  const deck = {
+    id,
+    title,
+    audienceType: body.audienceType ?? "technical",
+    stylePreset: body.stylePreset ?? "minimal",
+    slides: [],
+    slideCount: 0,
+    generatedAt: new Date().toISOString(),
+  };
+
+  await fs.writeFile(path.join(DATA_DIR, `${id}.json`), JSON.stringify(deck, null, 2), "utf-8");
+  return NextResponse.json(deck, { status: 201 });
+}
 
 export async function GET() {
   try {

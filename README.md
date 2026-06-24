@@ -141,6 +141,32 @@ Four implementation concerns raised in code review were addressed:
 
 **Stable element targeting** — `components/player/adjustable.tsx` now renders `data-anim={elKey}` on its wrapper `<div>`. Every existing adjustable element in the player (headline, supporting, points, code, quote, bigNumber, etc.) is automatically addressable as a timeline target by its logical key name.
 
+### 2026-06-11 — Ship slides as an MCP skill: author decks from Claude Code, Cursor, or Gemini
+
+The `mcp/` directory packages the slide generation pipeline as a [Model Context Protocol](https://modelcontextprotocol.io/) server. Any MCP-capable AI editor can now author, edit, and preview presentation decks by calling typed tools against the running Next.js app — without touching the UI.
+
+**What's included:**
+
+- **`mcp/server.mjs`** — stdio MCP server with nine tools: `get_slide_schema`, `list_presentations`, `get_presentation`, `create_presentation`, `update_slides`, `add_slides_from_topic`, `regenerate_slide`, `delete_presentation`, `get_player_url`.
+- **`mcp/schema.ts`** — JSON Schema definitions for the full `Slide` and `Presentation` types, re-exported from the existing type system so agents get the same constraints the app enforces (headline ≤ 80 chars, points ≤ 5 items, etc.).
+- **`mcp/cli.mjs`** — one-shot installer (`node mcp/cli.mjs install`) that writes the MCP server entry into Claude Code / Claude Desktop config files. Also available as `npm run mcp:install`.
+
+**New API endpoint:**
+
+`POST /api/presentations` creates an empty presentation so agents can author slides from scratch without going through the full document-upload pipeline.
+
+**Install (once the Next.js app is running):**
+
+```bash
+node mcp/cli.mjs install          # registers the MCP server in Claude Code + Claude Desktop
+# or
+npm run mcp:install
+```
+
+Then restart Claude Code / Claude Desktop. The `get_slide_schema` tool should appear. Call it first to get the typed schema, then use `create_presentation` + `update_slides` to author a deck.
+
+**Why:** Turns the project from a standalone app into a reusable agent skill — any Claude/Cursor/Gemini session can generate a slide deck grounded in the same validated schema primitives the player renders.
+
 ### 2026-06-06 — Fix Vercel deployment: remove stale pnpm lockfile
 
 Removed `pnpm-lock.yaml` from the repository. The file predated the addition of `katex` and `gsap` as dependencies, so Vercel (which prefers pnpm over npm when a `pnpm-lock.yaml` is present) was failing every deployment with a frozen-install error for those missing packages. Removing the stale lockfile causes Vercel to fall back to `npm` with the up-to-date `package-lock.json`, which includes all current dependencies. Local development and CI are unaffected — the project continues to use `npm`.

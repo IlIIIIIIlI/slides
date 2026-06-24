@@ -1,0 +1,124 @@
+slug: 2026-06-11-bump-next-to-16-2-9
+kind: dep-upgrade
+project_id: slides
+package: npm:next
+from_version: 15.1.6
+to_version: 16.2.9
+counts:
+  removed: 0
+  signature_changed: 4
+  added_informational: 26
+  total_usage_sites: 23
+affected_symbols:
+  - name: Metadata
+    severity: signature-changed
+    kind: interface
+    usage_count: 2
+    usages:
+      - file: app/layout.tsx
+        line: 1
+        column: 0
+        context: import type { Metadata } from "next";
+      - file: app/layout.tsx
+        line: 7
+        column: 24
+        context: "export const metadata: Metadata = {"
+  - name: Metadata.metadataBase
+    severity: signature-changed
+    kind: variable
+    usage_count: 2
+    usages:
+      - file: app/layout.tsx
+        line: 1
+        column: 0
+        context: import type { Metadata } from "next";
+      - file: app/layout.tsx
+        line: 7
+        column: 24
+        context: "export const metadata: Metadata = {"
+  - name: Metadata.other
+    severity: signature-changed
+    kind: variable
+    usage_count: 2
+    usages:
+      - file: app/layout.tsx
+        line: 1
+        column: 0
+        context: import type { Metadata } from "next";
+      - file: app/layout.tsx
+        line: 7
+        column: 24
+        context: "export const metadata: Metadata = {"
+  - name: ResolvingViewport
+    severity: signature-changed
+    kind: type
+    usage_count: 17
+    usages:
+      - file: .next/types/app/(site)/layout.ts
+        line: 3
+        column: 119
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/(site)/layout.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/app/(site)/library/page.ts
+        line: 3
+        column: 134
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/(site)/library/page.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/app/(site)/page.ts
+        line: 3
+        column: 115
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/(site)/page.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/app/(site)/workspace/page.ts
+        line: 3
+        column: 138
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/(site)/workspace/page.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/app/layout.ts
+        line: 3
+        column: 102
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/layout.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/app/player/layout.ts
+        line: 3
+        column: 119
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/player/layout.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/app/player/page.ts
+        line: 3
+        column: 115
+        context: import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
+      - file: .next/types/app/player/page.ts
+        line: 45
+        column: 20
+        context: checkFields<Diff<ResolvingViewport, SecondArg<MaybeField<TEntry, 'generateViewport'>>, 'generateViewport'>>()
+      - file: .next/types/validator.ts
+        line: 6
+        column: 253
+        context: import type { ResolvingMetadata, ResolvingViewport } from "next/types.js"
+      - file: .next/types/validator.ts
+        line: 18
+        column: 13
+        context: "parent: ResolvingViewport"
+      - file: .next/types/validator.ts
+        line: 33
+        column: 13
+        context: "parent: ResolvingViewport"

@@ -2,6 +2,9 @@
   "name": "ai-nextjs-slides",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "slides-mcp": "mcp/cli.mjs"
+  },
   "scripts": {
     "inline-skills": "node scripts/inline-skills.mjs",
     "copy-pdfjs-worker": "node scripts/copy-pdfjs-worker.mjs",
@@ -12,9 +15,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node scripts/run-unit-tests.cjs"
+    "test": "node scripts/run-unit-tests.cjs",
+    "mcp:install": "node mcp/cli.mjs install",
+    "mcp:uninstall": "node mcp/cli.mjs uninstall",
+    "mcp:status": "node mcp/cli.mjs status"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3",
     "@anthropic-ai/sdk": "^0.90.0",
     "@llamaindex/liteparse": "^2.0.4",
     "@napi-rs/canvas": "^0.1.100",
