@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { extractText, stripFences, stripXmlTags } from "@/lib/generation/extract";
+import { extractText, stripFences, stripXmlTags, liteparsePagesToSlides, type LiteParsePageLike } from "@/lib/generation/extract";
 import { preprocessMathXml } from "@/lib/generation/omml/omml";
 
 // ---- stripFences ----
@@ -155,4 +155,53 @@ test("preprocessMathXml + stripXmlTags: inline equation at correct position", ()
   const text = stripXmlTags(processed, ["w:p"]);
   assert.ok(text.includes("Energy:"), `text before equation missing: ${text}`);
   assert.ok(text.includes("$"), `inline math delimiter missing: ${text}`);
+});
+
+// ---- liteparsePagesToSlides: animKey synthesis integration ----
+
+test("liteparsePagesToSlides: recurring headline on adjacent pages shares a stable lp: animKey", () => {
+  const pages: LiteParsePageLike[] = [
+    {
+      pageNum: 1,
+      width: 720,
+      height: 540,
+      textItems: [
+        // Large font at top of page → inferred as "title"
+        { text: "Quarterly Review", x: 100, y: 50, width: 300, height: 30, fontSize: 24 },
+        // Body text lower on the page
+        { text: "Body text on slide one that is long enough to keep.", x: 100, y: 200, width: 400, height: 12, fontSize: 12 },
+      ],
+    },
+    {
+      pageNum: 2,
+      width: 720,
+      height: 540,
+      textItems: [
+        // Same headline, same position → should match
+        { text: "Quarterly Review", x: 100, y: 50, width: 300, height: 30, fontSize: 24 },
+        // Different body text
+        { text: "Different body content on the second slide here.", x: 100, y: 200, width: 400, height: 12, fontSize: 12 },
+      ],
+    },
+  ];
+
+  const slides = liteparsePagesToSlides(pages);
+
+  assert.equal(slides.length, 2, "one slide per page");
+
+  // Internal _bbox/_role/_pageW/_pageH must not leak into the public output.
+  const serialized = JSON.stringify(slides);
+  assert.ok(!serialized.includes('"_bbox"'), "no _bbox in output");
+  assert.ok(!serialized.includes('"_role"'), "no _role in output");
+  assert.ok(!serialized.includes('"_pageW"'), "no _pageW in output");
+  assert.ok(!serialized.includes('"_pageH"'), "no _pageH in output");
+
+  // The headline block on both slides should have the same lp:title: animKey.
+  const h1 = slides[0].contentBlocks.find((b) => b.type === "headline");
+  const h2 = slides[1].contentBlocks.find((b) => b.type === "headline");
+
+  assert.ok(h1, "slide 1 has a headline block");
+  assert.ok(h2, "slide 2 has a headline block");
+  assert.ok(h1!.animKey?.startsWith("lp:title:"), `slide 1 headline animKey should start with lp:title: (got ${h1!.animKey})`);
+  assert.equal(h1!.animKey, h2!.animKey, "both slides share the same animKey for the recurring headline");
 });

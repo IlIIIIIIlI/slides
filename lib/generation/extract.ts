@@ -1,9 +1,10 @@
 // Source-text + image extraction for the multi-stage pipeline.
 //
-// Returns `{ fullText, chunks, images }`:
+// Returns `{ fullText, chunks, images, slides? }`:
 //   - chunks  : { id, page, paragraph, text } — text split per page (PDF) or per paragraph (else)
 //   - images  : { id, page?, filepath, captionHint? } — rendered/saved image files under
 //               public/extracted/<presentationId>/...
+//   - slides  : SlideSpec[] synthesized from liteparse pages (PDF only), with animKeys for morphing
 
 import fs from "fs/promises";
 import path from "path";
@@ -11,6 +12,14 @@ import { JSDOM } from "jsdom";
 import { findFocusedCropBounds } from "@/lib/generation/image-crop";
 import { preprocessMathXml } from "@/lib/generation/omml/omml";
 import { readZipEntries } from "@/lib/generation/omml/zip";
+import type { SlideSpec } from "@/core/schemas/types";
+import {
+  type ExtractedBlock,
+  type ExtractedSlide,
+  type LpRole,
+  synthesizeAnimKeys,
+  stripInternal,
+} from "@/lib/generation/anim-key-synthesis";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
@@ -62,6 +71,166 @@ export interface Extracted {
   // Web-served path of the original source file when we keep it around for
   // preview (PDFs only today). Undefined for URL/code/text sources.
   sourceUrl?: string;
+  // Synthesized SlideSpec[] with animKeys derived from liteparse spatial bboxes.
+  // Present only for PDF imports; undefined for PPTX, DOCX, text, image, URL.
+  slides?: SlideSpec[];
+}
+
+// Minimal representation of a liteparse ParsedPage, compatible with the actual
+// @llamaindex/liteparse type so callers can pass real pages or synthetic fixtures.
+export interface LiteParsePageLike {
+  pageNum: number;
+  width: number;
+  height: number;
+  textItems: Array<{
+    text: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    fontName?: string;
+    fontSize?: number;
+  }>;
+}
+
+function inferRole(
+  paraFontSizes: number[],
+  isMonospace: boolean,
+  y1: number,
+  pageH: number,
+  maxFontSize: number,
+): LpRole {
+  if (isMonospace) return 'code';
+  const avg = paraFontSizes.length
+    ? paraFontSizes.reduce((s, v) => s + v, 0) / paraFontSizes.length
+    : 0;
+  if (y1 < pageH * 0.35 && avg >= maxFontSize * 0.75) return 'title';
+  return 'body';
+}
+
+function liteparsePageToExtractedSlide(page: LiteParsePageLike): ExtractedSlide {
+  const { textItems, width: pageW, height: pageH, pageNum } = page;
+
+  const blocks: ExtractedBlock[] = [];
+
+  if (pageW > 0 && pageH > 0 && textItems.length > 0) {
+    const maxFontSize = textItems.reduce((m, it) => Math.max(m, it.fontSize ?? 0), 0) || 12;
+    const items = [...textItems]
+      .filter((it) => it.text.trim())
+      .sort((a, b) => (a.y !== b.y ? a.y - b.y : a.x - b.x));
+    const avgH = items.reduce((s, it) => s + it.height, 0) / (items.length || 1) || 12;
+
+    // Group into visual lines by y-proximity.
+    type RawItem = (typeof items)[number];
+    type Line = { rawItems: RawItem[]; x1: number; y1: number; x2: number; y2: number };
+    const lines: Line[] = [];
+    let curItems: RawItem[] = [];
+    let lineMinY = 0, lineMaxY = 0;
+
+    const flushLine = () => {
+      if (!curItems.length) return;
+      curItems.sort((a, b) => a.x - b.x);
+      lines.push({
+        rawItems: curItems,
+        x1: Math.min(...curItems.map((it) => it.x)),
+        y1: lineMinY,
+        x2: Math.max(...curItems.map((it) => it.x + it.width)),
+        y2: lineMaxY,
+      });
+      curItems = [];
+    };
+
+    for (const item of items) {
+      if (!curItems.length) {
+        curItems = [item]; lineMinY = item.y; lineMaxY = item.y + item.height;
+      } else if (item.y <= lineMaxY + avgH * 0.3) {
+        curItems.push(item);
+        lineMinY = Math.min(lineMinY, item.y);
+        lineMaxY = Math.max(lineMaxY, item.y + item.height);
+      } else {
+        flushLine();
+        curItems = [item]; lineMinY = item.y; lineMaxY = item.y + item.height;
+      }
+    }
+    flushLine();
+
+    // Group lines into paragraphs by y-gap.
+    const lineHeights = lines.map((l) => l.y2 - l.y1).filter((h) => h > 0);
+    const medianLH = lineHeights.length
+      ? lineHeights.slice().sort((a, b) => a - b)[Math.floor(lineHeights.length / 2)]
+      : 12;
+    type Para = { lines: Line[]; x1: number; y1: number; x2: number; y2: number };
+    const paras: Para[] = [];
+    let prevLine: Line | null = null;
+
+    for (const line of lines) {
+      const gap = prevLine ? line.y1 - prevLine.y2 : 0;
+      if (!paras.length || gap > medianLH * 0.6) {
+        paras.push({ lines: [line], x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2 });
+      } else {
+        const cur = paras[paras.length - 1];
+        cur.lines.push(line);
+        cur.x1 = Math.min(cur.x1, line.x1);
+        cur.y1 = Math.min(cur.y1, line.y1);
+        cur.x2 = Math.max(cur.x2, line.x2);
+        cur.y2 = Math.max(cur.y2, line.y2);
+      }
+      prevLine = line;
+    }
+
+    for (const para of paras) {
+      const text = para.lines
+        .map((l) => l.rawItems.map((it) => it.text).join(' '))
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (text.length < 5) continue;
+
+      const allItems = para.lines.flatMap((l) => l.rawItems);
+      const fontSizes = allItems.map((it) => it.fontSize ?? maxFontSize * 0.5);
+      const isMonospace = allItems.some((it) =>
+        /[Mm]ono|[Cc]ourier|[Cc]ode|[Tt]ypewriter|[Ff]ixed/.test(it.fontName ?? ''),
+      );
+      const role = inferRole(fontSizes, isMonospace, para.y1, pageH, maxFontSize);
+
+      const bbox: [number, number, number, number] = [
+        para.x1,
+        para.y1,
+        para.x2 - para.x1,
+        para.y2 - para.y1,
+      ];
+      const blockType: ExtractedBlock['type'] =
+        role === 'title' ? 'headline' : role === 'code' ? 'code-block' : 'supporting';
+
+      blocks.push({ type: blockType, content: text, _bbox: bbox, _role: role });
+    }
+  }
+
+  return {
+    id: `lp-slide-${pageNum}`,
+    intent: 'statement',
+    sectionId: 'imported',
+    audienceProfileId: 'imported',
+    themePresetId: 'imported',
+    evidenceRefs: [],
+    assetRefs: [],
+    citationPolicy: 'none',
+    speakerNotesMode: 'none',
+    status: 'draft',
+    contentBlocks: blocks,
+    _pageW: pageW,
+    _pageH: pageH,
+  };
+}
+
+/**
+ * Convert liteparse pages into SlideSpec[] with synthesized animKeys.
+ * Accepts real liteparse ParsedPage objects or hand-crafted fixtures for testing.
+ */
+export function liteparsePagesToSlides(pages: LiteParsePageLike[]): SlideSpec[] {
+  const extracted: ExtractedSlide[] = pages.map(liteparsePageToExtractedSlide);
+  synthesizeAnimKeys(extracted);
+  return stripInternal(extracted);
 }
 
 export function stripFences(raw: string): string {
@@ -181,9 +350,11 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
   const chunks: ExtractedChunk[] = [];
   let fullText = "";
   const imagePageNums: number[] = [];   // pages worth screenshotting
+  const effectivePages: (typeof result.pages)[0][] = []; // OCR-merged, for animKey synthesis
 
   for (const rawPage of result.pages) {
     const page = ocrPageMap.get(rawPage.pageNum) ?? rawPage;
+    effectivePages.push(page);
     const p = page.pageNum;
     const pageWidth = page.width;
     const pageHeight = page.height;
@@ -370,7 +541,10 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
     }
   }
 
-  return { fullText: fullText.trim(), chunks, images, sourceUrl };
+  // Phase 6: Synthesize animKeys from liteparse spatial bboxes.
+  const slides = liteparsePagesToSlides(effectivePages);
+
+  return { fullText: fullText.trim(), chunks, images, sourceUrl, slides };
 }
 
 // =============================

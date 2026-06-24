@@ -1,0 +1,9 @@
+slug: 2026-06-22-idea-animkey-synthesis-from-liteparse-spatial-bboxes-for-morph-on-kdg
+kind: feature
+project_id: slides
+idea: 2026-06-21-animkey-synthesis-from-liteparse-spatial-bboxes-for-morph-on-kdgqo
+capability: anim-key-synthesis
+novelty: 4
+effort: 2
+source_trending:
+  - run-llama/liteparse
