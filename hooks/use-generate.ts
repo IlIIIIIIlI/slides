@@ -24,6 +24,8 @@ interface GenerateState {
   result: GenerateResult | null;
   error: string | null;
   warnings: { slideIndex: number; field: string; message: string }[];
+  /** Impeccable design-detect reports from post-generate validate (optional). */
+  impeccable?: unknown[];
 }
 
 const STEP_LABELS: Record<GenerateStep, string> = {
@@ -131,7 +133,8 @@ export function useGenerate() {
           setState((prev) => ({ ...prev, progress: STAGE_BASE.drafting + frac * draftSpan }));
         } else if (msg.event === "validate") {
           const warnings = (payload.warnings as GenerateState["warnings"]) ?? [];
-          setState((prev) => ({ ...prev, warnings }));
+          const impeccable = Array.isArray(payload.impeccable) ? payload.impeccable : undefined;
+          setState((prev) => ({ ...prev, warnings, impeccable }));
         } else if (msg.event === "done") {
           const result: GenerateResult = {
             id: payload.id as string,

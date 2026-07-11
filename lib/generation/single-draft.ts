@@ -18,7 +18,10 @@ import {
 } from "./repair";
 import { stripFences, type ExtractedChunk, type ExtractedImage } from "./extract";
 import { buildVisionImageBlocks, orderImagesForSection } from "./vision";
+import { runImpeccableOnSlides } from "./validate";
+import type { DetectReport } from "@/core/validation/impeccable";
 import type { Slide } from "@/app/slides";
+import { DEFAULT_PRESET_ID } from "@/core/theming/presets";
 
 const MODEL = "claude-sonnet-4-6";
 const SOURCE_TRUNCATE = 60_000;
@@ -71,7 +74,19 @@ async function parseWithRepair(
   return repaired;
 }
 
+export interface DraftSlidesResult {
+  slides: Slide[];
+  /** Impeccable detect reports after structural repair (read-only; does not mutate animKeys). */
+  impeccable: DetectReport[];
+}
+
 export async function draftSlides(input: DraftSlidesInput): Promise<Slide[]> {
+  const result = await draftSlidesWithDetect(input);
+  return result.slides;
+}
+
+/** Same as draftSlides but also returns Impeccable detect reports for clients. */
+export async function draftSlidesWithDetect(input: DraftSlidesInput): Promise<DraftSlidesResult> {
   const { client, deckTitle, audienceType, audienceProfile, section, chunks, images = [], count, instruction, baseSlide } = input;
 
   // Reconstruct a grounding "source" from the stored chunks.
@@ -151,5 +166,8 @@ export async function draftSlides(input: DraftSlidesInput): Promise<Slide[]> {
     if (ref) delete (s as GeneratedSlide).imageRef;
   }
 
-  return slides as Slide[];
+  // Post-generation detect (read-only analysis — never overwrites animKey).
+  const impeccable = runImpeccableOnSlides(slides as Slide[], DEFAULT_PRESET_ID);
+
+  return { slides: slides as Slide[], impeccable };
 }

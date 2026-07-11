@@ -3,9 +3,12 @@ import assert from "node:assert/strict";
 
 import { AUDIENCE_PROFILES } from "@/lib/generation/audience";
 import {
+  buildImpeccableSlideRepairInput,
+  groupImpeccableFindingsByBlock,
   normalizeOutlineSlideCounts,
   repairGeneratedDeck,
   repairSectionSlides,
+  repairSlideImpeccable,
   selectSectionChunks,
   type OutlineLike,
   type OutlineSectionLike,
@@ -13,6 +16,9 @@ import {
 } from "@/lib/generation/repair";
 import { hasCriticalWarnings, validateOutline, validateSlides } from "@/lib/generation/validate";
 import type { ExtractedChunk } from "@/lib/generation/extract";
+import type { SlideSpec } from "@/core/schemas/types";
+import type { DetectReport, ImpeccableFinding } from "@/core/validation/impeccable";
+import { DEFAULT_PRESET_ID } from "@/core/theming/presets";
 
 function section(patch: Partial<OutlineSectionLike>): OutlineSectionLike {
   return {
@@ -234,4 +240,105 @@ test("selects explicit candidate chunks before scoring by section text", () => {
   const selected = selectSectionChunks(chunks, section({ candidateChunkIds: ["CHK-2"] }), "Research Topic");
 
   assert.deepEqual(selected.map((chunk) => chunk.id), ["CHK-2"]);
+});
+
+function makeSpec(blocks: SlideSpec["contentBlocks"]): SlideSpec {
+  return {
+    id: "s",
+    intent: "statement",
+    sectionId: "sec",
+    audienceProfileId: "aud",
+    themePresetId: DEFAULT_PRESET_ID,
+    evidenceRefs: [],
+    assetRefs: [],
+    citationPolicy: "none",
+    speakerNotesMode: "none",
+    status: "draft",
+    contentBlocks: blocks,
+  };
+}
+
+test("buildImpeccableSlideRepairInput scopes prompt to offending block indices only", () => {
+  const slide = makeSpec([
+    { type: "headline", content: "🚀", animKey: "title" },
+    { type: "supporting", content: "ok" },
+    { type: "bullet-list", content: "a\nb" },
+    { type: "code-block", content: "x", animKey: "code:0" },
+  ]);
+
+  const findings: ImpeccableFinding[] = [
+    {
+      ruleId: "emoji-as-heading",
+      severity: "warn",
+      message: "emoji heading",
+      slideIndex: 0,
+      path: "slides[0].contentBlocks[0]",
+      blockIndex: 0,
+    },
+    {
+      ruleId: "gradient-text",
+      severity: "warn",
+      message: "gradient on code",
+      slideIndex: 0,
+      path: "slides[0].contentBlocks[3]",
+      blockIndex: 3,
+    },
+  ];
+
+  const report: DetectReport = {
+    slideIndex: 0,
+    findings,
+    rulesRun: ["emoji-as-heading", "gradient-text"],
+    rulesSkipped: [],
+    durationMs: 1,
+  };
+
+  const input = buildImpeccableSlideRepairInput(slide, report);
+  assert.ok(input);
+  assert.deepEqual(input!.blockIndices, [0, 3]);
+  assert.match(input!.prompt, /block indices: \[0,3\]/);
+  assert.match(input!.prompt, /emoji-as-heading/);
+  assert.match(input!.prompt, /gradient-text/);
+  // Must not ask to rewrite the clean supporting / bullet blocks as required replacements
+  assert.ok(!input!.prompt.includes('"blockIndex": 1') || input!.prompt.includes("ONLY for these block indices"));
+  assert.match(input!.prompt, /ONLY for these block indices/);
+});
+
+test("groupImpeccableFindingsByBlock respects severity floor", () => {
+  const findings: ImpeccableFinding[] = [
+    { ruleId: "a", severity: "info", message: "i", slideIndex: 0, path: "slides[0].contentBlocks[0]", blockIndex: 0 },
+    { ruleId: "b", severity: "warn", message: "w", slideIndex: 0, path: "slides[0].contentBlocks[1]", blockIndex: 1 },
+    { ruleId: "c", severity: "error", message: "e", slideIndex: 0, path: "slides[0].contentBlocks[2]", blockIndex: 2 },
+  ];
+  const map = groupImpeccableFindingsByBlock(findings, "warn");
+  assert.equal(map.has(0), false);
+  assert.equal(map.has(1), true);
+  assert.equal(map.has(2), true);
+});
+
+test("repairSlideImpeccable caps iterations and only patches listed indices", async () => {
+  const slide = makeSpec([
+    { type: "headline", content: "🔥", animKey: "title" },
+    { type: "supporting", content: "leave me alone" },
+  ]);
+
+  let calls = 0;
+  const result = await repairSlideImpeccable(slide, {
+    maxIterations: 2,
+    minSeverity: "warn",
+    applyReplacements: async ({ blockIndices, prompt }) => {
+      calls += 1;
+      assert.ok(blockIndices.includes(0));
+      assert.ok(!blockIndices.includes(1));
+      assert.match(prompt, /ONLY for these block indices/);
+      return [{ blockIndex: 0, block: { type: "headline", content: "Fixed Headline", animKey: "title" } }];
+    },
+  });
+
+  assert.ok(calls <= 2);
+  assert.equal(result.iterations <= 2, true);
+  assert.equal(result.slide.contentBlocks[0].content, "Fixed Headline");
+  assert.equal(result.slide.contentBlocks[0].animKey, "title");
+  assert.equal(result.slide.contentBlocks[1].content, "leave me alone");
+  assert.ok(result.prompts.every((p) => p.includes("ONLY for these block indices")));
 });

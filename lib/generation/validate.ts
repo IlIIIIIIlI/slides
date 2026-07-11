@@ -2,8 +2,21 @@
 // This runs on the prompt-output schema before generated decks are persisted.
 
 import type { Slide } from "@/app/slides";
-import type { TimelineEntry, TimelineTween } from "@/core/schemas/types";
+import type {
+  ContentBlock,
+  PresentationSpec,
+  SlideIntent,
+  SlideSpec,
+  TimelineEntry,
+  TimelineTween,
+} from "@/core/schemas/types";
 import type { GenerationAudienceProfile } from "@/lib/generation/audience";
+import {
+  detectSlideSpec,
+  type DetectReport,
+  type DetectOptions,
+} from "@/core/validation/impeccable";
+import { DEFAULT_PRESET_ID } from "@/core/theming/presets";
 
 const HEADLINE_MAX = 80;
 const SUPPORTING_MAX = 200;
@@ -545,4 +558,157 @@ export function formatCriticalWarnings(warnings: SlideWarning[], prefix: string)
     })
     .join("; ");
   return `${prefix}: ${details}`;
+}
+
+// ─── Impeccable detect (player HTML) ─────────────────────────────────
+
+export interface ValidateWithImpeccableResult {
+  warnings: SlideWarning[];
+  /** Per-slide Impeccable DetectReport (additive; does not replace antislop). */
+  impeccable: DetectReport[];
+}
+
+const INTENT_FROM_TYPE: Partial<Record<Slide["type"], SlideIntent>> = {
+  title: "title",
+  goals: "agenda",
+  "section-divider": "section-divider",
+  statement: "statement",
+  code: "code",
+  framework: "framework",
+  recap: "recap",
+  iframe: "demo",
+  quote: "quote",
+  image: "image",
+  "split-visual": "framework",
+  "big-number": "data",
+  comparison: "comparison",
+  quiz: "quiz",
+  "agent-tree": "framework",
+  chart: "data",
+};
+
+/** Best-effort Slide → SlideSpec for detect (generation decks are Slide[], not SlideSpec). */
+export function slideToDetectSpec(
+  slide: Slide,
+  index: number,
+  themePresetId = DEFAULT_PRESET_ID,
+): SlideSpec {
+  const contentBlocks: ContentBlock[] = [];
+  if (slide.blockMeta?.length) {
+    // Prefer blockMeta order when present; fill content from fields
+    for (const meta of slide.blockMeta) {
+      let content = "";
+      switch (meta.type) {
+        case "headline":
+          content = slide.headline ?? "";
+          break;
+        case "supporting":
+          content = slide.supporting ?? "";
+          break;
+        case "bullet-list":
+          content = (slide.points ?? []).join("\n");
+          break;
+        case "code-block":
+          content = slide.code ?? "";
+          break;
+        case "quote-text":
+          content = slide.quote ?? "";
+          break;
+        case "metric":
+          content = slide.bigNumber ?? "";
+          break;
+        case "image-ref":
+          content = slide.imageUrl ?? "";
+          break;
+        case "comparison":
+          content = [...(slide.beforePoints ?? []), ...(slide.afterPoints ?? [])].join("\n");
+          break;
+        default:
+          content = "";
+      }
+      contentBlocks.push({
+        type: meta.type as ContentBlock["type"],
+        content,
+        animKey: meta.animKey,
+      });
+    }
+  } else {
+    if (slide.headline) contentBlocks.push({ type: "headline", content: slide.headline, animKey: "title" });
+    if (slide.supporting) contentBlocks.push({ type: "supporting", content: slide.supporting });
+    if (slide.points?.length) contentBlocks.push({ type: "bullet-list", content: slide.points.join("\n") });
+    if (slide.code) contentBlocks.push({ type: "code-block", content: slide.code, animKey: "code:0" });
+    if (slide.quote) contentBlocks.push({ type: "quote-text", content: slide.quote });
+    if (slide.bigNumber) contentBlocks.push({ type: "metric", content: slide.bigNumber });
+    if (slide.imageUrl) contentBlocks.push({ type: "image-ref", content: slide.imageUrl });
+  }
+
+  return {
+    id: `gen-slide-${index}`,
+    intent: INTENT_FROM_TYPE[slide.type] ?? "statement",
+    sectionId: "generated",
+    audienceProfileId: "generated",
+    themePresetId,
+    evidenceRefs: slide.evidenceRefs ?? [],
+    assetRefs: [],
+    citationPolicy: "none",
+    speakerNotesMode: slide.notes ? "full" : "none",
+    status: "draft",
+    contentBlocks,
+    speakerNotes: slide.notes,
+    renderProps: {
+      color: slide.color,
+      label: slide.label,
+      code: slide.code,
+      quote: slide.quote,
+      author: slide.author,
+      imageUrl: slide.imageUrl,
+      imageLayout: slide.imageLayout,
+      bigNumber: slide.bigNumber,
+      numberLabel: slide.numberLabel,
+      beforePoints: slide.beforePoints,
+      afterPoints: slide.afterPoints,
+      iframeUrl: slide.iframeUrl,
+      question: slide.question,
+      options: slide.options,
+      answer: slide.answer,
+      explanation: slide.explanation,
+    },
+  };
+}
+
+/** Run Impeccable detect on each slide of a PresentationSpec (post structural checks). */
+export function runImpeccableOnPresentation(
+  presentation: PresentationSpec,
+  options?: DetectOptions,
+): DetectReport[] {
+  const themeId = presentation.themePresetId || DEFAULT_PRESET_ID;
+  return presentation.slides.map((slide, slideIndex) =>
+    detectSlideSpec(slide, themeId, slideIndex, options),
+  );
+}
+
+/** Run Impeccable detect on generation Slide[] after schema validation. */
+export function runImpeccableOnSlides(
+  slides: Slide[],
+  themePresetId = DEFAULT_PRESET_ID,
+  options?: DetectOptions,
+): DetectReport[] {
+  return slides.map((slide, slideIndex) => {
+    const spec = slideToDetectSpec(slide, slideIndex, themePresetId);
+    return detectSlideSpec(spec, themePresetId, slideIndex, options);
+  });
+}
+
+/**
+ * Schema validate + Impeccable detect for a generated deck.
+ * Structural antislop is separate (`lintPresentation`); this is complementary.
+ */
+export function validateSlidesWithImpeccable(
+  slides: unknown,
+  options: ValidateSlidesOptions & { themePresetId?: string } = {},
+): ValidateWithImpeccableResult {
+  const warnings = validateSlides(slides, options);
+  const list = Array.isArray(slides) ? (slides as Slide[]) : [];
+  const impeccable = runImpeccableOnSlides(list, options.themePresetId ?? DEFAULT_PRESET_ID);
+  return { warnings, impeccable };
 }

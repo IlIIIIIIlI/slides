@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { SlideView } from "@/components/player/slide-view";
 import type { Slide, Brand } from "@/app/slides";
+import { blockAttrsForElKey } from "@/core/rendering/adapter";
 
 const DEFAULT_BRAND: Brand = { text: "SYNOGIZE LAB", gradientFrom: "#f59e0b", gradientTo: "#3b82f6" };
 
@@ -33,6 +34,7 @@ function staticAdj(slide: Slide) {
     selected: false,
     onSelect: () => {},
     onChange: () => {},
+    ...blockAttrsForElKey(key, slide),
   });
 }
 

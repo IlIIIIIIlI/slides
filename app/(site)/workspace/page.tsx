@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { SlideImageField } from "@/components/workspace/slide-image-field";
 import { SlideTransfer } from "@/components/workspace/slide-transfer";
 import type { Slide, Brand } from "@/app/slides";
+import { SlopBadge } from "@/components/fidelity/slop-badge";
+import type { DetectReport } from "@/core/validation/impeccable";
 
 // ========================
 // Shared types
@@ -88,6 +90,8 @@ interface FullPresentation extends PresentationMeta {
   slides: Slide[];
   brand?: Brand;
   fidelityReport?: FidelityReport;
+  /** Impeccable design-detect reports (player HTML); no vision required. */
+  impeccable?: DetectReport[];
   chunks?: { id: string; page?: number; paragraph?: number; text: string; bbox?: ChunkBBoxJson }[];
   sourceUrl?: string;
 }
@@ -1269,7 +1273,8 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
     );
   }
   const report = presentation.fidelityReport;
-  if (!report) {
+  const detectOnly = !report && presentation.impeccable && presentation.impeccable.length > 0;
+  if (!report && !detectOnly) {
     return (
       <div className="rounded-lg border border-dashed border-border p-10 text-center space-y-2">
         <p className="text-sm text-muted-foreground">No fidelity report on this deck yet.</p>
@@ -1277,7 +1282,19 @@ function FidelityTab({ presentation, onDeleteSlide }: { presentation: FullPresen
       </div>
     );
   }
-  return <FidelityReportView presentation={presentation} report={report} onDeleteSlide={onDeleteSlide} />;
+  if (detectOnly) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <SlopBadge detectReports={presentation.impeccable} variant="deck" />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Design detect ran on player-rendered HTML without a vision model. Regenerate the deck for a full fidelity grade.
+        </p>
+      </div>
+    );
+  }
+  return <FidelityReportView presentation={presentation} report={report!} onDeleteSlide={onDeleteSlide} />;
 }
 
 function FidelityReportView({
@@ -1345,6 +1362,11 @@ function FidelityReportView({
         <div className={cn("rounded-xl border p-6 flex flex-col items-center justify-center min-w-[160px]", grade.bg, grade.border)}>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground mb-2">Overall</p>
           <p className={cn("text-4xl font-bold", grade.text)}>{grade.label}</p>
+          {presentation.impeccable && presentation.impeccable.length > 0 ? (
+            <div className="mt-3">
+              <SlopBadge detectReports={presentation.impeccable} variant="deck" />
+            </div>
+          ) : null}
         </div>
         <Card>
           <CardContent className="p-5">

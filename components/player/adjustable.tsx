@@ -17,6 +17,9 @@ export function Adjustable({
   onChange,
   className,
   children,
+  dataBlockIndex,
+  dataBlockType,
+  dataAnimKey,
 }: {
   elKey: string;
   override?: SlideElementOverride;
@@ -26,6 +29,10 @@ export function Adjustable({
   onChange: (key: string, patch: SlideElementOverride) => void;
   className?: string;
   children: React.ReactNode;
+  /** contentBlocks index for Impeccable detect attribution */
+  dataBlockIndex?: number;
+  dataBlockType?: string;
+  dataAnimKey?: string;
 }) {
   const dx = override?.dx ?? 0;
   const dy = override?.dy ?? 0;
@@ -76,6 +83,9 @@ export function Adjustable({
   return (
     <div
       data-anim={elKey}
+      data-block-index={dataBlockIndex !== undefined ? String(dataBlockIndex) : undefined}
+      data-block-type={dataBlockType}
+      data-anim-key={dataAnimKey}
       className={className}
       style={{
         transform: `translate(${dx}px, ${dy}px) scale(${scale})`,
