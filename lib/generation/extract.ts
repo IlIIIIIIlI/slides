@@ -20,6 +20,8 @@ import {
   synthesizeAnimKeys,
   stripInternal,
 } from "@/lib/generation/anim-key-synthesis";
+import { detectSlideSpec, type DetectReport } from "@/core/validation/impeccable";
+import { DEFAULT_PRESET_ID } from "@/core/theming/presets";
 
 const PUBLIC_EXTRACTED = path.join(process.cwd(), "public", "extracted");
 
@@ -74,6 +76,8 @@ export interface Extracted {
   // Synthesized SlideSpec[] with animKeys derived from liteparse spatial bboxes.
   // Present only for PDF imports; undefined for PPTX, DOCX, text, image, URL.
   slides?: SlideSpec[];
+  /** Impeccable detect reports for imported slides (read-only; does not mutate animKeys). */
+  impeccable?: DetectReport[];
 }
 
 // Minimal representation of a liteparse ParsedPage, compatible with the actual
@@ -226,11 +230,22 @@ function liteparsePageToExtractedSlide(page: LiteParsePageLike): ExtractedSlide 
 /**
  * Convert liteparse pages into SlideSpec[] with synthesized animKeys.
  * Accepts real liteparse ParsedPage objects or hand-crafted fixtures for testing.
+ * Does not overwrite explicit animKey values (handled inside synthesizeAnimKeys).
  */
 export function liteparsePagesToSlides(pages: LiteParsePageLike[]): SlideSpec[] {
   const extracted: ExtractedSlide[] = pages.map(liteparsePageToExtractedSlide);
   synthesizeAnimKeys(extracted);
   return stripInternal(extracted);
+}
+
+/**
+ * Run Impeccable detect on imported SlideSpecs (read-only; never mutates animKey).
+ */
+export function detectImportedSlides(
+  slides: SlideSpec[],
+  themePresetId = DEFAULT_PRESET_ID,
+): DetectReport[] {
+  return slides.map((slide, slideIndex) => detectSlideSpec(slide, themePresetId, slideIndex));
 }
 
 export function stripFences(raw: string): string {
@@ -543,8 +558,10 @@ async function extractPdf(buf: Buffer, presentationId: string): Promise<Omit<Ext
 
   // Phase 6: Synthesize animKeys from liteparse spatial bboxes.
   const slides = liteparsePagesToSlides(effectivePages);
+  // Phase 7: Impeccable detect on imported player HTML (read-only).
+  const impeccable = detectImportedSlides(slides);
 
-  return { fullText: fullText.trim(), chunks, images, sourceUrl, slides };
+  return { fullText: fullText.trim(), chunks, images, sourceUrl, slides, impeccable };
 }
 
 // =============================

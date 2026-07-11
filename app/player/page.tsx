@@ -9,6 +9,7 @@ import { inlineMd, stripMd } from "@/lib/markdown-inline";
 import { useKeybindings, matchesBinding, formatBinding } from "@/lib/keybindings";
 import { SettingsDialog } from "@/components/settings/keybinding-settings";
 import { SlideView, embedSrc } from "@/components/player/slide-view";
+import { blockAttrsForElKey } from "@/core/rendering/adapter";
 
 const DEFAULT_BRAND: Brand = { text: "SYNOGIZE LAB", gradientFrom: "#f59e0b", gradientTo: "#3b82f6" };
 
@@ -315,6 +316,7 @@ function PresentationView({ id }: { id: string }) {
   const evidencePages = Array.from(new Set(slideEvidence.map((c) => c.page).filter((p): p is number => typeof p === "number"))).sort((a, b) => a - b);
 
   // Props for an Adjustable element wrapper on the current slide.
+  // Includes data-block-* attribution for Impeccable detect / repair paths.
   const adj = (key: string) => ({
     elKey: key,
     override: slide.overrides?.[key],
@@ -322,6 +324,7 @@ function PresentationView({ id }: { id: string }) {
     selected: selectedEl === key,
     onSelect: setSelectedEl,
     onChange: applyOverride,
+    ...blockAttrsForElKey(key, slide),
   });
 
   return (

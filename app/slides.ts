@@ -117,12 +117,25 @@ export interface Slide {
   evidenceRefs?: string[];
   // animKeys for GSAP Flip morphing (e.g. ["title", "code:0"])
   animKeys?: string[];
+  /**
+   * Per content-block attribution for player DOM + Impeccable detect.
+   * Parallel to SlideSpec.contentBlocks when converted via specToSlide;
+   * optional on generation-only slides (synthesized from fields when absent).
+   */
+  blockMeta?: BlockRenderMeta[];
   // Per-slide reveal timeline — drives sequenced element animations via GSAP.
   // Each entry targets an element by its data-anim attribute value.
   timeline?: TimelineEntry[];
   // Manual per-element layout nudges applied in the player's adjust mode.
   // Keyed by logical element (e.g. "headline", "supporting", "image").
   overrides?: Record<string, SlideElementOverride>;
+}
+
+/** Maps a rendered block root back to SlideSpec.contentBlocks[i]. */
+export interface BlockRenderMeta {
+  index: number;
+  type: string;
+  animKey?: string;
 }
 
 export interface SlideElementOverride {

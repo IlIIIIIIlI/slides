@@ -153,6 +153,74 @@ Slide object fields (only emit fields relevant to the chosen type/variant):
 Output starts with [ and ends with ].
 `.trim();
 
+/**
+ * Build a constrained re-prompt for Impeccable detect findings.
+ * Instructs the model to return only replacement contentBlocks for listed indices.
+ */
+export function buildImpeccableRepairPrompt(input: {
+  slideIndex: number;
+  findings: Array<{
+    ruleId: string;
+    severity: string;
+    message: string;
+    blockIndex?: number;
+    path: string;
+  }>;
+  /** Current contentBlocks JSON (full array) for context */
+  contentBlocks: unknown[];
+  /** Only these indices should be rewritten */
+  blockIndices: number[];
+  maxIterations?: number;
+  attempt?: number;
+}): string {
+  const {
+    slideIndex,
+    findings,
+    contentBlocks,
+    blockIndices,
+    maxIterations = 2,
+    attempt = 1,
+  } = input;
+
+  const uniqueIndices = [...new Set(blockIndices)].sort((a, b) => a - b);
+  const findingsByBlock = uniqueIndices.map((idx) => {
+    const blockFindings = findings.filter((f) => f.blockIndex === idx);
+    const block = contentBlocks[idx];
+    return {
+      blockIndex: idx,
+      path: `slides[${slideIndex}].contentBlocks[${idx}]`,
+      current: block,
+      issues: blockFindings.map((f) => `[${f.severity}] ${f.ruleId}: ${f.message}`),
+    };
+  });
+
+  // Slide-level findings (no blockIndex) — surface for context but still only patch listed blocks
+  const slideLevel = findings.filter((f) => f.blockIndex === undefined || f.blockIndex === null);
+
+  return [
+    "You are repairing visual-design issues found by a deterministic HTML detector (Impeccable-style).",
+    `Slide index: ${slideIndex}. Repair attempt ${attempt} of ${maxIterations}.`,
+    "",
+    "CONSTRAINTS (strict):",
+    `- Return ONLY a JSON object of the form: { "replacements": [ { "blockIndex": number, "block": { ...ContentBlock } } ] }`,
+    `- Include replacements ONLY for these block indices: ${JSON.stringify(uniqueIndices)}`,
+    "- Do NOT rewrite the full slide or other contentBlocks.",
+    "- Preserve each block's type and animKey unless a finding explicitly requires changing content style.",
+    "- Prefer solid theme type colors over gradient text; flat surfaces over mesh/grid backgrounds; readable contrast.",
+    "- No markdown fences, no commentary — JSON only.",
+    "",
+    "Findings grouped by offending block:",
+    JSON.stringify(findingsByBlock, null, 2),
+    "",
+    slideLevel.length
+      ? `Slide-level findings (adjust only via listed blocks if relevant):\n${JSON.stringify(slideLevel, null, 2)}`
+      : "No slide-level findings.",
+    "",
+    "Full contentBlocks array (for context; only patch listed indices):",
+    JSON.stringify(contentBlocks, null, 2),
+  ].join("\n");
+}
+
 export const SECTION_DRAFT_SYSTEM_PROMPT = [
   "You are the CONTENT + DESIGN + NOTES stage of a presentation generator.",
   "",

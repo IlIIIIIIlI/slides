@@ -1,6 +1,14 @@
 import type { Slide } from "@/app/slides";
+import type { ContentBlock, SlideSpec } from "@/core/schemas/types";
 import type { ExtractedChunk } from "@/lib/generation/extract";
 import type { GenerationAudienceProfile } from "@/lib/generation/audience";
+import { buildImpeccableRepairPrompt } from "@/lib/generation/prompts";
+import {
+  detectSlideSpec,
+  type DetectReport,
+  type ImpeccableFinding,
+} from "@/core/validation/impeccable";
+import { DEFAULT_PRESET_ID } from "@/core/theming/presets";
 
 export interface OutlineSectionLike {
   id: string;
@@ -444,3 +452,160 @@ export function repairGeneratedDeck(
 
   return { slides: repaired, changed, messages };
 }
+
+// ─── Impeccable-constrained repair ───────────────────────────────────
+
+const DEFAULT_IMPECCABLE_MAX_ITERATIONS = 2;
+
+export type ImpeccableRepairSeverityFloor = "info" | "warn" | "error";
+
+const SEVERITY_RANK: Record<string, number> = { info: 0, warn: 1, error: 2 };
+
+export function groupImpeccableFindingsByBlock(
+  findings: ImpeccableFinding[],
+  minSeverity: ImpeccableRepairSeverityFloor = "warn",
+): Map<number, ImpeccableFinding[]> {
+  const floor = SEVERITY_RANK[minSeverity] ?? 1;
+  const map = new Map<number, ImpeccableFinding[]>();
+  for (const f of findings) {
+    if ((SEVERITY_RANK[f.severity] ?? 0) < floor) continue;
+    if (f.blockIndex === undefined) continue;
+    const list = map.get(f.blockIndex) ?? [];
+    list.push(f);
+    map.set(f.blockIndex, list);
+  }
+  return map;
+}
+
+/**
+ * Build the constrained Impeccable repair user prompt for one slide.
+ * Exported for tests and for callers that own the LLM client.
+ */
+export function buildImpeccableSlideRepairInput(
+  slide: SlideSpec,
+  report: DetectReport,
+  options?: {
+    minSeverity?: ImpeccableRepairSeverityFloor;
+    maxIterations?: number;
+    attempt?: number;
+  },
+): {
+  blockIndices: number[];
+  prompt: string;
+  findings: ImpeccableFinding[];
+} | null {
+  const minSeverity = options?.minSeverity ?? "warn";
+  const grouped = groupImpeccableFindingsByBlock(report.findings, minSeverity);
+  const blockIndices = [...grouped.keys()].sort((a, b) => a - b);
+  if (blockIndices.length === 0) return null;
+
+  const relevant = report.findings.filter(
+    (f) =>
+      (SEVERITY_RANK[f.severity] ?? 0) >= (SEVERITY_RANK[minSeverity] ?? 1) &&
+      (f.blockIndex === undefined || blockIndices.includes(f.blockIndex)),
+  );
+
+  const prompt = buildImpeccableRepairPrompt({
+    slideIndex: report.slideIndex,
+    findings: relevant,
+    contentBlocks: slide.contentBlocks,
+    blockIndices,
+    maxIterations: options?.maxIterations ?? DEFAULT_IMPECCABLE_MAX_ITERATIONS,
+    attempt: options?.attempt ?? 1,
+  });
+
+  return { blockIndices, prompt, findings: relevant };
+}
+
+export interface ImpeccableRepairAttemptResult {
+  slide: SlideSpec;
+  reports: DetectReport[];
+  iterations: number;
+  changed: boolean;
+  prompts: string[];
+  /** True when remaining findings still meet the severity floor after the cap. */
+  stillDirty: boolean;
+}
+
+/**
+ * Apply block-scoped replacements and re-detect up to maxIterations.
+ * `applyReplacements` is injected so unit tests can run without an LLM.
+ */
+export async function repairSlideImpeccable(
+  slide: SlideSpec,
+  options: {
+    themePresetId?: string;
+    slideIndex?: number;
+    maxIterations?: number;
+    minSeverity?: ImpeccableRepairSeverityFloor;
+    applyReplacements: (input: {
+      slide: SlideSpec;
+      blockIndices: number[];
+      prompt: string;
+      findings: ImpeccableFinding[];
+      attempt: number;
+    }) => Promise<Array<{ blockIndex: number; block: ContentBlock }>> | Array<{ blockIndex: number; block: ContentBlock }>;
+  },
+): Promise<ImpeccableRepairAttemptResult> {
+  const maxIterations = options.maxIterations ?? DEFAULT_IMPECCABLE_MAX_ITERATIONS;
+  const theme = options.themePresetId ?? slide.themePresetId ?? DEFAULT_PRESET_ID;
+  const slideIndex = options.slideIndex ?? 0;
+  const minSeverity = options.minSeverity ?? "warn";
+
+  let current: SlideSpec = {
+    ...slide,
+    contentBlocks: slide.contentBlocks.map((b) => ({ ...b })),
+  };
+  const reports: DetectReport[] = [];
+  const prompts: string[] = [];
+  let changed = false;
+  let iterations = 0;
+
+  for (let attempt = 1; attempt <= maxIterations; attempt++) {
+    const report = detectSlideSpec(current, theme, slideIndex);
+    reports.push(report);
+    const repairInput = buildImpeccableSlideRepairInput(current, report, {
+      minSeverity,
+      maxIterations,
+      attempt,
+    });
+    if (!repairInput) break;
+
+    iterations = attempt;
+    prompts.push(repairInput.prompt);
+    const replacements = await options.applyReplacements({
+      slide: current,
+      blockIndices: repairInput.blockIndices,
+      prompt: repairInput.prompt,
+      findings: repairInput.findings,
+      attempt,
+    });
+
+    const nextBlocks = current.contentBlocks.map((b) => ({ ...b }));
+    for (const rep of replacements) {
+      if (!repairInput.blockIndices.includes(rep.blockIndex)) continue;
+      if (rep.blockIndex < 0 || rep.blockIndex >= nextBlocks.length) continue;
+      // Preserve animKey unless the replacement explicitly sets one
+      const prev = nextBlocks[rep.blockIndex];
+      nextBlocks[rep.blockIndex] = {
+        ...rep.block,
+        animKey: rep.block.animKey ?? prev.animKey,
+      };
+      changed = true;
+    }
+    current = { ...current, contentBlocks: nextBlocks };
+  }
+
+  // Final re-detect after last apply (or when no repair needed, reports already has one)
+  if (iterations > 0) {
+    reports.push(detectSlideSpec(current, theme, slideIndex));
+  } else if (reports.length === 0) {
+    reports.push(detectSlideSpec(current, theme, slideIndex));
+  }
+
+  const last = reports[reports.length - 1];
+  const stillDirty = groupImpeccableFindingsByBlock(last.findings, minSeverity).size > 0;
+
+  return { slide: current, reports, iterations, changed, prompts, stillDirty };
+}
+

@@ -1,0 +1,9 @@
+slug: 2026-07-11-idea-run-impeccable-detect-on-player-rendered-slide-html-xloh1
+kind: feature
+project_id: slides
+idea: 2026-07-11-run-impeccable-detect-on-player-rendered-slide-html-xloh1
+capability: impeccable-detect
+novelty: 3
+effort: 2
+source_trending:
+  - pbakaus/impeccable

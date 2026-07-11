@@ -158,6 +158,10 @@ export type SlideAdjProps = {
   selected: boolean;
   onSelect: (key: string) => void;
   onChange: (key: string, patch: SlideElementOverride) => void;
+  /** contentBlocks path attribution for Impeccable detect */
+  dataBlockIndex?: number;
+  dataBlockType?: string;
+  dataAnimKey?: string;
 };
 
 export interface SlideViewProps {

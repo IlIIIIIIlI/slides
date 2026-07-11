@@ -17,9 +17,16 @@ import {
   selectSectionChunks,
   type GeneratedSlide,
 } from "@/lib/generation/repair";
-import { formatCriticalWarnings, hasCriticalWarnings, validateOutline, validateSlides } from "@/lib/generation/validate";
+import {
+  formatCriticalWarnings,
+  hasCriticalWarnings,
+  runImpeccableOnSlides,
+  validateOutline,
+  validateSlides,
+} from "@/lib/generation/validate";
 import { buildVisionImageBlocks, orderImagesForSection } from "@/lib/generation/vision";
 import { generateFidelityReport } from "@/lib/generation/fidelity";
+import { DEFAULT_PRESET_ID } from "@/core/theming/presets";
 import type { Slide } from "@/app/slides";
 
 const DATA_DIR = path.join(process.cwd(), "data", "presentations");
@@ -366,7 +373,10 @@ export async function POST(req: NextRequest) {
         if (hasCriticalWarnings(warnings)) {
           return fail(formatCriticalWarnings(warnings, "Slide validation failed"));
         }
-        send("validate", { warnings });
+
+        // Impeccable detect on player HTML (read-only; does not mutate animKeys).
+        const impeccable = runImpeccableOnSlides(allSlides, DEFAULT_PRESET_ID);
+        send("validate", { warnings, impeccable });
 
         // ---------- Stage 5: fidelity report ----------
         send("stage", { stage: "fidelity" });
@@ -400,6 +410,7 @@ export async function POST(req: NextRequest) {
           chunks: extracted.chunks,
           images: extracted.images,
           validationWarnings: warnings,
+          impeccable,
           fidelityReport,
         };
 

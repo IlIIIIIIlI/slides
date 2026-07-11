@@ -97,6 +97,21 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 ## Changelog
 
+### 2026-07-11 — Impeccable detect on player-rendered slide HTML
+
+Added a deterministic **visual-slop detector** that runs on each slide’s **player HTML**, not just the SlideSpec JSON. Structural antislop (`core/validation/antislop/`) still catches token-level AI tells; many design failures only show up after CSS (gradient text, mesh/grid backgrounds, low-contrast type). This path catches those post-render issues with **zero LLM cost**.
+
+**How it works:**
+
+1. **Block attribution** — The player adapter emits `data-block-index`, `data-block-type`, and optional `data-anim-key` on each content-block root (`renderSlideToHtml` for Node snapshots; `Adjustable` wrappers in the live player). Explicit `animKey` values are never overwritten.
+2. **Snapshot + detect** — `core/validation/impeccable/` builds a jsdom document from `SlideSpec` + theme tokens, runs a registry of Impeccable-inspired rules (high-value rules enabled; layout/paint rules registered but skipped with reasons), and maps each finding back to `slides[n].contentBlocks[i]` when possible.
+3. **Validate / API** — `lib/generation/validate.ts` and `POST /api/validate` attach an additive `impeccable` field (per-slide `DetectReport[]`) alongside existing fidelity and antislop results.
+4. **Constrained repair** — `buildImpeccableRepairPrompt` + `repairSlideImpeccable` re-prompt only the offending block indices (default max 2 iterations with re-detect between attempts).
+5. **Generation & import** — Detect runs after successful generation (`analyze` stream, `draftSlidesWithDetect`) and after PDF import synthesis (`extract.ts`), so both generated and imported decks get the same findings.
+6. **UI** — `SlopBadge` accepts detect error/warn counts without requiring a vision model; the workspace Fidelity tab surfaces “Design detect” when reports are present.
+
+See `core/validation/impeccable/README.md` for the rule list and skip reasons.
+
 ### 2026-06-23 — animKey synthesis from liteparse spatial bboxes for imported decks
 
 Added automatic `animKey` synthesis for PDF imports so that recurring elements (titles, figures, quoted-code blocks) morph correctly between consecutive slides without manual annotation.

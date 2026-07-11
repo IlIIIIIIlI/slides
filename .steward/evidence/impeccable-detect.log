@@ -1,0 +1,1037 @@
+(node:1882540) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# (node:1882551) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: specToSlide animKeys
+    # Subtest: stamps animKeys for headline block
+    ok 1 - stamps animKeys for headline block
+      ---
+      duration_ms: 4.229121
+      type: 'test'
+      ...
+    # Subtest: stamps animKeys for code-block
+    ok 2 - stamps animKeys for code-block
+      ---
+      duration_ms: 1.41519
+      type: 'test'
+      ...
+    # Subtest: omits animKeys when no keyed blocks
+    ok 3 - omits animKeys when no keyed blocks
+      ---
+      duration_ms: 0.385466
+      type: 'test'
+      ...
+    # Subtest: explicit animKey on block is used
+    ok 4 - explicit animKey on block is used
+      ---
+      duration_ms: 1.33202
+      type: 'test'
+      ...
+    1..4
+ok 1 - specToSlide animKeys
+  ---
+  duration_ms: 9.871343
+  type: 'suite'
+  ...
+# Subtest: renderSlideToHtml block attribution
+    # Subtest: emits data-block-index, data-block-type, data-anim-key for headline, supporting, bullet-list, code-block
+    ok 1 - emits data-block-index, data-block-type, data-anim-key for headline, supporting, bullet-list, code-block
+      ---
+      duration_ms: 2.659337
+      type: 'test'
+      ...
+    # Subtest: preserves explicit animKey
+    ok 2 - preserves explicit animKey
+      ---
+      duration_ms: 0.25591
+      type: 'test'
+      ...
+    # Subtest: computeBlockMeta and blockAttrsForElKey align
+    ok 3 - computeBlockMeta and blockAttrsForElKey align
+      ---
+      duration_ms: 1.850729
+      type: 'test'
+      ...
+    1..3
+ok 2 - renderSlideToHtml block attribution
+  ---
+  duration_ms: 5.503648
+  type: 'suite'
+  ...
+# (node:1882576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: flipIdFor
+    # Subtest: prefixes with flip-
+    ok 1 - prefixes with flip-
+      ---
+      duration_ms: 2.382699
+      type: 'test'
+      ...
+    1..1
+ok 3 - flipIdFor
+  ---
+  duration_ms: 4.840007
+  type: 'suite'
+  ...
+# Subtest: resolveAnimKey
+    # Subtest: explicit animKey wins
+    ok 1 - explicit animKey wins
+      ---
+      duration_ms: 4.110063
+      type: 'test'
+      ...
+    # Subtest: headline block → title
+    ok 2 - headline block → title
+      ---
+      duration_ms: 1.67573
+      type: 'test'
+      ...
+    # Subtest: code-block uses occurrence index
+    ok 3 - code-block uses occurrence index
+      ---
+      duration_ms: 0.548489
+      type: 'test'
+      ...
+    # Subtest: other block types return undefined
+    ok 4 - other block types return undefined
+      ---
+      duration_ms: 0.38321
+      type: 'test'
+      ...
+    1..4
+ok 4 - resolveAnimKey
+  ---
+  duration_ms: 7.7814
+  type: 'suite'
+  ...
+# Subtest: sharedAnimKeys
+    # Subtest: returns intersection of resolved keys
+    ok 1 - returns intersection of resolved keys
+      ---
+      duration_ms: 4.705124
+      type: 'test'
+      ...
+    # Subtest: empty intersection when no shared keys
+    ok 2 - empty intersection when no shared keys
+      ---
+      duration_ms: 1.576365
+      type: 'test'
+      ...
+    # Subtest: code blocks keyed by occurrence index
+    ok 3 - code blocks keyed by occurrence index
+      ---
+      duration_ms: 0.529802
+      type: 'test'
+      ...
+    # Subtest: explicit animKey match
+    ok 4 - explicit animKey match
+      ---
+      duration_ms: 2.164921
+      type: 'test'
+      ...
+    # Subtest: derived title key is shared
+    ok 5 - derived title key is shared
+      ---
+      duration_ms: 0.58468
+      type: 'test'
+      ...
+    1..5
+ok 5 - sharedAnimKeys
+  ---
+  duration_ms: 10.327267
+  type: 'suite'
+  ...
+# (node:1882583) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: lintPresentation end-to-end
+    # Subtest: clean deck has score 100 and no violations
+    ok 1 - clean deck has score 100 and no violations
+      ---
+      duration_ms: 10.570522
+      type: 'test'
+      ...
+    # Subtest: sloppy deck has score < 100
+    ok 2 - sloppy deck has score < 100
+      ---
+      duration_ms: 4.274559
+      type: 'test'
+      ...
+    # Subtest: report contains generatedAt timestamp
+    ok 3 - report contains generatedAt timestamp
+      ---
+      duration_ms: 0.474378
+      type: 'test'
+      ...
+    # Subtest: slideScores length matches deck slide count
+    ok 4 - slideScores length matches deck slide count
+      ---
+      duration_ms: 2.55917
+      type: 'test'
+      ...
+    # Subtest: violations reference valid slideIds
+    ok 5 - violations reference valid slideIds
+      ---
+      duration_ms: 1.452222
+      type: 'test'
+      ...
+    1..5
+ok 6 - lintPresentation end-to-end
+  ---
+  duration_ms: 27.298406
+  type: 'suite'
+  ...
+# (node:1882593) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: bullet-parallelism-fake rule
+    # Subtest: no violation for varied natural bullets
+    ok 1 - no violation for varied natural bullets
+      ---
+      duration_ms: 3.740316
+      type: 'test'
+      ...
+    # Subtest: flags bullets all starting with the same verb
+    ok 2 - flags bullets all starting with the same verb
+      ---
+      duration_ms: 1.486139
+      type: 'test'
+      ...
+    # Subtest: flags bullets all ending with em-dash explanation
+    ok 3 - flags bullets all ending with em-dash explanation
+      ---
+      duration_ms: 1.587239
+      type: 'test'
+      ...
+    # Subtest: no violation for fewer than 3 bullets
+    ok 4 - no violation for fewer than 3 bullets
+      ---
+      duration_ms: 0.417413
+      type: 'test'
+      ...
+    1..4
+ok 7 - bullet-parallelism-fake rule
+  ---
+  duration_ms: 9.942998
+  type: 'suite'
+  ...
+# (node:1882600) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: em-dash-overuse rule
+    # Subtest: no violations for a clean headline
+    ok 1 - no violations for a clean headline
+      ---
+      duration_ms: 4.401918
+      type: 'test'
+      ...
+    # Subtest: no violation for single em-dash in headline
+    ok 2 - no violation for single em-dash in headline
+      ---
+      duration_ms: 1.921297
+      type: 'test'
+      ...
+    # Subtest: flags slide with more than one em-dash across text blocks
+    ok 3 - flags slide with more than one em-dash across text blocks
+      ---
+      duration_ms: 0.433035
+      type: 'test'
+      ...
+    # Subtest: flags deck-level ratio above threshold (reported on first slide)
+    ok 4 - flags deck-level ratio above threshold (reported on first slide)
+      ---
+      duration_ms: 0.451563
+      type: 'test'
+      ...
+    1..4
+ok 8 - em-dash-overuse rule
+  ---
+  duration_ms: 9.698646
+  type: 'suite'
+  ...
+# (node:1882611) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: headline-titlecase-overkill rule
+    # Subtest: no violation for a short sentence-case headline
+    ok 1 - no violation for a short sentence-case headline
+      ---
+      duration_ms: 8.040579
+      type: 'test'
+      ...
+    # Subtest: no violation for a short title-case headline (≤8 words)
+    ok 2 - no violation for a short title-case headline (≤8 words)
+      ---
+      duration_ms: 3.488447
+      type: 'test'
+      ...
+    # Subtest: flags a long title-case headline (>8 words)
+    ok 3 - flags a long title-case headline (>8 words)
+      ---
+      duration_ms: 3.846069
+      type: 'test'
+      ...
+    # Subtest: no violation for a long sentence-case headline
+    ok 4 - no violation for a long sentence-case headline
+      ---
+      duration_ms: 0.412608
+      type: 'test'
+      ...
+    1..4
+ok 9 - headline-titlecase-overkill rule
+  ---
+  duration_ms: 25.999621
+  type: 'suite'
+  ...
+# (node:1882618) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: inter-everywhere rule
+    # Subtest: no violation for Geist-based preset
+    ok 1 - no violation for Geist-based preset
+      ---
+      duration_ms: 4.788092
+      type: 'test'
+      ...
+    # Subtest: no violation for unknown preset id
+    ok 2 - no violation for unknown preset id
+      ---
+      duration_ms: 1.893421
+      type: 'test'
+      ...
+    # Subtest: only fires on the first slide of the deck
+    ok 3 - only fires on the first slide of the deck
+      ---
+      duration_ms: 0.413081
+      type: 'test'
+      ...
+    1..3
+ok 10 - inter-everywhere rule
+  ---
+  duration_ms: 15.420516
+  type: 'suite'
+  ...
+# (node:1882630) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: marketing-buzzwords rule
+    # Subtest: no violation for clean copy
+    ok 1 - no violation for clean copy
+      ---
+      duration_ms: 9.412004
+      type: 'test'
+      ...
+    # Subtest: no violation for a single buzzword
+    ok 2 - no violation for a single buzzword
+      ---
+      duration_ms: 4.205913
+      type: 'test'
+      ...
+    # Subtest: flags two distinct buzzwords
+    ok 3 - flags two distinct buzzwords
+      ---
+      duration_ms: 0.488398
+      type: 'test'
+      ...
+    # Subtest: matches inflected forms (seamlessly, revolutionary)
+    ok 4 - matches inflected forms (seamlessly, revolutionary)
+      ---
+      duration_ms: 0.303791
+      type: 'test'
+      ...
+    # Subtest: matches synergistic and holistic
+    ok 5 - matches synergistic and holistic
+      ---
+      duration_ms: 2.886405
+      type: 'test'
+      ...
+    # Subtest: is case-insensitive
+    ok 6 - is case-insensitive
+      ---
+      duration_ms: 0.366861
+      type: 'test'
+      ...
+    1..6
+ok 11 - marketing-buzzwords rule
+  ---
+  duration_ms: 29.53486
+  type: 'suite'
+  ...
+# (node:1882640) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: nested-cards rule
+    # Subtest: no violation for a clean statement slide
+    ok 1 - no violation for a clean statement slide
+      ---
+      duration_ms: 5.976791
+      type: 'test'
+      ...
+    # Subtest: flags framework slide with too many structural blocks
+    ok 2 - flags framework slide with too many structural blocks
+      ---
+      duration_ms: 0.951145
+      type: 'test'
+      ...
+    # Subtest: no violation for framework slide within block threshold
+    ok 3 - no violation for framework slide within block threshold
+      ---
+      duration_ms: 2.417745
+      type: 'test'
+      ...
+    # Subtest: flags slide with card visualMode
+    ok 4 - flags slide with card visualMode
+      ---
+      duration_ms: 0.364641
+      type: 'test'
+      ...
+    # Subtest: flags comparison slide with too many structural blocks
+    ok 5 - flags comparison slide with too many structural blocks
+      ---
+      duration_ms: 2.430312
+      type: 'test'
+      ...
+    1..5
+ok 12 - nested-cards rule
+  ---
+  duration_ms: 16.879555
+  type: 'suite'
+  ...
+# (node:1882652) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: purple-gradient rule
+    # Subtest: returns no violations for a clean slide
+    ok 1 - returns no violations for a clean slide
+      ---
+      duration_ms: 1.856914
+      type: 'test'
+      ...
+    # Subtest: flags purple in renderProps.color as error
+    ok 2 - flags purple in renderProps.color as error
+      ---
+      duration_ms: 0.752808
+      type: 'test'
+      ...
+    # Subtest: flags violet gradient in visualMode
+    ok 3 - flags violet gradient in visualMode
+      ---
+      duration_ms: 0.246807
+      type: 'test'
+      ...
+    # Subtest: flags \#7c3aed hex color
+    ok 4 - flags \#7c3aed hex color
+      ---
+      duration_ms: 0.185674
+      type: 'test'
+      ...
+    # Subtest: returns no violations for non-purple colors
+    ok 5 - returns no violations for non-purple colors
+      ---
+      duration_ms: 0.23555
+      type: 'test'
+      ...
+    1..5
+ok 13 - purple-gradient rule
+  ---
+  duration_ms: 5.914249
+  type: 'suite'
+  ...
+# (node:1882661) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: scoreSlide
+    # Subtest: returns 100 for a clean slide
+    ok 1 - returns 100 for a clean slide
+      ---
+      duration_ms: 6.809901
+      type: 'test'
+      ...
+    # Subtest: deducts 25 for an error violation
+    ok 2 - deducts 25 for an error violation
+      ---
+      duration_ms: 1.102535
+      type: 'test'
+      ...
+    # Subtest: clamps score to 0 for many violations
+    ok 3 - clamps score to 0 for many violations
+      ---
+      duration_ms: 1.400169
+      type: 'test'
+      ...
+    1..3
+ok 14 - scoreSlide
+  ---
+  duration_ms: 10.821202
+  type: 'suite'
+  ...
+# Subtest: lintPresentation
+    # Subtest: returns score 100 for a clean deck
+    ok 1 - returns score 100 for a clean deck
+      ---
+      duration_ms: 0.837279
+      type: 'test'
+      ...
+    # Subtest: returns deck score as mean of slide scores
+    ok 2 - returns deck score as mean of slide scores
+      ---
+      duration_ms: 0.456123
+      type: 'test'
+      ...
+    # Subtest: returns score 100 for an empty deck
+    ok 3 - returns score 100 for an empty deck
+      ---
+      duration_ms: 0.208054
+      type: 'test'
+      ...
+    # Subtest: completes 30×20 deck within 2000ms
+    ok 4 - completes 30×20 deck within 2000ms
+      ---
+      duration_ms: 5.385321
+      type: 'test'
+      ...
+    1..4
+ok 15 - lintPresentation
+  ---
+  duration_ms: 7.546592
+  type: 'suite'
+  ...
+# (node:1882670) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: detectSlideHtml rules
+    # Subtest: reports gradient-text
+    ok 1 - reports gradient-text
+      ---
+      duration_ms: 201.674392
+      type: 'test'
+      ...
+    # Subtest: reports multi-axis-grid-background on slide root
+    ok 2 - reports multi-axis-grid-background on slide root
+      ---
+      duration_ms: 40.730953
+      type: 'test'
+      ...
+    # Subtest: reports low-contrast-text
+    ok 3 - reports low-contrast-text
+      ---
+      duration_ms: 24.539715
+      type: 'test'
+      ...
+    # Subtest: clean default-theme slide has zero error findings
+    ok 4 - clean default-theme slide has zero error findings
+      ---
+      duration_ms: 34.528171
+      type: 'test'
+      ...
+    1..4
+ok 16 - detectSlideHtml rules
+  ---
+  duration_ms: 304.658366
+  type: 'suite'
+  ...
+# Subtest: map-findings
+    # Subtest: nested span maps to parent contentBlocks path
+    ok 1 - nested span maps to parent contentBlocks path
+      ---
+      duration_ms: 19.388085
+      type: 'test'
+      ...
+    # Subtest: slide-level node has slides[n] path without blockIndex
+    ok 2 - slide-level node has slides[n] path without blockIndex
+      ---
+      duration_ms: 11.800789
+      type: 'test'
+      ...
+    # Subtest: mapFindings attaches paths to raw findings
+    ok 3 - mapFindings attaches paths to raw findings
+      ---
+      duration_ms: 27.699337
+      type: 'test'
+      ...
+    1..3
+ok 17 - map-findings
+  ---
+  duration_ms: 59.831758
+  type: 'suite'
+  ...
+# Subtest: detectSlideSpec snapshot
+    # Subtest: builds jsdom-ready HTML without a browser
+    ok 1 - builds jsdom-ready HTML without a browser
+      ---
+      duration_ms: 2.023468
+      type: 'test'
+      ...
+    # Subtest: does not mutate animKey on the input slide
+    ok 2 - does not mutate animKey on the input slide
+      ---
+      duration_ms: 19.748043
+      type: 'test'
+      ...
+    1..2
+ok 18 - detectSlideSpec snapshot
+  ---
+  duration_ms: 22.427711
+  type: 'suite'
+  ...
+# (node:1882678) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: normalizeText: lowercases, collapses whitespace, strips non-alphanumeric, truncates
+ok 19 - normalizeText: lowercases, collapses whitespace, strips non-alphanumeric, truncates
+  ---
+  duration_ms: 2.053894
+  type: 'test'
+  ...
+# Subtest: fnv1a32: same string yields same hash, different strings differ
+ok 20 - fnv1a32: same string yields same hash, different strings differ
+  ---
+  duration_ms: 0.601816
+  type: 'test'
+  ...
+# Subtest: quantizeBBox: maps bbox to grid cells correctly
+ok 21 - quantizeBBox: maps bbox to grid cells correctly
+  ---
+  duration_ms: 1.58262
+  type: 'test'
+  ...
+# Subtest: iou: identical boxes = 1, no overlap = 0, partial overlap is correct
+ok 22 - iou: identical boxes = 1, no overlap = 0, partial overlap is correct
+  ---
+  duration_ms: 0.521178
+  type: 'test'
+  ...
+# Subtest: title block at same bbox+text across three slides gets shared lp:title: key
+ok 23 - title block at same bbox+text across three slides gets shared lp:title: key
+  ---
+  duration_ms: 0.90904
+  type: 'test'
+  ...
+# Subtest: figure bbox shifted by ~8% of page dims still matches (IoU ≥ 0.5)
+ok 24 - figure bbox shifted by ~8% of page dims still matches (IoU ≥ 0.5)
+  ---
+  duration_ms: 0.56776
+  type: 'test'
+  ...
+# Subtest: figure bbox shifted by ~40% of page dims does NOT match (IoU < 0.5)
+ok 25 - figure bbox shifted by ~40% of page dims does NOT match (IoU < 0.5)
+  ---
+  duration_ms: 0.502009
+  type: 'test'
+  ...
+# Subtest: block with pre-existing animKey is left untouched and key is not reused
+ok 26 - block with pre-existing animKey is left untouched and key is not reused
+  ---
+  duration_ms: 0.475584
+  type: 'test'
+  ...
+# Subtest: DOCX-style input (no _bbox) leaves animKey undefined
+ok 27 - DOCX-style input (no _bbox) leaves animKey undefined
+  ---
+  duration_ms: 0.695862
+  type: 'test'
+  ...
+# Subtest: synthesizeAnimKeys is deterministic: two runs on cloned input yield identical keys
+ok 28 - synthesizeAnimKeys is deterministic: two runs on cloned input yield identical keys
+  ---
+  duration_ms: 1.214088
+  type: 'test'
+  ...
+# Subtest: stripInternal removes _bbox, _role, _pageW, _pageH from all blocks and slides
+ok 29 - stripInternal removes _bbox, _role, _pageW, _pageH from all blocks and slides
+  ---
+  duration_ms: 0.617814
+  type: 'test'
+  ...
+# (node:1882689) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: stripFences removes markdown code fences
+ok 30 - stripFences removes markdown code fences
+  ---
+  duration_ms: 1.544237
+  type: 'test'
+  ...
+# Subtest: extractText plain text: splits into paragraph chunks
+ok 31 - extractText plain text: splits into paragraph chunks
+  ---
+  duration_ms: 1.234577
+  type: 'test'
+  ...
+# Subtest: extractText plain text: fullText matches original content
+ok 32 - extractText plain text: fullText matches original content
+  ---
+  duration_ms: 0.500977
+  type: 'test'
+  ...
+# Subtest: extractText code: detects TS extension and uses code chunking
+ok 33 - extractText code: detects TS extension and uses code chunking
+  ---
+  duration_ms: 0.651074
+  type: 'test'
+  ...
+# Subtest: extractText image: stores upload and returns single image entry
+ok 34 - extractText image: stores upload and returns single image entry
+  ---
+  duration_ms: 17.978652
+  type: 'test'
+  ...
+# Subtest: inline DOCX equation yields $...$
+ok 35 - inline DOCX equation yields $...$
+  ---
+  duration_ms: 69.897165
+  type: 'test'
+  ...
+# Subtest: m:oMathPara yields $$...$$
+ok 36 - m:oMathPara yields $$...$$
+  ---
+  duration_ms: 8.858046
+  type: 'test'
+  ...
+# Subtest: math-free XML is unchanged by preprocessMathXml
+ok 37 - math-free XML is unchanged by preprocessMathXml
+  ---
+  duration_ms: 0.213758
+  type: 'test'
+  ...
+# Subtest: stripXmlTags extracts plain text with paragraph breaks
+ok 38 - stripXmlTags extracts plain text with paragraph breaks
+  ---
+  duration_ms: 0.705582
+  type: 'test'
+  ...
+# Subtest: math LaTeX survives stripXmlTags
+ok 39 - math LaTeX survives stripXmlTags
+  ---
+  duration_ms: 0.685207
+  type: 'test'
+  ...
+# Subtest: preprocessMathXml + stripXmlTags: inline equation at correct position
+ok 40 - preprocessMathXml + stripXmlTags: inline equation at correct position
+  ---
+  duration_ms: 12.429944
+  type: 'test'
+  ...
+# Subtest: liteparsePagesToSlides: recurring headline on adjacent pages shares a stable lp: animKey
+ok 41 - liteparsePagesToSlides: recurring headline on adjacent pages shares a stable lp: animKey
+  ---
+  duration_ms: 1.906122
+  type: 'test'
+  ...
+# (node:1882701) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: retries fidelity grading with compact instructions when the first JSON response is truncated
+ok 42 - retries fidelity grading with compact instructions when the first JSON response is truncated
+  ---
+  duration_ms: 3.424344
+  type: 'test'
+  ...
+# Subtest: falls back to deterministic fidelity when both narrative JSON responses are invalid
+ok 43 - falls back to deterministic fidelity when both narrative JSON responses are invalid
+  ---
+  duration_ms: 0.674054
+  type: 'test'
+  ...
+# (node:1882715) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: finds a focused visual region instead of returning the whole page
+ok 44 - finds a focused visual region instead of returning the whole page
+  ---
+  duration_ms: 7.548524
+  type: 'test'
+  ...
+# Subtest: prefers a dense screenshot-like area over sparse page marks
+ok 45 - prefers a dense screenshot-like area over sparse page marks
+  ---
+  duration_ms: 1.484355
+  type: 'test'
+  ...
+# Subtest: returns null for blank pages
+ok 46 - returns null for blank pages
+  ---
+  duration_ms: 1.903914
+  type: 'test'
+  ...
+# (node:1882722) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: nary: summation with sub and sup
+ok 47 - nary: summation with sub and sup
+  ---
+  duration_ms: 151.248207
+  type: 'test'
+  ...
+# Subtest: nary: default operator is integral when chr absent
+ok 48 - nary: default operator is integral when chr absent
+  ---
+  duration_ms: 11.234177
+  type: 'test'
+  ...
+# Subtest: nary: product with undOvr emits \\limits
+ok 49 - nary: product with undOvr emits \\limits
+  ---
+  duration_ms: 9.992713
+  type: 'test'
+  ...
+# Subtest: nary: unknown glyph falls back to raw glyph without throwing
+ok 50 - nary: unknown glyph falls back to raw glyph without throwing
+  ---
+  duration_ms: 8.156036
+  type: 'test'
+  ...
+# Subtest: limLow: lim operator gets subscript limit
+ok 51 - limLow: lim operator gets subscript limit
+  ---
+  duration_ms: 13.781081
+  type: 'test'
+  ...
+# Subtest: limLow: max operator gets subscript limit
+ok 52 - limLow: max operator gets subscript limit
+  ---
+  duration_ms: 8.891649
+  type: 'test'
+  ...
+# Subtest: limLow: inf operator gets subscript limit
+ok 53 - limLow: inf operator gets subscript limit
+  ---
+  duration_ms: 20.125914
+  type: 'test'
+  ...
+# Subtest: limLow: non-operator base uses \\underset
+ok 54 - limLow: non-operator base uses \\underset
+  ---
+  duration_ms: 11.081812
+  type: 'test'
+  ...
+# Subtest: limUpp: non-operator base uses \\overset
+ok 55 - limUpp: non-operator base uses \\overset
+  ---
+  duration_ms: 12.653071
+  type: 'test'
+  ...
+# Subtest: limUpp: operator base gets superscript limit
+ok 56 - limUpp: operator base gets superscript limit
+  ---
+  duration_ms: 14.40859
+  type: 'test'
+  ...
+# Subtest: groupChr: overbrace ⏞ emits \\overbrace{...}
+ok 57 - groupChr: overbrace ⏞ emits \\overbrace{...}
+  ---
+  duration_ms: 10.650355
+  type: 'test'
+  ...
+# Subtest: groupChr: underbrace ⏟ emits \\underbrace{...}
+ok 58 - groupChr: underbrace ⏟ emits \\underbrace{...}
+  ---
+  duration_ms: 15.376194
+  type: 'test'
+  ...
+# Subtest: groupChr: non-brace chr at bot emits \\underset
+ok 59 - groupChr: non-brace chr at bot emits \\underset
+  ---
+  duration_ms: 8.401555
+  type: 'test'
+  ...
+# Subtest: dispatch: nary nested inside fraction is reached
+ok 60 - dispatch: nary nested inside fraction is reached
+  ---
+  duration_ms: 14.450875
+  type: 'test'
+  ...
+# (node:1882732) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: convert fraction → \\frac{a}{b}
+ok 61 - convert fraction → \\frac{a}{b}
+  ---
+  duration_ms: 61.432522
+  type: 'test'
+  ...
+# Subtest: convert radical with degree → \\sqrt[3]{x}
+ok 62 - convert radical with degree → \\sqrt[3]{x}
+  ---
+  duration_ms: 8.190534
+  type: 'test'
+  ...
+# Subtest: convert radical with hidden degree → \\sqrt{x}
+ok 63 - convert radical with hidden degree → \\sqrt{x}
+  ---
+  duration_ms: 7.792273
+  type: 'test'
+  ...
+# Subtest: convert n-ary summation with limits
+ok 64 - convert n-ary summation with limits
+  ---
+  duration_ms: 14.111461
+  type: 'test'
+  ...
+# Subtest: convert matrix → \\begin{matrix}...\\end{matrix}
+ok 65 - convert matrix → \\begin{matrix}...\\end{matrix}
+  ---
+  duration_ms: 7.776994
+  type: 'test'
+  ...
+# Subtest: convert accent → \\hat{v}
+ok 66 - convert accent → \\hat{v}
+  ---
+  duration_ms: 10.31046
+  type: 'test'
+  ...
+# Subtest: convert delimiter → \\left(x+y\\right)
+ok 67 - convert delimiter → \\left(x+y\\right)
+  ---
+  duration_ms: 12.848273
+  type: 'test'
+  ...
+# Subtest: degrade unknown element without throwing
+ok 68 - degrade unknown element without throwing
+  ---
+  duration_ms: 6.97593
+  type: 'test'
+  ...
+# Subtest: oMathPara wrapper is handled
+ok 69 - oMathPara wrapper is handled
+  ---
+  duration_ms: 18.180237
+  type: 'test'
+  ...
+# (node:1882740) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: normalizes model outline total/section-count mismatch before validation
+ok 70 - normalizes model outline total/section-count mismatch before validation
+  ---
+  duration_ms: 19.905776
+  type: 'test'
+  ...
+# Subtest: repairs missing first title while preserving target slide count
+ok 71 - repairs missing first title while preserving target slide count
+  ---
+  duration_ms: 2.87858
+  type: 'test'
+  ...
+# Subtest: moves an existing title to the front instead of failing deck validation
+ok 72 - moves an existing title to the front instead of failing deck validation
+  ---
+  duration_ms: 0.493902
+  type: 'test'
+  ...
+# Subtest: inserts fallback image slide for academic decks when source images exist
+ok 73 - inserts fallback image slide for academic decks when source images exist
+  ---
+  duration_ms: 0.874524
+  type: 'test'
+  ...
+# Subtest: synthesizes quiz section slides when the model returns the wrong type
+ok 74 - synthesizes quiz section slides when the model returns the wrong type
+  ---
+  duration_ms: 0.845609
+  type: 'test'
+  ...
+# Subtest: adds fallback evidence refs to academic factual slides in a bounded section
+ok 75 - adds fallback evidence refs to academic factual slides in a bounded section
+  ---
+  duration_ms: 0.449043
+  type: 'test'
+  ...
+# Subtest: selects explicit candidate chunks before scoring by section text
+ok 76 - selects explicit candidate chunks before scoring by section text
+  ---
+  duration_ms: 0.634051
+  type: 'test'
+  ...
+# Subtest: buildImpeccableSlideRepairInput scopes prompt to offending block indices only
+ok 77 - buildImpeccableSlideRepairInput scopes prompt to offending block indices only
+  ---
+  duration_ms: 0.981753
+  type: 'test'
+  ...
+# Subtest: groupImpeccableFindingsByBlock respects severity floor
+ok 78 - groupImpeccableFindingsByBlock respects severity floor
+  ---
+  duration_ms: 0.523229
+  type: 'test'
+  ...
+# Subtest: repairSlideImpeccable caps iterations and only patches listed indices
+ok 79 - repairSlideImpeccable caps iterations and only patches listed indices
+  ---
+  duration_ms: 180.822035
+  type: 'test'
+  ...
+# (node:1882750) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: normalizes free-form audience labels with technical fallback
+ok 80 - normalizes free-form audience labels with technical fallback
+  ---
+  duration_ms: 1.244354
+  type: 'test'
+  ...
+# Subtest: rejects unknown evidence refs
+ok 81 - rejects unknown evidence refs
+  ---
+  duration_ms: 1.461065
+  type: 'test'
+  ...
+# Subtest: rejects quiz sections for non-quiz audience profiles
+ok 82 - rejects quiz sections for non-quiz audience profiles
+  ---
+  duration_ms: 0.796076
+  type: 'test'
+  ...
+# Subtest: requires academic quiz sections to be final
+ok 83 - requires academic quiz sections to be final
+  ---
+  duration_ms: 0.276437
+  type: 'test'
+  ...
+# Subtest: rejects academic factual slides without evidence refs
+ok 84 - rejects academic factual slides without evidence refs
+  ---
+  duration_ms: 0.260753
+  type: 'test'
+  ...
+# Subtest: validateSlidesWithImpeccable attaches impeccable reports (additive)
+ok 85 - validateSlidesWithImpeccable attaches impeccable reports (additive)
+  ---
+  duration_ms: 125.917923
+  type: 'test'
+  ...
+# Subtest: runImpeccableOnPresentation flags low-contrast block on violating SlideSpec
+ok 86 - runImpeccableOnPresentation flags low-contrast block on violating SlideSpec
+  ---
+  duration_ms: 17.362488
+  type: 'test'
+  ...
+# Subtest: slideToDetectSpec preserves explicit animKey via blockMeta
+ok 87 - slideToDetectSpec preserves explicit animKey via blockMeta
+  ---
+  duration_ms: 0.276184
+  type: 'test'
+  ...
+# (node:1882764) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: maps only Anthropic-supported image extensions to media types
+ok 88 - maps only Anthropic-supported image extensions to media types
+  ---
+  duration_ms: 1.246539
+  type: 'test'
+  ...
+# Subtest: resolves public image paths without allowing traversal outside public
+ok 89 - resolves public image paths without allowing traversal outside public
+  ---
+  duration_ms: 0.591913
+  type: 'test'
+  ...
+# Subtest: orders candidate images first for section-specific vision context
+ok 90 - orders candidate images first for section-specific vision context
+  ---
+  duration_ms: 1.07247
+  type: 'test'
+  ...
+# Subtest: builds text plus base64 image blocks from saved focused crops
+ok 91 - builds text plus base64 image blocks from saved focused crops
+  ---
+  duration_ms: 60.159409
+  type: 'test'
+  ...
+1..91
+# tests 142
+# suites 18
+# pass 142
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 38629.259375
+EXIT:0
+
+=== next lint ===
+✔ No ESLint warnings or errors
+EXIT:0
