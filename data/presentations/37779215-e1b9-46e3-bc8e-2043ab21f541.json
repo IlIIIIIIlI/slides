@@ -1,0 +1,141 @@
+{
+  "id": "37779215-e1b9-46e3-bc8e-2043ab21f541",
+  "title": "Acme Product Tour (smoke)",
+  "sourceName": "2 product URLs",
+  "sourceType": "url",
+  "audienceType": "Customer",
+  "stylePreset": "dark-minimal",
+  "slideCount": 2,
+  "generatedAt": "2026-07-19T15:13:16.304Z",
+  "slides": [
+    {
+      "type": "statement",
+      "headline": "Ship faster with Acme",
+      "label": "TOUR",
+      "color": "#14b8a6",
+      "supporting": "Acme helps product teams launch features without drowning in ops toil every sprint cycle.",
+      "animKeys": [
+        "lp:figure:1",
+        "title",
+        "lp:body:2",
+        "lp:body:3"
+      ],
+      "notes": "Source: https://acme.example/"
+    },
+    {
+      "type": "statement",
+      "headline": "Everything in one workspace",
+      "label": "TOUR",
+      "color": "#14b8a6",
+      "supporting": "Explore automations, analytics, and collaboration tools designed for modern product teams.",
+      "animKeys": [
+        "lp:figure:1",
+        "title",
+        "lp:body:2",
+        "lp:body:3"
+      ],
+      "notes": "Source: https://acme.example/features"
+    }
+  ],
+  "autoAnimate": true,
+  "sourceUrls": [
+    "https://acme.example/",
+    "https://acme.example/features"
+  ],
+  "slideSpecs": [
+    {
+      "id": "tour-1",
+      "intent": "statement",
+      "sectionId": "product-tour",
+      "audienceProfileId": "imported",
+      "themePresetId": "imported",
+      "evidenceRefs": [],
+      "assetRefs": [],
+      "citationPolicy": "none",
+      "speakerNotesMode": "prompt",
+      "status": "draft",
+      "speakerNotes": "Source: https://acme.example/",
+      "renderProps": {
+        "label": "TOUR",
+        "color": "#14b8a6"
+      },
+      "contentBlocks": [
+        {
+          "type": "image-ref",
+          "content": "Acme Logo",
+          "imageRef": "https://acme.example/logo.svg",
+          "animKey": "lp:figure:1"
+        },
+        {
+          "type": "headline",
+          "content": "Ship faster with Acme"
+        },
+        {
+          "type": "supporting",
+          "content": "Acme helps product teams launch features without drowning in ops toil every sprint cycle."
+        },
+        {
+          "type": "supporting",
+          "content": "Features · Pricing · Docs",
+          "animKey": "lp:body:2"
+        },
+        {
+          "type": "supporting",
+          "content": "Get started",
+          "animKey": "lp:body:3"
+        },
+        {
+          "type": "supporting",
+          "content": "© 2026 Acme Inc."
+        }
+      ]
+    },
+    {
+      "id": "tour-2",
+      "intent": "statement",
+      "sectionId": "product-tour",
+      "audienceProfileId": "imported",
+      "themePresetId": "imported",
+      "evidenceRefs": [],
+      "assetRefs": [],
+      "citationPolicy": "none",
+      "speakerNotesMode": "prompt",
+      "status": "draft",
+      "speakerNotes": "Source: https://acme.example/features",
+      "renderProps": {
+        "label": "TOUR",
+        "color": "#14b8a6"
+      },
+      "contentBlocks": [
+        {
+          "type": "image-ref",
+          "content": "Acme Logo",
+          "imageRef": "https://acme.example/logo.svg",
+          "animKey": "lp:figure:1"
+        },
+        {
+          "type": "headline",
+          "content": "Everything in one workspace"
+        },
+        {
+          "type": "supporting",
+          "content": "Explore automations, analytics, and collaboration tools designed for modern product teams."
+        },
+        {
+          "type": "supporting",
+          "content": "Features · Pricing · Docs",
+          "animKey": "lp:body:2"
+        },
+        {
+          "type": "supporting",
+          "content": "Get started",
+          "animKey": "lp:body:3"
+        },
+        {
+          "type": "supporting",
+          "content": "© 2026 Acme Inc."
+        }
+      ]
+    }
+  ]
+}
