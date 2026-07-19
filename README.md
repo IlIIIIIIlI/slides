@@ -55,6 +55,19 @@ When a PDF is imported, `lib/generation/extract.ts` uses `@llamaindex/liteparse`
 - Blocks with `_role: "other"` (footers, page numbers, decorative elements) are excluded from the matching pool to prevent spurious morphing.
 - Synthesis is **disabled implicitly** for PPTX and DOCX imports (no spatial bbox available) and when `autoAnimate: false` is set at the deck level (the morph pipeline already short-circuits).
 
+### Product path crawl (multi-URL Flip tours)
+
+Product walkthroughs are often an ordered path of pages (landing → feature → pricing → signup) that share chrome (nav, logo, primary CTA). Instead of authoring a PPTX or hand-writing `animKey`s, you can crawl that path:
+
+1. **Workspace** → Sources → **Product path crawl**, or `POST /api/presentations/crawl` with `{ "urls": ["https://…", "https://…"], "title?": "…" }`.
+2. Each URL is fetched with a plain HTTP GET (static HTML MVP — not a headless SPA crawler). DOM landmarks are turned into spatial blocks by `lib/generation/web-layout-extract.ts` (fixed layout bands for nav/logo/title/body/CTA).
+3. The same `lib/generation/anim-key-synthesis.ts` pipeline used for PDF import assigns stable **`lp:<role>:<n>`** keys across consecutive steps so shared chrome can Flip-morph in the player.
+4. The deck is saved under `data/presentations/` with `autoAnimate` left on; each slide’s notes include `Source: <url>` for traceability.
+
+**Safety:** only `http`/`https` URLs; private/loopback/link-local/metadata hosts are rejected (SSRF guard). At most 12 URLs per request. Fetch failures fail closed (no partial deck published as success).
+
+**Limits:** heavy client-rendered marketing sites may return thin HTML; static or server-rendered product pages work best for MVP.
+
 ## Math support
 
 When uploading Word (.docx) or PowerPoint (.pptx) files that contain equations,
@@ -96,6 +109,18 @@ the slide generator preserves them as LaTeX rather than dropping them.
 
 
 ## Changelog
+
+### 2026-07-19 — Product path crawl into Flip-morphing tour decks
+
+Added a multi-URL **product path crawl** so ordered product pages (landing → feature → pricing, etc.) become a persisted tour deck whose shared UI chrome gets the same `lp:` morph keys as PDF imports.
+
+**Why:** PDF/PPTX import already synthesizes spatial `animKey`s, but real product walkthroughs live on the web as URL sequences. Authors previously had to hand-write keys or flatten a PDF that never saw DOM chrome continuity across steps.
+
+**What shipped:**
+- `lib/generation/web-layout-extract.ts` — jsdom landmark extract with fixed-band bboxes and roles (`title` / `body` / `figure` / `other`) compatible with existing synthesis.
+- `lib/generation/product-crawl.ts` — sequential fetch, SSRF guards, synthesis, player-ready `Slide[]` draft.
+- `POST /api/presentations/crawl` and a workspace **Product path crawl** form (one URL per line).
+- README Auto-Animate section documents the crawl → extract → `lp:` keys flow; MVP is static HTML GET only.
 
 ### 2026-06-23 — animKey synthesis from liteparse spatial bboxes for imported decks
 

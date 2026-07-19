@@ -1,0 +1,19 @@
+=== product-crawl smoke ===
+id: 37779215-e1b9-46e3-bc8e-2043ab21f541
+title: Acme Product Tour (smoke)
+slides: 2
+supporting0: Acme helps product teams launch features without drowning in ops toil every sprint cycle.
+headline0: Ship faster with Acme
+headline1: Everything in one workspace
+animKeys0: ["lp:figure:1","title","lp:body:2","lp:body:3"]
+animKeys1: ["lp:figure:1","title","lp:body:2","lp:body:3"]
+shared lp keys: ["lp:figure:1","lp:body:2","lp:body:3"]
+PASS: shared chrome keys present
+saved: data/presentations/37779215-e1b9-46e3-bc8e-2043ab21f541.json
+
+=== unit tests ===
+134 pass / 0 fail (npm test)
+
+=== API SSRF check ===
+status: 400
+body: {"error":"URL targets a blocked private or local host: 127.0.0.1"}

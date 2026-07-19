@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { SlideImageField } from "@/components/workspace/slide-image-field";
 import { SlideTransfer } from "@/components/workspace/slide-transfer";
+import { ProductCrawlForm } from "@/components/workspace/product-crawl-form";
 import type { Slide, Brand } from "@/app/slides";
 
 // ========================
@@ -501,6 +502,15 @@ function SourcesTab({ selectedId, onSelect, onDeleteDeck }: { selectedId: string
             Generate Slides
           </Button>
         )}
+
+        <Separator />
+
+        <ProductCrawlForm
+          onCreated={(r) => {
+            fetchLibrary();
+            onSelect(r.id);
+          }}
+        />
       </div>
 
       {/* Right: Library */}
